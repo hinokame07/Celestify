@@ -23,12 +23,14 @@ internal fun Lyrics.spicyDocument(duration: Long): LyricsDocument {
             val end = (lines.getOrNull(index + 1)?.timeMs ?: duration).coerceAtLeast(line.timeMs)
             var offset = 0
             val words =
-                line.words.orEmpty().mapNotNull { w ->
-                    val text = w.text.trim().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                line.words.orEmpty().mapIndexedNotNull { i, w ->
+                    val text = w.text.trim().takeIf { it.isNotEmpty() } ?: return@mapIndexedNotNull null
                     val start = line.text.indexOf(text, offset).takeIf { it >= 0 } ?: offset
                     val joined = offset > 0 && start == offset
                     offset = start + text.length
-                    Word(text, w.startMs, maxOf(w.startMs, w.endMs), isPartOfWord = joined)
+                    val until = if (w.endMs > w.startMs) w.endMs
+                        else line.words?.getOrNull(i + 1)?.startMs ?: w.startMs
+                    Word(text, w.startMs, maxOf(w.startMs, until), isPartOfWord = joined)
                 }
             val gap = synced && (line.text.isBlank() || line.text.trim() == "♪")
             Line(

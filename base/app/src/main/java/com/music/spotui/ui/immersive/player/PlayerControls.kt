@@ -12,6 +12,8 @@
  */
 package com.music.spotui.ui.immersive.player
 
+import androidx.compose.ui.semantics.*
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -131,26 +133,38 @@ internal fun formatTime(ms: Long): String {
 internal fun PlayerScrubber(
     state: ImmersivePlayerState,
     onSeek: (Long) -> Unit,
+    glass: Boolean = true,
+    preview: Boolean = true,
 ) {
-    val scrub = rememberPlayerScrub(state.title, state.positionMs, state.durationMs)
+    val scrub = rememberPlayerScrub(state.trackKey, state.positionMs, state.durationMs)
+    val seekLabel = stringResource(R.string.cinema_seek)
     // As many ticks as the bar has pixels to move, as the Classic player's: ~5 a second on a long song.
     val frame = rememberFrameClock(state.playing && !state.buffering, fps = 15)
     Column(Modifier.fillMaxWidth()) {
         ThinSlider(
+            modifier = Modifier.semantics {
+                contentDescription = seekLabel
+                progressBarRangeInfo = ProgressBarRangeInfo(scrub.shown(state.positionMs(),state.durationMs),0f..1f)
+                setProgress { fraction ->
+                    if(state.durationMs <= 0) false
+                    else { onSeek((fraction.coerceIn(0f,1f)*state.durationMs).toLong()); true }
+                }
+            },
+            idleHeight = if(glass) 6.dp else 3.dp,
             value = { frame.value; scrub.shown(state.positionMs(), state.durationMs) },
             onValueChange = scrub::drag,
             onValueChangeFinished = { scrub.release { onSeek((it * state.durationMs).toLong()) } },
             loading = state.buffering && !scrub.scrubbing,
         )
-        ScrubTimes(frame, scrub, state)
+        ScrubTimes(frame, scrub, state, preview)
     }
 }
 
 /** The elapsed and remaining times under the seek bar, read per tick of [frame]. */
 @Composable
-private fun ScrubTimes(frame: State<Long>, scrub: PlayerScrub, state: ImmersivePlayerState) {
+private fun ScrubTimes(frame: State<Long>, scrub: PlayerScrub, state: ImmersivePlayerState, preview:Boolean) {
     frame.value
-    val shown = scrub.shown(state.positionMs(), state.durationMs)
+    val shown = if(scrub.scrubbing && !preview && state.durationMs>0) state.positionMs().toFloat()/state.durationMs else scrub.shown(state.positionMs(), state.durationMs)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,16 +205,14 @@ internal fun CircleGlyph(
     )
     Box(
         modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .background(LocalPlayerTint.current.copy(alpha = discAlpha))
+            .size(48.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
             ) {
                 Haptics.click()
                 onClick()
-            },
+            }.padding(7.dp).background(LocalPlayerTint.current.copy(alpha = discAlpha), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Crossfade(

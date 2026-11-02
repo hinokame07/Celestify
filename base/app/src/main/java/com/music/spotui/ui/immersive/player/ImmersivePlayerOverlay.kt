@@ -50,7 +50,6 @@ private const val SLIDE_SETTLED_PX = 0.5f
 /** A release faster than this (px/s) decides the sheet on its own, either way. */
 private const val FLING_VELOCITY = 1_000f
 
-private val PlayerCardShape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
 private fun slideSpec(reduce: Boolean) = com.music.spotui.ui.immersive.motion.ImmersiveMotion.slideSpring(reduce)
 
@@ -150,11 +149,6 @@ fun ImmersivePlayerOverlay(navController: NavController) {
             .graphicsLayer {
                 val y = if (held.isNaN()) offset.value else held
                 translationY = y
-                // The player rises as a card with rounded top corners, square once it is home.
-                if (y > 0.5f) {
-                    clip = true
-                    shape = PlayerCardShape
-                }
                 alpha = if (primed) 1f else 0f
             }
             // Nothing under the player may take a touch the player leaves alone.

@@ -211,7 +211,7 @@ data class Audiobook(
 
 data class LyricsLine(val startMs: Long, val endMs: Long?, val text: String, val words: List<LyricsWord>? = null)
 
-data class LyricsWord(val startMs: Long, val text: String)
+data class LyricsWord(val startMs: Long, val text: String, val endMs: Long? = null)
 
 data class Lyrics(
     val lines: List<LyricsLine>,

@@ -55,5 +55,6 @@
     <string name="spicy_diagnostics">Diagnóstico das letras</string>
     <string name="spicy_clear_track">Limpar cache de letras desta faixa</string>
     <string name="spicy_track_cleared">Cache da faixa limpo</string>
-    <string name="spicy_native_recovery">A WebView do Android está indisponível. Exibindo as letras no leitor nativo.</string>
+    <string name="native_cinema_title">Modo Cinema</string>
+    <string name="native_hide_controls">Ocultar controles de reprodução</string>
 </resources>

@@ -1,4 +1,0 @@
-# Preserve upstream text in its canonical Git form, including original whitespace.
-third_party/spicy-renderer/src/** text eol=lf -whitespace
-third_party/spicy-cinema/*.ts text eol=lf -whitespace
-base/app/src/main/assets/spicy-cinema/upstream/** text eol=lf -whitespace

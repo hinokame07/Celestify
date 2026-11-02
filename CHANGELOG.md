@@ -2,6 +2,13 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.4.0
+
+- Native Compose music player with separate artwork and controls in landscape, a compact mini-player and an edge-to-edge backdrop.
+- Native Spicy Lyrics Canvas draws timed syllables, duet and background vocals directly against the active player clock. Untimed lyrics have a plain white reader.
+- Native Cinema with full-screen controls, touch seeking, manual scrolling, side swapping on wide screens, and existing muted Canvas and music-video integration.
+- The artwork background runs the Kawarp domain warp in OpenGL ES. The desktop WebView, its JavaScript bridge and its web bundles have been removed from the app.
+
 ## 2.3.1
 
 - Desktop Spicy Lyrics timing, word and letter animation, scrolling, Cinema controls, styles and Kawarp background from revision 34ad8c6.

@@ -143,13 +143,10 @@ fun ImmersiveLyricsPanel(
         val cinema = androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
         val recording = SongPlayer.currentLyricsTrack()?.key
         if (!recording.isNullOrBlank()) {
-            val session = remember { CinemaSession() }
-            androidx.compose.runtime.DisposableEffect(session) { onDispose { session.dispose() } }
-            androidx.compose.runtime.CompositionLocalProvider(LocalCinemaSession provides session) {
-                key(recording) {
-                    SpicyStage(recording, state, vm, modifier, contentPadding, cinema)
-                }
-            }
+            val loaded = state as? LyricsViewModel.State.Loaded
+            val current = if (loaded?.recordingKey != null && loaded.recordingKey != recording)
+                LyricsViewModel.State.Loading else state
+            SpicyStage(recording, current, vm, modifier, contentPadding, cinema)
             return
         }
     }
@@ -918,7 +915,7 @@ private val SKELETON_BLOCK_GAP = 35.dp
 private const val SKELETON_PERIOD_MS = 1_400
 
 @Composable
-private fun LyricsSkeleton(modifier: Modifier = Modifier) {
+internal fun LyricsSkeleton(modifier: Modifier = Modifier) {
     // Under "reduce motion" the band stays off the bars: flat placeholders, nothing endless
     // running.
     val sweep =

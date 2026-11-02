@@ -65,7 +65,7 @@ import com.music.spotui.ui.navigation.PlayerSheet
 import com.music.spotui.ui.viewmodel.PlayerViewModel
 import kotlin.math.abs
 
-private val GLYPH_SLOT = 40.dp
+private val GLYPH_SLOT = 48.dp
 private val GLYPH_SIZE = 32.dp
 private val ART_CORNER = 8.dp
 private val MINI_HEIGHT = 56.dp
@@ -90,7 +90,7 @@ fun ImmersiveMiniPlayer(navController: NavController, modifier: Modifier = Modif
     val playing = vm.currentSongPlayingState.value
     val adPlaying = SongPlayer.adPlaying
     val buffering = SongPlayer.isBuffering
-    val shape = RoundedCornerShape(MINI_HEIGHT / 2)
+    val shape = RoundedCornerShape(18.dp)
     val capsuleSource = remember { MutableInteractionSource() }
 
     Row(
@@ -103,7 +103,7 @@ fun ImmersiveMiniPlayer(navController: NavController, modifier: Modifier = Modif
             .immersiveGlassSurface(shape, interactionSource = capsuleSource, material = com.music.spotui.ui.immersive.shell.DarkCrystal.MOONLIGHT)
             .clip(shape)
             .clickable(interactionSource = capsuleSource, indication = null) { PlayerSheet.show() }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(start = 8.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         GlideImage(

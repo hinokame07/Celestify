@@ -1,7 +1,0 @@
-{
-  "private": true,
-  "type": "module",
-  "scripts": { "build": "node build.mjs" },
-  "dependencies": { "@tanstack/virtual-core":"3.16.0", "cubic-spline":"3.0.3", "d3-ease":"3.0.1", "nanostores":"1.1.0", "simplebar":"6.3.3" },
-  "devDependencies": { "esbuild":"0.25.12" }
-}

@@ -15,6 +15,7 @@ val keystoreProperties = Properties().apply {
 
 
 android {
+    sourceSets.getByName("main").assets.srcDir(rootProject.file("licenses"))
     namespace = "app.myspoti.engine"
     compileSdk = 37
 
@@ -22,9 +23,10 @@ android {
     // signed with the first key, as "Myspoti Beta"; releases are "app.myspoti.stable",
     // signed with their own key, as "Myspoti".
     // Local builds (no version given) are on the beta side, like the phone test builds.
-    val version = (findProperty("appVersionName") as String?) ?: "2.3.1"
+    val version = (findProperty("appVersionName") as String?) ?: "2.4.0"
     // "-beta" as in UpdateChecker.isBeta, one predicate for the app id, the label and the log stripping.
     val beta = findProperty("appVersionName") == null || version.contains("-beta")
+    testOptions.unitTests.isIncludeAndroidResources = true
     defaultConfig {
         applicationId = "app.myspoti.dev" // Preserve the installed Celestify package across releases.
         manifestPlaceholders["appLabel"] = "Celestify"
@@ -33,7 +35,7 @@ android {
         minSdk = 29
         targetSdk = 36
         // CI release builds pass the tag's version (-PappVersionName / -PappVersionCode).
-        versionCode = (findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 2003001
+        versionCode = (findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 2004000
         versionName = version
         // GitHub "owner/repo" whose releases the app checks for updates; empty = off
         // (local builds). CI sets it to the repository it builds.
@@ -114,9 +116,15 @@ dependencies {
     // Jam: scan the invite QR code (Google code scanner, no camera permission).
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation(platform(libs.compose.bom))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("net.sf.kxml:kxml2:2.3.0")
     // The real org.json in unit tests (android.jar only has stubs).
     testImplementation("org.json:json:20240303")
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     implementation(libs.androidx.core.ktx)

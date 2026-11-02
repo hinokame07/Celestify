@@ -104,6 +104,8 @@ fun ThinSlider(
     inactiveColor: Color = Color.White.copy(alpha = 0.26f),
 ) {
     var dragging by remember { mutableStateOf(false) }
+    val drag by androidx.compose.runtime.rememberUpdatedState(onValueChange)
+    val release by androidx.compose.runtime.rememberUpdatedState(onValueChangeFinished)
     val height by animateDpAsState(
         targetValue = if (dragging) activeHeight else idleHeight,
         animationSpec = spring(
@@ -140,7 +142,7 @@ fun ThinSlider(
         modifier = modifier
             .fillMaxWidth()
             // Generous invisible touch target — the visible bar is only ~7dp.
-            .height(activeHeight + 22.dp)
+            .height((activeHeight + 22.dp).coerceAtLeast(44.dp))
             // One gesture loop for both taps and drags. Two separate detectors
             // — a drag one plus a tap one — meant taps never landed: the drag
             // detector took the pointer and a tap has no drag to report.
@@ -148,7 +150,8 @@ fun ThinSlider(
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     dragging = true
-                    onValueChange((down.position.x / size.width).coerceIn(0f, 1f))
+                    down.consume()
+                    drag((down.position.x / size.width).coerceIn(0f, 1f))
 
                     while (true) {
                         val event = awaitPointerEvent()
@@ -158,13 +161,13 @@ fun ThinSlider(
                             break
                         }
                         if (pointer.positionChanged()) {
-                            onValueChange((pointer.position.x / size.width).coerceIn(0f, 1f))
+                            drag((pointer.position.x / size.width).coerceIn(0f, 1f))
                             pointer.consume()
                         }
                     }
 
                     dragging = false
-                    onValueChangeFinished?.invoke()
+                    release?.invoke()
                 }
             },
         contentAlignment = Alignment.Center,

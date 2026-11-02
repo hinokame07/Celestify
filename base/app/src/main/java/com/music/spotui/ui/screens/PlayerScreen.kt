@@ -225,16 +225,6 @@ fun PlayerScreen(navController: NavController) {
     }
     // Track changes cross-fade the background instead of snapping.
     val dominentColor by androidx.compose.animation.animateColorAsState(coverColor, androidx.compose.animation.core.tween(450), label = "cover")
-    // The page's own gradient uses the mini player's colour (same cache entry, so no second
-    // extraction when the mini player has already seen the cover); the muted colour above stays
-    // for the lyrics and as a fallback for covers without a dark vibrant swatch.
-    var tintColor by remember { mutableStateOf(Palette.cachedFirst(songCoverUri)) }
-    LaunchedEffect(songCoverUri) {
-        Palette.cachedFirst(songCoverUri)?.let { tintColor = it; return@LaunchedEffect }
-        if (songCoverUri.isNotBlank()) Palette().extractFirstColorFromImageUrl(context, songCoverUri) { tintColor = it }
-    }
-    val backdropColor by androidx.compose.animation.animateColorAsState(tintColor ?: coverColor, androidx.compose.animation.core.tween(450), label = "backdrop")
-
     val shuffle = playerViewModel.shuffleState.value
     val repeat = playerViewModel.repeatState.value
     val queueSongs = playerViewModel.queue.value
@@ -372,20 +362,9 @@ fun PlayerScreen(navController: NavController) {
         modifier = Modifier
             .graphicsLayer { translationY = pullToClose.offset }
             .fillMaxSize()
-            .background(
-                // The tint follows the cover in BOTH modes: AMOLED used to be pure black, and the
-                // colour was asked for anyway (that replaces the halo idea). The screen keeps its
-                // gradient, the toggle still governs the rest of the app.
-                // Official look: the cover's colour at the top, fading to near-black by the
-                // bottom (still faintly tinted halfway), so white text stays readable.
-                Brush.verticalGradient(
-                    0f to backdropColor,
-                    0.55f to androidx.compose.ui.graphics.lerp(backdropColor, PLAYER_BASE, 0.40f),
-                    0.80f to androidx.compose.ui.graphics.lerp(backdropColor, PLAYER_BASE, 0.78f),
-                    1f to PLAYER_BASE,
-                )
-            )
+            .background(Color.Black)
     ) {
+        if (!showLyrics && (canvasUrl == null || videoOn)) com.music.spotui.ui.immersive.lyrics.SpicyBackdrop(songCoverUri,songSinger,songPlayingState)
         // The window's height (the inner constraints below shadow `maxHeight`) and the status
         // bar's, to size the page item itself: a LazyColumn item cannot ask for "parent minus x".
         val pageHeight = maxHeight
@@ -1609,7 +1588,7 @@ fun PlayerMenuRow(
  */
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-private fun CanvasVideo(url: String, playing: Boolean, onFirstFrame: () -> Unit, modifier: Modifier = Modifier) {
+internal fun CanvasVideo(url: String, playing: Boolean, onFirstFrame: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val exo = remember(url) { com.music.spotui.ui.components.CanvasPlayer.get(context, url) }
     val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
@@ -1651,7 +1630,7 @@ private const val CANVAS_FADE_MS = 680
 /** How much of the lyrics card shows under the buttons (its 8dp margin included). */
 private const val PLAYER_PEEK_DP = 65
 /** The gradient's bottom: near-black with a hint of blue, like the official page. */
-private val PLAYER_BASE = Color(0xFF0F1114)
+
 
 /**
  * Glyphs drawn to look like the official player's (outlined, round-capped strokes). Material's

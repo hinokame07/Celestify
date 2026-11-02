@@ -304,7 +304,12 @@ object LyricsApi {
         val text = sp.text
         val hi = sp.highlight
         return Lyrics(
-            lines = sp.lines.map { l -> LyricLine(l.startMs, l.text, l.words?.map { w -> LyricWord(w.startMs, w.startMs, w.text) }) },
+            lines = sp.lines.map { line ->
+                LyricLine(line.startMs, line.text, line.words?.mapIndexed { i, word ->
+                    val end = word.endMs ?: (if (i == line.words!!.lastIndex) line.endMs else null)
+                    LyricWord(word.startMs, end ?: word.startMs, word.text)
+                })
+            },
             synced = sp.synced,
             language = sp.language,
             provider = sp.provider ?: "Spotify",

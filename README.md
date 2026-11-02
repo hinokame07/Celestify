@@ -20,11 +20,9 @@ Open **Settings → App → Versions on GitHub** and sign in to the private repo
 
 ## Spicy Lyrics on Android
 
-Open the player, tap Lyrics, then open the **…** menu for cinema view, floating lyrics, text size, romanization, translation or importing a TTML for this recording. Choose Spicy, Simple, Refreshed, Minimal, Apple or the existing Celestify view under **Settings → Lyrics**. This integrates the native renderer adapted from [Spicy Lyrics](https://github.com/Spikerko/spicy-lyrics) and [Spicy Lyrics Mobile](https://github.com/spicylyrics/mobile). The app uses its own playback session.
+Open the player, tap **Lyrics**, then tap the **clapperboard** for Cinema. The eye button shows or hides playback controls. The arrows swap the lyrics and artwork on a wide screen. The overflow menu inside Cinema offers video when the active source provides it. The lyrics menu includes TTML imports, romanization, text size and floating lyrics.
 
-Cinema View also has a visible film button in the lyrics header. On tablets it uses a two-pane stage: move lyrics between left and right, switch a supported track between cover and synchronized music video, seek, or use the transport controls. Lyrics without timestamps are always shown as static white text without karaoke effects.
-
-In 2.3.1 the default timed lyrics use the desktop Spicy Lyrics applyers, animator, virtualizer and scroll controller. Cinema runs its original fullscreen controller and artwork-driven Kawarp shader. Tap the artwork to reveal the controls. The layout button can switch a medium tablet from compact to split. The settings gear offers a synchronized music video when available. See the [port inventory and validation report](docs/SPICY_PORT.md).
+Celestify 2.4.0 renders the player and Cinema with Jetpack Compose and synchronized lyrics with the Kotlin Canvas port of Spicy Lyrics Mobile. OpenGL ES draws the artwork background using the Kawarp 1.3.1 domain warp. The existing Spotify audio session, Connect and native media sources continue to supply the playback clock. See the [architecture and native test report](docs/SPICY_PORT.md).
 
 - Syllables, duet alignment, background vocals, credits and embedded translations are preserved when present in the TTML. Static lyrics remain untimed. A temporary preview is kept in session memory. Import permanently to keep the file across restarts. Saved Lyrics in Settings lists imported tracks and can remove their files.
 - The community catalogue is opt-in. Enter a **publishable client key** in Settings → Lyrics to send the current Spotify track ID to Spicy Lyrics. With no key, local files and Celestify's providers work independently. Availability and rate limits belong to each provider.

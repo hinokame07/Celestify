@@ -55,5 +55,6 @@
     <string name="spicy_diagnostics">Lyrics diagnostics</string>
     <string name="spicy_clear_track">Clear the current track’s provider cache</string>
     <string name="spicy_track_cleared">Track cache cleared</string>
-    <string name="spicy_native_recovery">The Android WebView is unavailable. Showing native lyrics.</string>
+    <string name="native_cinema_title">Cinema</string>
+    <string name="native_hide_controls">Hide playback controls</string>
 </resources>

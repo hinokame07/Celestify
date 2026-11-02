@@ -27,6 +27,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
@@ -122,7 +123,9 @@ fun LyricsView(
     maskScale: Float = 1f,
     translation: TranslationPresentation? = null,
     romanizationMode: RomanizationMode = RomanizationMode.Replace,
+    highlightOnHover: Boolean = false,
 ) {
+    var hoverY by remember { mutableFloatStateOf(Float.NaN) }
     val textMeasurer = rememberTextMeasurer()
     // What is on screen: lines and their layouts, swapped together once new layouts are measured.
     // Until then the previous lyrics stay up, so a source switch mid-song (a better answer
@@ -168,6 +171,7 @@ fun LyricsView(
     // composable's body — only the Canvas redraws when the derived anim state actually changes.
     val cap by rememberUpdatedState(frameCap)
     val currentTimeProvider by rememberUpdatedState(currentTimeMs)
+    val seekTo by rememberUpdatedState(onSeekWord)
     val linesUpdated by rememberUpdatedState(shown?.lines.orEmpty())
     val romanizationLinesUpdated by rememberUpdatedState(shown?.romanizationLines)
     val lineLayoutsUpdated by rememberUpdatedState(lineLayouts)
@@ -629,6 +633,15 @@ fun LyricsView(
                     )
                     drawRect(brush = brush, blendMode = BlendMode.DstIn)
                 }
+                .pointerInput(highlightOnHover) {
+                    if(highlightOnHover) awaitPointerEventScope {
+                        while(true) {
+                            val e=awaitPointerEvent()
+                            hoverY=if(e.type==androidx.compose.ui.input.pointer.PointerEventType.Exit) Float.NaN
+                                else e.changes.firstOrNull {it.type==androidx.compose.ui.input.pointer.PointerType.Mouse}?.position?.y ?: Float.NaN
+                        }
+                    }
+                }
                 .pointerInput(scrollManager) {
                     // Interaction: Dragging.
                     detectDragGestures(
@@ -668,14 +681,14 @@ fun LyricsView(
                             val layoutDynamicY = dynamicYOffsets.getOrElse(i) { layout.yOffset } +
                                 (if (refreshedUpdated) ripple.offset(i) else 0f)
                             if (adjustedTapY >= layoutDynamicY && adjustedTapY <= layoutDynamicY + layout.height) {
-                                if (layout.isInterlude || layout.isSongwriter) continue
+                                if (layout.isInterlude || layout.isSongwriter || layout.line.untimed) continue
                                 // Folded background vocals sit under the next line: that one takes the tap.
                                 if ((animStates.getOrNull(i)?.presence ?: 1f) < 0.5f) continue
                                 if (layout.line.words.isNotEmpty()) {
                                     // From the first sung word, which can come after the line's own start.
                                     val start = layout.line.words.first().startMs
                                     haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                    onSeekWord(
+                                    seekTo(
                                         if (scrollConfigUpdated.seekFadeCompensation) {
                                             (start - ScrollConfig.SEEK_FADE_COMPENSATION_MS).coerceAtLeast(0L)
                                         } else start
@@ -749,6 +762,16 @@ fun LyricsView(
             }
             val stillSet = StillSet(lineLayouts, config, size.width, size.height, stillLines)
             val plan = staticLines.plan(stillSet)
+            if(highlightOnHover && hoverY.isFinite()) {
+                shownLines.firstOrNull {
+                    val top=it.scrollOffset+it.dynamicY
+                    hoverY in top..(top+lineLayouts[it.index].height)
+                }?.let {
+                    val layout=lineLayouts[it.index]
+                    drawRoundRect(Color.White.copy(alpha=.075f),Offset(0f,it.scrollOffset+it.dynamicY),
+                        androidx.compose.ui.geometry.Size(size.width,layout.height),androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()))
+                }
+            }
             if (plan == StaticLines.Plan.Direct) {
                 // In order, as each line overlaps the one before it.
                 shownLines.forEach { drawLine(it) }

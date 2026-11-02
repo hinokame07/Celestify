@@ -169,8 +169,11 @@ internal fun SpicyStage(
     val source = (state as? LyricsViewModel.State.Loaded)?.lyrics
     val duration = SongPlayer.getDuration()
     val online by
-        produceState<LyricsDocument?>(null, source, duration) {
-            value = source?.let { withContext(Dispatchers.Default) { it.spicyDocument(duration) } }
+        key(track) {
+            produceState<LyricsDocument?>(null, source, duration) {
+                value =
+                    source?.let { withContext(Dispatchers.Default) { it.spicyDocument(duration) } }
+            }
         }
     var local by remember(track) { mutableStateOf<LyricsDocument?>(null) }
     var revision by remember(track) { mutableIntStateOf(0) }
@@ -209,13 +212,15 @@ internal fun SpicyStage(
     var reload by remember(track) { mutableIntStateOf(0) }
     val catalogueKey = SpicyCatalogue.key
     val hosted by
-        produceState<LyricsDocument?>(null, track, catalogueKey, reload) {
-            value = null
-            value =
-                withContext(Dispatchers.IO) {
-                    runCatching { SpicyCatalogue.lookup(track, catalogueKey, reload > 0) }
-                        .getOrNull()
-                }
+        key(track) {
+            produceState<LyricsDocument?>(null, track, catalogueKey, reload) {
+                value = null
+                value =
+                    withContext(Dispatchers.IO) {
+                        runCatching { SpicyCatalogue.lookup(track, catalogueKey, reload > 0) }
+                            .getOrNull()
+                    }
+            }
         }
     val doc =
         local
@@ -249,6 +254,8 @@ internal fun SpicyStage(
             lettersEnabled = !reduced,
             distanceBlurEnabled = !reduced,
             wordMotionBoost = if (reduced) 0f else 1f,
+            keepOverlappingLines = StagePreference[StageOption.Overlap],
+            refinedCredits = StagePreference[StageOption.RefinedCredits],
             backgroundPop = StagePreference[StageOption.BackgroundVocals],
             wideDuetPadding = StagePreference[StageOption.Duets],
             creditsFollowLastLine = StagePreference[StageOption.Credits],
@@ -270,44 +277,48 @@ internal fun SpicyStage(
             ?.takeIf { it.showTranslation && doc === online }
             ?.translations
     val lines by
-        produceState<List<Line>>(
-            emptyList(),
-            doc,
-            romanize,
-            config.minimalLyricsMode,
-            translations,
-        ) {
-            value =
-                withContext(Dispatchers.Default) {
-                    val original =
-                        doc?.lines.orEmpty().mapIndexed { i, line ->
-                            line.copy(translation = line.translation ?: translations?.getOrNull(i))
-                        }
-                    val converted =
-                        if (!romanize) original
-                        else {
-                            val transliterator =
-                                android.icu.text.Transliterator.getInstance("Any-Latin")
-                            original.map { line ->
+        key(track) {
+            produceState<List<Line>>(
+                emptyList(),
+                doc,
+                romanize,
+                config.minimalLyricsMode,
+                translations,
+            ) {
+                value =
+                    withContext(Dispatchers.Default) {
+                        val original =
+                            doc?.lines.orEmpty().mapIndexed { i, line ->
                                 line.copy(
-                                    words =
-                                        line.words.map { word ->
-                                            if (word.romanizedText != null) word
-                                            else
-                                                word.copy(
-                                                    romanizedText =
-                                                        transliterator
-                                                            .transliterate(word.text)
-                                                            .takeIf { it != word.text }
-                                                )
-                                        }
+                                    translation = line.translation ?: translations?.getOrNull(i)
                                 )
                             }
-                        }
-                    if (doc?.type == LyricsType.Static || converted.any { it.isInterlude })
-                        converted
-                    else buildDisplayTimeline(converted, config.minimalLyricsMode)
-                }
+                        val converted =
+                            if (!romanize) original
+                            else {
+                                val transliterator =
+                                    android.icu.text.Transliterator.getInstance("Any-Latin")
+                                original.map { line ->
+                                    line.copy(
+                                        words =
+                                            line.words.map { word ->
+                                                if (word.romanizedText != null) word
+                                                else
+                                                    word.copy(
+                                                        romanizedText =
+                                                            transliterator
+                                                                .transliterate(word.text)
+                                                                .takeIf { it != word.text }
+                                                    )
+                                            }
+                                    )
+                                }
+                            }
+                        if (doc?.type == LyricsType.Static || converted.any { it.isInterlude })
+                            converted
+                        else buildDisplayTimeline(converted, config.minimalLyricsMode)
+                    }
+            }
         }
     val presentation =
         remember(lines) {
@@ -317,22 +328,6 @@ internal fun SpicyStage(
             else null
         }
     val view = remember(track, doc) { LyricsViewState() }
-    // Keep the alternatives that carry a native-only presentation (under-line translations,
-    // individual untimed lines within a synced document, Apple style and accessibility).
-    val useDesktop =
-        !reduced &&
-            style != StageStyle.Apple &&
-            doc != null &&
-            doc.type != LyricsType.Static &&
-            lines.none { it.untimed || (doc.type == LyricsType.Syllable && it.lineTimed) }
-    val document by
-        key(track, doc, lines, useDesktop) {
-            produceState<String?>(null) {
-                if (useDesktop && doc != null && lines.isNotEmpty())
-                    value =
-                        withContext(Dispatchers.Default) { desktopLyrics(lines, doc).toString() }
-            }
-        }
     val playing = com.music.spotui.di.Graph.currentSongState.playingState.value
     var showDiagnostics by remember { mutableStateOf(false) }
     if (showDiagnostics)
@@ -345,8 +340,7 @@ internal fun SpicyStage(
                             track,
                             doc?.footer?.provenance?.provider.orEmpty(),
                             doc?.type?.name.orEmpty(),
-                            if (document != null) "Spicy Lyrics Desktop"
-                            else "Spicy Lyrics Android",
+                            "Spicy Lyrics · Android",
                             "t = ${SongPlayer.getCurrentPosition()} / ${SongPlayer.getDuration()} ms",
                             "Δ = ${AtmospherePref.lyricsOffsetMs} ms",
                         )
@@ -387,7 +381,6 @@ internal fun SpicyStage(
                             SongPlayer.seekTo(
                                 LyricTiming.seekPosition(it, AtmospherePref.lyricsOffsetMs)
                             )
-                            SongPlayer.play()
                         },
                         modifier = Modifier.fillMaxSize(),
                         config = config,
@@ -396,7 +389,8 @@ internal fun SpicyStage(
                         romanize = romanize,
                         romanizationMode = RomanizationMode.UnderLine,
                         translation = presentation,
-                        isPlaying = playing,
+                        isPlaying = playing && !SongPlayer.isBuffering,
+                        highlightOnHover = StagePreference[StageOption.Hover],
                         viewState = view,
                         frameCap =
                             if (reduced) 30
@@ -410,7 +404,8 @@ internal fun SpicyStage(
                         Modifier.align(Alignment.Center),
                         style = Immersive.Subhead,
                     )
-            } else CircularProgressIndicator(Modifier.align(Alignment.Center))
+            } else if (StagePreference[StageOption.Skeleton]) LyricsSkeleton(Modifier.fillMaxSize())
+            else CircularProgressIndicator(Modifier.align(Alignment.Center))
             if (!floating && doc?.type != LyricsType.Static && view.activeLineDirection != null) {
                 com.music.spotui.ui.components.FollowLyricsButton(
                     Modifier.align(Alignment.BottomCenter)
@@ -420,34 +415,10 @@ internal fun SpicyStage(
             }
         }
     }
-    val scene: @Composable (Modifier, Boolean) -> Unit = { frame, inline ->
-        SpicyCinema(
-            track,
-            lyricsOnLeft,
-            {
-                lyricsOnLeft = !lyricsOnLeft
-                prefs.edit().putBoolean("cinema_lyrics_left", lyricsOnLeft).apply()
-            },
-            romanize,
-            {
-                romanize = !romanize
-                prefs.edit().putBoolean("romanize", romanize).apply()
-            },
-            state is LyricsViewModel.State.NotFound && doc == null,
-            { cinema = false },
-            inline,
-            frame,
-            document,
-            scale,
-            state is LyricsViewModel.State.Loading && doc == null,
-            lyricsBody,
-        )
-    }
     val content: @Composable (Modifier) -> Unit = { frame ->
         Column(frame) {
             val viewport: @Composable () -> Unit = {
-                if (floating && document == null) lyricsBody(Modifier.weight(1f).fillMaxWidth())
-                else scene(Modifier.weight(1f).fillMaxWidth(), true)
+                lyricsBody(Modifier.weight(1f).fillMaxWidth())
             }
             val bottom = StagePreference[StageOption.BottomControls]
             if (bottom) viewport()
@@ -568,7 +539,31 @@ internal fun SpicyStage(
                     }
                 }
             if (!bottom) viewport()
+            if (floating && StagePreference[StageOption.PopupDock])
+                Text(
+                    com.music.spotui.di.Graph.currentSongState.title.value,
+                    Modifier.fillMaxWidth().padding(6.dp),
+                    color = androidx.compose.ui.graphics.Color.White,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
         }
     }
-    if (cinema) scene(Modifier.fillMaxSize(), false) else content(modifier.padding(inset))
+    if (cinema)
+        SpicyCinema(
+            track,
+            lyricsOnLeft,
+            {
+                lyricsOnLeft = !lyricsOnLeft
+                prefs.edit().putBoolean("cinema_lyrics_left", lyricsOnLeft).apply()
+            },
+            { cinema = false },
+            romanize,
+            {
+                romanize = !romanize
+                prefs.edit().putBoolean("romanize", romanize).apply()
+            },
+            lyricsBody,
+        )
+    else content(modifier.padding(inset))
 }

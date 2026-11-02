@@ -72,6 +72,7 @@ data class ImmersivePlayerState(
     val deviceName: String? = null,
     /** The track as the options sheet wants it; null while nothing is known. */
     val song: SongsModel? = null,
+    val trackKey: String = title,
 )
 
 /** What the player does; nothing here touches the UI, the screen owns its sheets and panels. */
@@ -141,6 +142,7 @@ fun rememberImmersivePlayer(navController: NavController): ImmersivePlayerBridge
         buffering = buffering,
         positionMs = remember { { SongPlayer.getCurrentPosition() } },
         durationMs = duration,
+        trackKey = np.uri.ifBlank { SongPlayer.currentTrackId.ifBlank { "$title|$singer" } },
         shuffle = shuffle,
         smart = smart,
         repeatMode = repeat,

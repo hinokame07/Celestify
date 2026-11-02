@@ -395,12 +395,15 @@ fun LyricsScreen(
         if (meaning == null) com.music.spotui.data.api.GeniusMeaning.prefetch(trackId, title, artist, lang)
     }
 
+    val spicy = com.music.spotui.ui.immersive.lyrics.StagePreference.style != com.music.spotui.ui.immersive.lyrics.StageStyle.Celestify
+    Box(Modifier.fillMaxSize()) {
+        if(spicy) com.music.spotui.ui.immersive.lyrics.SpicyBackdrop(com.music.spotui.di.Graph.currentSongState.coverUri.value, artist, playing)
     Column(
         modifier = Modifier
             .fillMaxSize()
             // The background comes in over the first instants so the card's own lines
             // dissolve under it instead of vanishing on the first frame.
-            .drawBehind { drawRect(bg, alpha = if (reveal == null) 1f else (reveal() / 0.08f).coerceIn(0f, 1f)) }
+            .drawBehind { if(!spicy) drawRect(bg, alpha = if (reveal == null) 1f else (reveal() / 0.08f).coerceIn(0f, 1f)) }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {})
             .statusBarsPadding()
             .navigationBarsPadding(),
@@ -565,6 +568,7 @@ fun LyricsScreen(
                 )
             }
         }
+    }
     }
 }
 

@@ -24,6 +24,7 @@ class LyricsViewModel constructor() : ViewModel() {
             val translating: Boolean = false,
             val translationChecked: Boolean = false,
             val translationRequested: Boolean = false,
+            val recordingKey: String? = null,
         ) : State()
         object NotFound : State()
     }
@@ -66,6 +67,7 @@ class LyricsViewModel constructor() : ViewModel() {
 
     private fun loadedState(lyrics: com.music.spotui.data.entity.Lyrics) = State.Loaded(
         lyrics = lyrics,
+        recordingKey = loadedKey,
         sourceLanguage = lyrics.language,
         translationChecked = lyrics.language != null,
     )

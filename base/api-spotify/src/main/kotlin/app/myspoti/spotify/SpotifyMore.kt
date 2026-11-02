@@ -340,14 +340,18 @@ class SpotifyTrackExtras(private val gql: Gql, private val bridge: Bridge, priva
         val r = http.getJson("https://spclient.wg.spotify.com/color-lyrics/v2/track/${idOf(trackUri)}?format=json&vocalRemoval=false&market=from_token")
             ?: return null
         val l = r.obj("lyrics") ?: return null
-        val synced = l.str("syncType") != "UNSYNCED"
+        val synced = l.str("syncType") in setOf("LINE_SYNCED", "SYLLABLE_SYNCED", "WORD_SYNCED")
         val lines = l.list("lines").map { line ->
             val start = line.long("startTimeMs") ?: 0
             LyricsLine(
                 startMs = start,
                 endMs = line.long("endTimeMs")?.takeIf { it > 0 },
                 text = line.str("words") ?: "",
-                words = line.list("syllables").mapNotNull { s -> s.str("words")?.let { LyricsWord(s.long("startTimeMs") ?: start, it) } }.ifEmpty { null },
+                words = line.list("syllables").mapNotNull { s ->
+                    val onset = s.long("startTimeMs") ?: return@mapNotNull null
+                    val text = s.str("words") ?: return@mapNotNull null
+                    LyricsWord(onset, text, s.long("endTimeMs")?.takeIf { it > onset })
+                }.ifEmpty { null },
             )
         }.filter { it.text.isNotBlank() || synced }
         return Lyrics(lines, synced, l.str("language"), l.str("providerDisplayName") ?: l.str("provider"),
