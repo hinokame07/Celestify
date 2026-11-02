@@ -51,6 +51,21 @@ class NativeCinemaTest {
     }
 
     @Test
+    fun videoColorsFollowTheFrameAndIgnoreTransparentPixels() {
+        val frame =
+            android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
+        assertNull(CinemaLight.from(frame))
+        frame.eraseColor(android.graphics.Color.RED)
+        val first = CinemaLight.from(frame)!!
+        frame.eraseColor(android.graphics.Color.BLUE)
+        val next = CinemaLight.from(frame)!!
+        assertTrue(first.middle.red > first.middle.blue && next.middle.blue > next.middle.red)
+        for (y in 0..3) for (x in 0 until 12) frame.setPixel(x, y, android.graphics.Color.GREEN)
+        val bands = CinemaLight.from(frame)!!
+        assertTrue(bands.upper.green > bands.upper.blue && bands.lower.blue > bands.lower.green)
+    }
+
+    @Test
     fun clapperboardOpensAndClosesTheNativeDialogTwice() {
         val vm = com.music.spotui.ui.viewmodel.LyricsViewModel()
         var recording by mutableStateOf("track-A")
@@ -75,6 +90,14 @@ class NativeCinemaTest {
             ui.onNodeWithContentDescription("Open Cinema View").performTouchInput { click() }
             frames()
             ui.onNodeWithTag("cinema").assertIsDisplayed()
+            ui.onNodeWithTag("cinema-more").performTouchInput { click() }
+            frames()
+            val toggle = ui.onNodeWithText("Show album cover only")
+            toggle.performTouchInput { click() }
+            frames()
+            assertEquals(it == 0, StagePreference[StageOption.CoverOnly])
+            ui.onNodeWithText("OK").performTouchInput { click() }
+            frames()
             val screen = ui.onNodeWithTag("cinema").fetchSemanticsNode().id
             ui.runOnIdle { recording = if (recording == "track-A") "track-B" else "track-A" }
             frames()
@@ -167,6 +190,7 @@ class NativeCinemaTest {
                     { closed = true },
                     {},
                     artwork = { Box(it.background(Color.DarkGray)) },
+                    videoLayer = { Box(it.background(Color.Blue)) },
                     lyrics = { box ->
                         LyricsView(
                             lines,
@@ -208,6 +232,9 @@ class NativeCinemaTest {
             frames()
         }
         frames(1500)
+        val film = ui.onNodeWithTag("cinema-film")
+        val portrait = film.fetchSemanticsNode().boundsInRoot
+        assertTrue(portrait.width > portrait.height && portrait.left == 0f)
         button("Play")
         assertTrue(playing)
         button("Pause")
@@ -235,9 +262,16 @@ class NativeCinemaTest {
         ui.runOnIdle { wide = true }
         frames()
         val before = area.fetchSemanticsNode().boundsInRoot
+        val filmLeft = film.fetchSemanticsNode().boundsInRoot
+        assertEquals(
+            ui.onNodeWithTag("cinema").fetchSemanticsNode().boundsInRoot.height,
+            filmLeft.height,
+            1f,
+        )
         ui.onNodeWithTag("cinema-swap").performTouchInput { click() }
         frames()
         val after = area.fetchSemanticsNode().boundsInRoot
+        assertTrue(film.fetchSemanticsNode().boundsInRoot.left > filmLeft.left)
         assertTrue(
             "swap=$left before=$before after=$after root=" +
                 ui.onRoot().fetchSemanticsNode().boundsInRoot,

@@ -125,13 +125,18 @@ object TtmlLyricsParser {
         val songwriters = getSongwriters(metadata)
         val transliterations = getTransliterations(metadata)
         val translated = TranslationLookup(getTranslations(metadata))
-        val oppositeAgents = metadata?.elements("ttm:agent").orEmpty()
-            .filter { !it.isPlain && (it["xml:id"] == "v2" || it["xml:id"] == "v2000") }
-            .mapNotNull { it["xml:id"] }.toSet()
+        val voices = divs.flatMap { div -> div.elements("p").mapNotNull { p ->
+            p["ttm:agent"] ?: div["ttm:agent"] ?: body["ttm:agent"]
+        } }.distinct()
+        val conventional = (voices + metadata?.elements("ttm:agent").orEmpty().mapNotNull { it["xml:id"] })
+            .filter { it == "v2" || it == "v2000" }.toSet()
+        val oppositeAgents = if (conventional.isEmpty() && voices.size == 2)
+            setOf(if ("v1" in voices) voices.first { it != "v1" } else voices.last())
+            else conventional
 
         val lines = when (type) {
-            LyricsType.Static -> staticLines(divs, translated)
-            LyricsType.Line -> lineSyncedLines(divs, transliterations, translated)
+            LyricsType.Static -> staticLines(divs, translated, body["ttm:agent"], oppositeAgents)
+            LyricsType.Line -> lineSyncedLines(divs, transliterations, translated, body["ttm:agent"], oppositeAgents)
             // v1 is the main vocal; a declared v2 or v2000 sings from the other side.
             LyricsType.Syllable -> syllableLines(divs, body, transliterations, translated) { agent -> agent in oppositeAgents }
         }.let(::placeUntimed)
@@ -161,15 +166,16 @@ object TtmlLyricsParser {
         return if (sawTiming) LyricsType.Line else LyricsType.Static
     }
 
-    private fun staticLines(divs: List<Element>, translated: TranslationLookup): List<Line> = divs
+    private fun staticLines(divs: List<Element>, translated: TranslationLookup, bodyAgent:String?, oppositeAgents:Set<String>): List<Line> = divs
         .filter { it["itunes:songPart"] != "Instrumental" && it["itunes:songPart"] != "Outro" }
-        .flatMap { it.elements("p") }
-        .mapNotNull { p ->
+        .flatMap { div -> div.elements("p").map { it to (it["ttm:agent"] ?: div["ttm:agent"] ?: bodyAgent) } }
+        .mapNotNull { (p,agent) ->
             val text = getLineText(p).orEmpty()
             // Static lyrics only take the inline x-roman span, never iTunesMetadata.
             val roman = inlineRoleTexts(p).roman?.trim().orEmpty()
             if (!hasLyricsText(text) && !hasLyricsText(roman)) return@mapNotNull null
             Line(listOf(Word(display(text), 0L, 0L, romanizedText = roman.ifEmpty { null })), 0L, 0L,
+                agent=agent, oppositeAligned=p["spicy:oppositeAligned"]?.toBooleanStrictOrNull() ?: (agent in oppositeAgents),
                 translation = translated.lead(p))
         }
 
@@ -177,10 +183,11 @@ object TtmlLyricsParser {
         divs: List<Element>,
         transliterations: Map<String, TransliterationLine>?,
         translated: TranslationLookup,
+        bodyAgent:String?, oppositeAgents:Set<String>,
     ): List<Line> = divs
         .filter { it["itunes:songPart"] != "Instrumental" }
-        .flatMap { it.elements("p") }
-        .mapNotNull { p ->
+        .flatMap { div -> div.elements("p").map { it to (it["ttm:agent"] ?: div["ttm:agent"] ?: bodyAgent) } }
+        .mapNotNull { (p,agent) ->
             val vocalSpans = p.elements("span").filter(::isVocalSpan)
             val start = convertTimeToSeconds(p["begin"] ?: vocalSpans.firstOrNull()?.get("begin"))
             val end = convertTimeToSeconds(p["end"] ?: vocalSpans.lastOrNull()?.get("end"))
@@ -194,10 +201,9 @@ object TtmlLyricsParser {
             if (!hasLyricsText(text) && !hasLyricsText(roman)) return@mapNotNull null
             val startMs = ms(start) ?: 0L
             val endMs = (ms(end) ?: startMs).coerceAtLeast(startMs)
-            // Line-synced lines are never duet-aligned from TTML; our own converter says so explicitly.
-            val opposite = p["spicy:oppositeAligned"]?.toBooleanStrictOrNull() ?: false
+            val opposite = p["spicy:oppositeAligned"]?.toBooleanStrictOrNull() ?: (agent in oppositeAgents)
             Line(listOf(Word(display(text.orEmpty()), startMs, endMs, romanizedText = roman)), startMs, endMs,
-                agent = p["ttm:agent"], oppositeAligned = opposite, translation = translated.lead(p), untimed = start == null)
+                agent = agent, oppositeAligned = opposite, translation = translated.lead(p), untimed = start == null)
         }
 
     private fun syllableLines(

@@ -53,6 +53,15 @@ class TtmlLyricsParserTest {
         assertEquals(listOf(false, true, false), parse(doc("<div>$body</div>", head = head)).lines.map { it.oppositeAligned })
     }
 
+    @Test fun lineAndStaticDuetsInheritTheSingerWithoutAlternatingSoloVerses() {
+        val body="""<div ttm:agent="lead"><p begin="1" end="2">One</p><p begin="3" end="4">Two</p></div><div ttm:agent="guest"><p begin="5" end="6">Three</p></div>"""
+        for(type in listOf("Line","Static")){
+            val lines=parse(doc(body,timing=type)).lines
+            assertEquals(listOf("lead","lead","guest"),lines.map {it.agent})
+            assertEquals(listOf(false,false,true),lines.map {it.oppositeAligned})
+        }
+    }
+
     @Test fun instrumentalSectionsAndEmptyLinesAreSkipped() {
         val body = """<div itunes:songPart="Instrumental"><p begin="0" end="1"><span begin="0" end="1">skip</span></p></div>""" +
             """<div><p begin="1" end="2"><span begin="1" end="2"> </span></p><p begin="2" end="3"><span begin="2" end="3">keep</span></p></div>"""

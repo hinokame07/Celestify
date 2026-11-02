@@ -38,9 +38,14 @@ internal fun SpicyBackdrop(
     artist: String,
     playing: Boolean,
     modifier: Modifier = Modifier,
+    coverSource: Boolean = false,
 ) {
     val pref = StagePreference
-    val style = if (AtmospherePref.dynamicColors) pref.background else StageBackground.None
+    val style = when {
+        !AtmospherePref.dynamicColors -> StageBackground.None
+        coverSource && pref.background == StageBackground.Artist -> StageBackground.Dynamic
+        else -> pref.background
+    }
     val reduced = rememberReduceMotion()
     val context = LocalContext.current.applicationContext
     val uri by

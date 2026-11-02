@@ -57,4 +57,5 @@
     <string name="spicy_track_cleared">Track cache cleared</string>
     <string name="native_cinema_title">Cinema</string>
     <string name="native_hide_controls">Hide playback controls</string>
+    <string name="cinema_cover_only">Show album cover only</string>
 </resources>

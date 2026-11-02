@@ -75,7 +75,7 @@ import kotlinx.coroutines.delay
  * the rest of the UI. Only the [active] surface receives the frames.
  */
 @Composable
-fun VideoSurface(modifier: Modifier = Modifier, active: Boolean = true, fitHeight: Boolean = false, pip: Boolean = false, onTap: (() -> Unit)? = null) {
+fun VideoSurface(modifier: Modifier = Modifier, active: Boolean = true, fitHeight: Boolean = false, pip: Boolean = false, onTexture: ((android.view.TextureView?) -> Unit)? = null, onTap: (() -> Unit)? = null) {
     val ratio = MusicVideoController.aspect.floatValue.coerceIn(0.4f, 3f)
     var view by remember { mutableStateOf<android.view.TextureView?>(null) }
     val player = MusicVideoController.player
@@ -85,7 +85,9 @@ fun VideoSurface(modifier: Modifier = Modifier, active: Boolean = true, fitHeigh
         val v = view
         val attached = player != null && v != null && active && mine
         if (attached) { player!!.setVideoTextureView(v); MusicVideoController.surfaces++ }
+        if (attached) onTexture?.invoke(v)
         onDispose {
+            if (attached) onTexture?.invoke(null)
             if (attached) MusicVideoController.surfaces--
             if (player != null && v != null) player.clearVideoTextureView(v)
         }

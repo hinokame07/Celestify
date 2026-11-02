@@ -5,16 +5,26 @@ import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -92,9 +102,11 @@ internal fun SpicyCinema(
         val motion = StagePreference[StageOption.MotionBackground] && !reduced
         val energy by app.myspoti.power.EnergySettings.state.collectAsStateWithLifecycle()
         val pref = StagePreference
+        val coverOnly = pref[StageOption.CoverOnly]
         val background = pref.background
         val canvasAllowed =
-            pref[StageOption.Canvas] &&
+            !coverOnly && !video &&
+                pref[StageOption.Canvas] &&
                 background == StageBackground.Dynamic &&
                 motion &&
                 dynamic &&
@@ -107,6 +119,13 @@ internal fun SpicyCinema(
         }
         val canvas =
             vm.canvasState.value.takeIf { canvasAllowed && it.trackId == track }?.url.orEmpty()
+        val showClip = !coverOnly && video
+        val movingMedia = showClip || canvas.isNotBlank()
+        val surface =
+            remember(track, showClip, canvas, coverOnly) {
+                mutableStateOf<android.view.TextureView?>(null)
+            }
+        val ambient = videoLight(surface.value.takeIf { movingMedia && dynamic }, playing, reduced)
         val window = (LocalView.current.parent as? DialogWindowProvider)?.window
         DisposableEffect(window) {
             val bars = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
@@ -135,7 +154,8 @@ internal fun SpicyCinema(
             options = false
         }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
-            SpicyBackdrop(cover, artist, playing)
+            if (ambient != null) CinemaVideoBackground(ambient, reduced)
+            else SpicyBackdrop(cover, artist, playing, coverSource = true)
             NativeCinemaLayout(
                 state,
                 lyricsLeft,
@@ -152,16 +172,35 @@ internal fun SpicyCinema(
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                         )
-                        if (video) VideoSurface(Modifier.fillMaxSize())
-                        else if (canvas.isNotBlank())
-                            CanvasVideo(
-                                canvas,
-                                playing,
-                                onFirstFrame = {},
-                                modifier = Modifier.fillMaxSize(),
-                            )
                     }
                 },
+                videoLayer =
+                    if (!movingMedia) null
+                    else
+                        { mod ->
+                            key(track, showClip, canvas) {
+                                if (showClip)
+                                    BoxWithConstraints(
+                                        mod.clipToBounds(),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        val ratio = mv.aspect.floatValue.coerceIn(.4f, 3f)
+                                        val width = maxOf(maxWidth, maxHeight * ratio)
+                                        VideoSurface(
+                                            Modifier.requiredSize(width, width / ratio),
+                                            onTexture = { surface.value = it },
+                                        )
+                                    }
+                                else
+                                    CanvasVideo(
+                                        canvas,
+                                        playing,
+                                        onFirstFrame = {},
+                                        modifier = mod,
+                                        onTexture = { surface.value = it },
+                                    )
+                            }
+                        },
                 lockedCover = pref[StageOption.LockedCover],
                 lyrics = lyrics,
                 transport = {
@@ -197,7 +236,20 @@ internal fun SpicyCinema(
                 onDismissRequest = { options = false },
                 title = { Text(stringResource(R.string.native_cinema_title)) },
                 text = {
-                    Column {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .toggleable(
+                                    value = coverOnly,
+                                    role = androidx.compose.ui.semantics.Role.Switch,
+                                    onValueChange = { pref.set(StageOption.CoverOnly, it) },
+                                )
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(stringResource(R.string.cinema_cover_only), Modifier.weight(1f))
+                            Switch(coverOnly, null)
+                        }
                         TextButton({ vm.updateLikeState(!vm.likeState.value) }) {
                             Text(
                                 stringResource(
@@ -230,7 +282,7 @@ internal fun SpicyCinema(
                             Switch(romanize, { toggleRomanize() })
                         }
                         if (pref[StageOption.Volume]) VolumeRow(volume)
-                        if (videoReady)
+                        if (videoReady && !coverOnly)
                             TextButton(showVideo) {
                                 Text(
                                     stringResource(
@@ -259,16 +311,68 @@ internal fun NativeCinemaLayout(
     close: () -> Unit,
     more: () -> Unit,
     artwork: @Composable (Modifier) -> Unit,
+    videoLayer: (@Composable (Modifier) -> Unit)? = null,
     lockedCover: Boolean = false,
     lyrics: @Composable (Modifier) -> Unit,
     transport: @Composable () -> Unit,
 ) {
-    BoxWithConstraints(
-        Modifier.fillMaxSize().displayCutoutPadding().safeDrawingPadding().testTag("cinema")
-    ) {
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("cinema")) {
         val split = maxWidth >= 600.dp && maxWidth > maxHeight
         val gutter = if (split) 24.dp else 16.dp
-        Column(Modifier.fillMaxSize().padding(horizontal = gutter)) {
+        val videoHeight = (maxHeight * .36f).coerceAtMost(320.dp)
+        if (videoLayer != null) {
+            val area =
+                if (split)
+                    Modifier.align(
+                            if (lyricsLeft) AbsoluteAlignment.CenterRight
+                            else AbsoluteAlignment.CenterLeft
+                        )
+                        .fillMaxHeight()
+                        .fillMaxWidth(.52f)
+                else Modifier.align(Alignment.TopCenter).fillMaxWidth().height(videoHeight)
+            videoLayer(
+                area
+                    .testTag("cinema-film")
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithCache {
+                        val mask =
+                            when {
+                                !split ->
+                                    Brush.verticalGradient(
+                                        0f to Color.Black,
+                                        .66f to Color.Black,
+                                        1f to Color.Transparent,
+                                    )
+                                lyricsLeft ->
+                                    Brush.horizontalGradient(
+                                        0f to Color.Transparent,
+                                        .31f to Color.Black,
+                                        1f to Color.Black,
+                                    )
+                                else ->
+                                    Brush.horizontalGradient(
+                                        0f to Color.Black,
+                                        .69f to Color.Black,
+                                        1f to Color.Transparent,
+                                    )
+                            }
+                        val shade =
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.Black.copy(alpha = .25f),
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = .58f),
+                                )
+                            )
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(shade)
+                            drawRect(mask, blendMode = BlendMode.DstIn)
+                        }
+                    }
+            )
+        }
+        Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = gutter)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(close, Modifier.testTag("cinema-close")) {
                     Icon(
@@ -302,7 +406,7 @@ internal fun NativeCinemaLayout(
                         tint = Color.White,
                     )
                 }
-                IconButton(more) {
+                IconButton(more, Modifier.testTag("cinema-more")) {
                     Icon(
                         Icons.Rounded.MoreHoriz,
                         stringResource(R.string.immersive_player_more),
@@ -333,48 +437,75 @@ internal fun NativeCinemaLayout(
                     gutter,
                     lyrics = lyrics,
                     media = {
-                        BoxWithConstraints(Modifier.fillMaxSize()) {
-                            val artSize =
-                                minOf(
-                                    maxWidth,
-                                    (maxHeight - (if (controls) 184.dp else 72.dp)).coerceAtLeast(
-                                        48.dp
-                                    ),
-                                )
-                            Column(
-                                Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                artwork(
-                                    Modifier.size(artSize)
+                        if (videoLayer != null)
+                            Column(Modifier.fillMaxSize().padding(bottom = 8.dp)) {
+                                Spacer(
+                                    Modifier.fillMaxWidth()
+                                        .weight(1f)
                                         .clickable(
                                             onClickLabel = stringResource(R.string.cinema_controls),
                                             onClick = toggleControls,
                                         )
                                 )
-                                Spacer(Modifier.height(8.dp))
                                 metadata()
                                 if (controls) transport()
                             }
-                        }
+                        else
+                            BoxWithConstraints(Modifier.fillMaxSize()) {
+                                val artSize =
+                                    minOf(
+                                        maxWidth,
+                                        (maxHeight - (if (controls) 184.dp else 72.dp))
+                                            .coerceAtLeast(48.dp),
+                                    )
+                                Column(
+                                    Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    artwork(
+                                        Modifier.size(artSize)
+                                            .clickable(
+                                                onClickLabel =
+                                                    stringResource(R.string.cinema_controls),
+                                                onClick = toggleControls,
+                                            )
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    metadata()
+                                    if (controls) transport()
+                                }
+                            }
                     },
                 )
             else {
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    artwork(
-                        Modifier.size(if (controls && !lockedCover) 80.dp else 60.dp)
+                if (videoLayer != null)
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .height((videoHeight - 64.dp).coerceAtLeast(64.dp))
                             .clickable(
                                 onClickLabel = stringResource(R.string.cinema_controls),
                                 onClick = toggleControls,
-                            )
-                    )
-                    Column(Modifier.weight(1f)) { metadata() }
-                }
+                            ),
+                        verticalArrangement = Arrangement.Bottom,
+                    ) {
+                        metadata()
+                    }
+                else
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        artwork(
+                            Modifier.size(if (controls && !lockedCover) 80.dp else 60.dp)
+                                .clickable(
+                                    onClickLabel = stringResource(R.string.cinema_controls),
+                                    onClick = toggleControls,
+                                )
+                        )
+                        Column(Modifier.weight(1f)) { metadata() }
+                    }
                 lyrics(Modifier.weight(1f).fillMaxWidth().testTag("cinema-lyrics"))
                 if (controls) transport()
             }

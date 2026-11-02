@@ -1,4 +1,14 @@
-# Celestify 2.4.0 · player, letras e Cinema nativos
+# Celestify · player, letras e Cinema nativos
+
+## Cinema na versão 2.4.1
+
+Em **Cinema → ⋯ → Mostrar somente a capa**, o app troca o vídeo ou Canvas pela capa da faixa e guarda a escolha. Desative a opção para voltar ao vídeo disponível. A seleção controla a imagem da tela e preserva a reprodução de áudio.
+
+Em paisagem, o vídeo ocupa a lateral inteira e se mistura ao fundo na borda voltada para os versos. A seta dupla espelha essa composição. Em retrato, o vídeo ocupa uma faixa larga acima das letras. Com cores dinâmicas habilitadas, ambos os formatos leem uma miniatura de 12 × 12 da textura que já mostra o vídeo. Três regiões do quadro fornecem as cores do fundo, com novas amostras a cada 350 ms durante a reprodução e transição suave entre cenas. Na ausência de quadros legíveis ou em **Mostrar somente a capa**, a capa volta a alimentar o fundo.
+
+Letras com identificação de duas vozes podem apresentar versos em lados opostos com TTML por sílaba, por linha ou sem sincronização. Uma indicação explícita de alinhamento no arquivo tem precedência. Letras sem marcação de cantor conservam o alinhamento normal.
+
+Na suíte de 2.4.1, 714 testes passaram e 32 foram ignorados. Em Compose/Robolectric foram verificados o botão de capa no menu, as dimensões do vídeo em retrato e paisagem, a troca de lateral, a extração de novas cores de quadros controlados e a leitura de duetos. O teste instrumental adicional envia quadros vermelhos e azuis à mesma TextureView em retrato para conferir a atualização automática. Ele requer um dispositivo Android e não integra essa contagem. Não havia aparelho conectado para reproduzir um clipe de catálogo nesta rodada.
 
 ## Auditoria da versão substituída
 
@@ -33,7 +43,7 @@ A sessão Spotify herdada do Myspoti continua usando o Web Player interno para a
 
 ## Reprodução dos testes
 
-O comando de verificação usado a partir de `base` é `gradlew :app:testDebugUnitTest :host-android:testDebugUnitTest :api-spotify:test :extensions:test :host-cdp:test :app:assembleDebugAndroidTest :app:assembleRelease -PoverDev`. As cinco suítes registraram 744 testes, com 712 aprovações, 32 ignorados e zero falhas. O teste da claquete abriu e fechou o diálogo duas vezes pelo toque e verificou que o mesmo nó de tela permaneceu montado ao trocar a gravação.
+O comando de verificação usado a partir de `base` é `gradlew :app:testDebugUnitTest :host-android:testDebugUnitTest :api-spotify:test :extensions:test :host-cdp:test :app:assembleDebugAndroidTest :app:assembleRelease -PoverDev`. Em 2.4.0 as cinco suítes registraram 744 testes, com 712 aprovações, 32 ignorados e zero falhas. O teste da claquete abriu e fechou o diálogo duas vezes pelo toque e verificou que o mesmo nó de tela permaneceu montado ao trocar a gravação.
 
 O teste instrumental `WarpSurfaceDeviceTest` está em `base/app/src/androidTest`. Com um dispositivo conectado, `gradlew :app:connectedDebugAndroidTest` exercita a superfície Android real e verifica seus cantos após redimensionar. Ele não está incluído nas 712 aprovações.
 

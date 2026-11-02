@@ -2,6 +2,12 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.4.1
+
+- Cinema offers **Show album cover only** in its overflow menu. The choice persists across tracks.
+- Music videos and Canvas loops fill the side of the cinema in landscape or the top of the screen in portrait. The ambient colors update from the displayed video frames on both phones and tablets.
+- Line-timed and untimed TTML duets now retain singer alignment, including singer tags inherited from a verse.
+
 ## 2.4.0
 
 - Native Compose music player with separate artwork and controls in landscape, a compact mini-player and an edge-to-edge backdrop.

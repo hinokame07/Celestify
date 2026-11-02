@@ -68,6 +68,7 @@ internal enum class StageOption(val label: Int, val initial: Boolean) {
     Timeline(R.string.spicy_timeline, true),
     Volume(R.string.cinema_volume, true),
     LockedCover(R.string.spicy_lock_cover, false),
+    CoverOnly(R.string.cinema_cover_only, false),
     Hover(R.string.spicy_hover, true),
     Canvas(R.string.spicy_canvas, true),
     GlassSlider(R.string.spicy_glass_slider, true),

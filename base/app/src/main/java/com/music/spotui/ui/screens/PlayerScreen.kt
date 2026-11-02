@@ -1588,7 +1588,8 @@ fun PlayerMenuRow(
  */
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-internal fun CanvasVideo(url: String, playing: Boolean, onFirstFrame: () -> Unit, modifier: Modifier = Modifier) {
+internal fun CanvasVideo(url: String, playing: Boolean, onFirstFrame: () -> Unit, modifier: Modifier = Modifier,
+    onTexture: ((android.view.TextureView?) -> Unit)? = null) {
     val context = LocalContext.current
     val exo = remember(url) { com.music.spotui.ui.components.CanvasPlayer.get(context, url) }
     val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
@@ -1612,7 +1613,8 @@ internal fun CanvasVideo(url: String, playing: Boolean, onFirstFrame: () -> Unit
     androidx.compose.ui.viewinterop.AndroidView(
         modifier = modifier,
         // factory runs once; a new track's clip gets a new player, so rebind it here.
-        update = { it.player = exo },
+        update = { it.player = exo; onTexture?.invoke(it.videoSurfaceView as? android.view.TextureView) },
+        onRelease = { it.player = null; onTexture?.invoke(null) },
         factory = { ctx ->
             // Inflated: the surface type (texture view) can only be set from XML.
             (android.view.LayoutInflater.from(ctx).inflate(R.layout.canvas_player_view, null) as androidx.media3.ui.PlayerView).apply {

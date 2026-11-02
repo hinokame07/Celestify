@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.music.spotui.ui.immersive.Immersive
@@ -49,8 +51,11 @@ internal fun SpicyStaticLyrics(
             items(lines.filterNot { it.isInterlude }) { line ->
                 val text = spicyStaticLineText(line, romanize)
                 if (text.isNotBlank()) {
+                    val align=if(line.oppositeAligned) TextAlign.End else TextAlign.Start
                     Text(
                         text = text,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = align,
                         style =
                             Immersive.Lyric.copy(
                                 color = Color.White,
@@ -59,7 +64,7 @@ internal fun SpicyStaticLyrics(
                             ),
                     )
                     line.translation?.takeIf(String::isNotBlank)?.let { translated ->
-                        Text(text = translated, style = Immersive.Body.copy(color = Color.White))
+                        Text(text = translated, modifier=Modifier.fillMaxWidth(), textAlign=align, style = Immersive.Body.copy(color = Color.White))
                     }
                 }
             }

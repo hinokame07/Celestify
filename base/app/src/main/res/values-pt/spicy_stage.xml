@@ -57,4 +57,5 @@
     <string name="spicy_track_cleared">Cache da faixa limpo</string>
     <string name="native_cinema_title">Modo Cinema</string>
     <string name="native_hide_controls">Ocultar controles de reprodução</string>
+    <string name="cinema_cover_only">Mostrar somente a capa</string>
 </resources>

@@ -19,6 +19,29 @@ class WarpSurfaceDeviceTest {
     @get:Rule val ui = createComposeRule()
 
     @Test
+    fun portraitVideoLightChangesWhenTheSameSurfaceGetsANewFrame() {
+        var view: android.view.TextureView? by mutableStateOf(null)
+        var light: CinemaLight? = null
+        ui.setContent {
+            AndroidView(factory={ctx->android.view.TextureView(ctx).also { view=it }},
+                modifier=Modifier.requiredSize(96.dp,192.dp))
+            val current=videoLight(view,playing=true,reduced=false)
+            SideEffect { light=current }
+        }
+        ui.waitUntil(8000) { ui.runOnIdle { view?.isAvailable==true } }
+        fun postFrame(color:Int) = ui.runOnIdle {
+            val target=requireNotNull(view)
+            val canvas=requireNotNull(target.lockCanvas())
+            canvas.drawColor(color)
+            target.unlockCanvasAndPost(canvas)
+        }
+        postFrame(android.graphics.Color.RED)
+        ui.waitUntil(8000) { ui.runOnIdle { light?.middle?.red?.let { it>.6f }==true } }
+        postFrame(android.graphics.Color.BLUE)
+        ui.waitUntil(8000) { ui.runOnIdle { light?.middle?.blue?.let { it>.6f }==true } }
+    }
+
+    @Test
     fun shaderCoversBothEdgesAfterResize() {
         val cover =
             Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888).apply {
