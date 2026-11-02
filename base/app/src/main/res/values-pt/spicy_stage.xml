@@ -23,4 +23,7 @@
     <string name="spicy_library">Letras salvas</string>
     <string name="spicy_library_empty">Importe um TTML pelo menu da letra para começar.</string>
     <string name="spicy_remove_file">Remover a letra salva de %1$s?</string>
+    <string name="spicy_cinema">Abrir modo Cinema</string>
+    <string name="spicy_swap_side">Mover a letra para o outro lado</string>
+    <string name="spicy_static_reading">Sem sincronização · leitura simples</string>
 </resources>

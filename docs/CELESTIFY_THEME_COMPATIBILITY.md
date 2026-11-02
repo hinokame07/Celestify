@@ -6,6 +6,14 @@ Celestify is a GPL-3.0 derivative of [Myspoti](https://github.com/kota-zo/myspot
 
 The browser in Extensions → Themes accepts public `https://github.com/owner/repository` URLs. It discovers `color.ini`, `user.css`, and `celestify.json` in the default branch. Files are fetched from one immutable commit, so the preview and installed palette cannot mix revisions. Installation stores a native JSON configuration; no repository code runs in the application.
 
+## Glassify native profile
+
+`https://github.com/sanoojes/spicetify-glassify` is handled by a dedicated Android adapter. Upstream Glassify intentionally keeps only an empty `[dark]` section in `color.ini`; its desktop appearance comes from a TypeScript extension and SCSS. A palette-only converter would therefore report it as unsupported.
+
+Celestify recognizes the exact upstream repository (not repositories that merely copy its name) and maps its artwork background, dark translucent surfaces, blur and floating-player design to native Celestify primitives. Applying the profile enables dynamic artwork colors and Liquid Glass while keeping reduced-motion and Android-version fallbacks. Its installed effect profile is stored atomically with the palette and works offline.
+
+The adapter does not execute `theme.js`, remote JavaScript, arbitrary CSS, analytics, custom URLs or Spotify Desktop DOM patches. Desktop-only geometry, next-song cards and window controls do not map one-to-one to Android. The theme screen labels this as a native Glassify profile and still reports partial desktop compatibility.
+
 Spicetify's [theme specification](https://spicetify.app/docs/development/themes) targets Spotify Desktop. Celestify does not reproduce its DOM or CSS layouts.
 
 | Source | Native token |
@@ -15,7 +23,7 @@ Spicetify's [theme specification](https://spicetify.app/docs/development/themes)
 | `card`, fallback `player` | elevated surface |
 | `text` | primary text |
 | `subtext` | secondary text |
-| `button` | accent |
+| `button-active`, `button`, `accent` | accent (first available) |
 
 INI sections become selectable color schemes. Hex RGB, short hex RGB and decimal RGB are accepted. CSS-only themes can supply these same `--spice-*` color variables. Desktop selectors, positioning, animations, arbitrary URLs, font loading, scripts, environment variables and unsupported color expressions are ignored. INI is authoritative when present. Theme geometry and the bundled licensed Inter font remain native.
 

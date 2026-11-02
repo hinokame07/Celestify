@@ -23,4 +23,7 @@
     <string name="spicy_library">Saved lyrics</string>
     <string name="spicy_library_empty">Import a TTML from the lyrics menu to begin.</string>
     <string name="spicy_remove_file">Remove the saved lyrics for %1$s?</string>
+    <string name="spicy_cinema">Open Cinema View</string>
+    <string name="spicy_swap_side">Move lyrics to the other side</string>
+    <string name="spicy_static_reading">Unsynchronised · plain reading mode</string>
 </resources>

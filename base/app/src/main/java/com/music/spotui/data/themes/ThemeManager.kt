@@ -38,10 +38,16 @@ object ThemeManager {
         require(preview.converted.compatibility != ThemeCompatibility.UNSUPPORTED)
         val candidate = preview.candidate
         val item = InstalledTheme(candidate.id, preview.name, preview.author, candidate.repository, candidate.path, candidate.revision, scheme,
-            preview.converted.schemes.getValue(scheme), preview.converted.compatibility)
+            preview.converted.schemes.getValue(scheme), preview.converted.compatibility, preview.converted.effects)
         change { old -> old.copy(installed = old.installed.filterNot { it.id == item.id } + item, applied = old.active) }
     }
-    suspend fun activate(id: String) = change { old -> val item = old.installed.first { it.id == id }; old.copy(activeId = id, applied = item) }
+    suspend fun activate(id: String) {
+        change { old -> val item = old.installed.first { it.id == id }; old.copy(activeId = id, applied = item) }
+        snapshot.active?.effects?.let { effects ->
+            if (effects.preferLiquidGlass) com.music.spotui.data.preferences.LiquidGlassPref.set(Graph.app, true)
+            if (effects.dynamicArtwork) com.music.spotui.data.preferences.AtmospherePref.setDynamicColors(Graph.app, true)
+        }
+    }
     suspend fun reset() = change { it.copy(activeId = null, applied = null) }
     suspend fun remove(id: String) = change { old -> old.copy(installed = old.installed.filterNot { it.id == id }, activeId = old.activeId.takeUnless { it == id }, applied = old.applied.takeUnless { it?.id == id }) }
 }

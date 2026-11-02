@@ -7,12 +7,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class InstalledTheme(val id: String, val name: String, val author: String, val repository: String, val path: String, val revision: String,
-    val scheme: String, val colors: NativeColors, val compatibility: ThemeCompatibility) {
+    val scheme: String, val colors: NativeColors, val compatibility: ThemeCompatibility, val effects: NativeEffects = NativeEffects()) {
     fun json() = JSONObject().put("id", id).put("name", name).put("author", author).put("repository", repository).put("path", path)
-        .put("revision", revision).put("scheme", scheme).put("colors", colors.json()).put("compatibility", compatibility.name)
+        .put("revision", revision).put("scheme", scheme).put("colors", colors.json()).put("compatibility", compatibility.name).put("effects", effects.json())
     companion object {
         fun read(o: JSONObject) = InstalledTheme(o.getString("id"), o.getString("name"), o.getString("author"), o.getString("repository"), o.getString("path"),
-            o.getString("revision"), o.getString("scheme"), SpicetifyParser.normalize(NativeColors.read(o.getJSONObject("colors"))), ThemeCompatibility.valueOf(o.getString("compatibility")))
+            o.getString("revision"), o.getString("scheme"), SpicetifyParser.normalize(NativeColors.read(o.getJSONObject("colors"))), ThemeCompatibility.valueOf(o.getString("compatibility")),
+            NativeEffects.read(o.optJSONObject("effects")))
     }
 }
 data class ThemeSnapshot(val installed: List<InstalledTheme> = emptyList(), val activeId: String? = null, val applied: InstalledTheme? = null) {

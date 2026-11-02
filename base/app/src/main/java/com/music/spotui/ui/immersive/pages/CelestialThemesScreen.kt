@@ -33,7 +33,7 @@ fun CelestialThemesScreen(back: () -> Unit) {
     val resources = androidx.compose.ui.platform.LocalResources.current
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("celestify-marketplace", 0) }
-    var repo by rememberSaveable { mutableStateOf(prefs.getString("repository", "https://github.com/spicetify/spicetify-themes").orEmpty()) }
+    var repo by rememberSaveable { mutableStateOf(prefs.getString("repository", "https://github.com/sanoojes/spicetify-glassify").orEmpty()) }
     var catalog by remember { mutableStateOf<List<ThemeCandidate>>(emptyList()) }
     val inspected = remember { mutableStateMapOf<String, ThemePreview>() }
     val previewSlots = remember { kotlinx.coroutines.sync.Semaphore(3) }
@@ -94,6 +94,8 @@ fun CelestialThemesScreen(back: () -> Unit) {
                     Text(selected.description, style = Immersive.Body)
                     Text(compatibilityLabel(selected.converted.compatibility), color = Immersive.Accent, style = Immersive.BodyStrong)
                     Text(stringResource(R.string.themes_compatibility_detail), style = Immersive.Caption)
+                    ThemeEffectSummary(selected.converted.effects)
+                    selected.converted.notices.distinct().forEach { Text("• $it", style = Immersive.Caption) }
                     val bitmap = remember(selected) {
                         selected.screenshot?.let { data ->
                             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -131,7 +133,13 @@ fun CelestialThemesScreen(back: () -> Unit) {
                     ImmersiveSegmentedControl(listOf(stringResource(R.string.themes_discover), stringResource(R.string.themes_installed), stringResource(R.string.themes_updates)), section, { section = it }, Modifier.fillMaxWidth())
                     if (section == 0) {
                         OutlinedTextField(repo, { repo = it }, label = { Text(stringResource(R.string.themes_repository)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                        Button(enabled = busy == null, onClick = { discover() }) { Text(stringResource(R.string.themes_browse)) }
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(enabled = busy == null, onClick = { discover() }) { Text(stringResource(R.string.themes_browse)) }
+                            OutlinedButton(enabled = busy == null, onClick = {
+                                repo = "https://github.com/sanoojes/spicetify-glassify"
+                                discover()
+                            }) { Text(stringResource(R.string.themes_glassify_featured)) }
+                        }
                     }
                     if (section == 2) Button(enabled = busy == null, onClick = { work(resources.getString(R.string.themes_loading)) {
                         val found = mutableListOf<ThemeCandidate>()
@@ -164,6 +172,7 @@ fun CelestialThemesScreen(back: () -> Unit) {
                     Text(installed.name, style = Immersive.Headline)
                     Text("${installed.author} · ${installed.scheme}", style = Immersive.Subhead)
                     Text(compatibilityLabel(installed.compatibility), style = Immersive.Caption)
+                    ThemeEffectSummary(installed.effects)
                     NativeThemePreview(installed.colors)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(enabled = busy == null, onClick = { work(resources.getString(R.string.themes_saving)) { ThemeManager.activate(installed.id) } }) { Text(stringResource(if (snapshot.active == installed) R.string.themes_active else R.string.themes_apply)) }
@@ -191,6 +200,16 @@ private fun compatibilityLabel(value: ThemeCompatibility) = stringResource(when 
 })
 
 @Composable
+private fun ThemeEffectSummary(effects: NativeEffects) {
+    if (effects.presentation != ThemePresentation.GLASSIFY) return
+    Text(
+        stringResource(R.string.themes_glassify_native),
+        color = Immersive.Accent,
+        style = Immersive.Caption,
+    )
+}
+
+@Composable
 private fun ThemeCard(name: String, author: String, description: String, action: String, enabled: Boolean, onClick: () -> Unit, preview: ThemePreview? = null) {
     Column(Modifier.fillMaxWidth().padding(horizontal = Immersive.Gutter, vertical = 8.dp).clip(Immersive.Card).background(Immersive.Secondary).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(name, style = Immersive.Headline)
@@ -198,6 +217,7 @@ private fun ThemeCard(name: String, author: String, description: String, action:
         Text(description, style = Immersive.Caption, maxLines = 3)
         preview?.let {
             Text(compatibilityLabel(it.converted.compatibility), style = Immersive.Caption, color = Immersive.Accent)
+            ThemeEffectSummary(it.converted.effects)
             it.converted.schemes.values.firstOrNull()?.let { colors -> NativeThemePreview(colors) }
         }
         TextButton(enabled = enabled, onClick = onClick) { Text(action) }

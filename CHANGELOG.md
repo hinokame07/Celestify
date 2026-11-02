@@ -2,6 +2,12 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.3.0
+
+- Apple Music-inspired black and neutral color system with artwork-driven ambient accents.
+- Native Glassify compatibility profile with translucent surfaces, Liquid Glass and safe offline persistence.
+- Spicy Lyrics Cinema View for tablets with side swapping, synced music videos and complete transport controls; unsynchronised lyrics use a plain all-white reader.
+
 ## 2.2.0
 
 - Adaptive album colors, unified menus and grouped settings.

@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,20 +29,32 @@ object Immersive {
     // Colours.
     private val gold: Boolean get() = CelestialThemePref.theme == CelestialTheme.GOLD
     private val adaptive get() = CelestialThemePref.theme == CelestialTheme.ADAPTIVE
-    private val artwork get() = if (adaptive && AtmospherePref.dynamicColors) ArtworkAccent.color else null
+    private val importedTheme get() = com.music.spotui.data.themes.ThemeManager.snapshot.active
     private val imported get() = com.music.spotui.data.themes.ThemeManager.snapshot.active?.colors
-    val Page: Color get() = imported?.let { Color(it.background) } ?: if (gold) Color(0xFF080706) else Color(0xFF050507)
-    val Secondary: Color get() = imported?.let { Color(it.surface) } ?: if (gold) Color(0xFF1B1814) else if (adaptive) artworkSurface(Color(0xFF141414), 0.05f) else Color(0xFF0D1016)
-    val Raised: Color get() = imported?.let { Color(it.elevated) } ?: if (gold) Color(0xFF252119) else if (adaptive) artworkSurface(Color(0xFF222222), 0.08f) else Color(0xFF171B24)
+    private val effects get() = importedTheme?.effects
+    private val artwork get() = if (AtmospherePref.dynamicColors && (adaptive || effects?.dynamicArtwork == true)) ArtworkAccent.color else null
+    val Page: Color get() {
+        val base = imported?.let { Color(it.background) } ?: if (gold) Color(0xFF050402) else Color.Black
+        return artworkSurface(base, effects?.surfaceTint?.times(.45f) ?: 0f)
+    }
+    val Secondary: Color get() {
+        val base = imported?.let { Color(it.surface) } ?: if (gold) Color(0xFF1C1A16) else Color(0xFF1C1C1E)
+        return artworkSurface(base, effects?.surfaceTint ?: if (adaptive) .045f else 0f)
+    }
+    val Raised: Color get() {
+        val base = imported?.let { Color(it.elevated) } ?: if (gold) Color(0xFF2C2921) else Color(0xFF2C2C2E)
+        return artworkSurface(base, (effects?.surfaceTint ?: if (adaptive) .07f else 0f) * 1.25f)
+    }
     private fun artworkSurface(base: Color, tint: Float) = artwork?.let { lerp(base, it, tint) } ?: base
     val Separator: Color get() = Text.copy(alpha = 0.10f)
-    val Text: Color get() = imported?.let { Color(it.text) } ?: if (gold) Color(0xFFFFF9ED) else if (adaptive) Color(0xFFF5F5F5) else Color(0xFFF7F9FF)
-    val TextSecondary: Color get() = imported?.let { Color(it.secondary) } ?: if (gold) Color(0xFFC6BAA7) else if (adaptive) Color(0xFFB3B3B3) else Color(0xFFA8B2C3)
+    val Text: Color get() = imported?.let { Color(it.text) } ?: if (gold) Color(0xFFFFFAED) else Color(0xFFF5F5F7)
+    val TextSecondary: Color get() = imported?.let { Color(it.secondary) } ?: if (gold) Color(0xFFC7BFAE) else Color(0xFFA1A1A6)
     val TextTertiary: Color get() = TextSecondary
-    val Accent: Color get() = imported?.let { Color(it.accent) } ?: artwork ?: CelestialThemePref.theme.accent
-    val OnAccent: Color get() = Color(0xFF090B10)
-    val GlassFill: Color get() = Secondary.copy(alpha = 0.84f)
-    val GlassEdge: Color get() = Accent.copy(alpha = 0.18f)
+    val Accent: Color get() = if (effects?.dynamicArtwork == true) artwork ?: imported?.let { Color(it.accent) } ?: CelestialThemePref.theme.accent
+        else imported?.let { Color(it.accent) } ?: artwork ?: CelestialThemePref.theme.accent
+    val OnAccent: Color get() = if (Accent.luminance() < .34f) Color.White else Color.Black
+    val GlassFill: Color get() = Secondary.copy(alpha = effects?.glassOpacity ?: 0.78f)
+    val GlassEdge: Color get() = lerp(Text, Accent, .45f).copy(alpha = if (effects?.presentation == com.music.spotui.data.themes.ThemePresentation.GLASSIFY) .26f else .16f)
     /** The red of a destructive swipe, menu entry or confirmation (Leave, Remove, an error). */
     val Destructive = Color(0xFFFF453A)
 

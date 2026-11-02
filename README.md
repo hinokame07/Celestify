@@ -8,6 +8,8 @@ To personalize your account on this device, tap the avatar on Home and choose **
 
 See the [build instructions](docs/CELESTIFY_BUILD.md), [device and release checks](docs/CELESTIFY_MIDNIGHT_VALIDATION.md) and [theme compatibility notes](docs/CELESTIFY_THEME_COMPATIBILITY.md).
 
+Open **Extensions → Themes** to import a public Spicetify theme. Glassify has a dedicated Android profile with artwork-driven color, translucent surfaces and native Liquid Glass; remote desktop scripts and CSS are never executed.
+
 ## Credits and licensing
 
 Celestify retains the [GPL-3.0 license](LICENSE) and credits the original Myspoti authors. Distribute the complete corresponding source with the application. The [upstream README and credits](README.upstream.md), [third-party notices](THIRD_PARTY_NOTICES.md) and [bundled licenses](base/licenses/) accompany this project.
@@ -19,6 +21,8 @@ Open **Settings → App → Versions on GitHub** and sign in to the private repo
 ## Spicy Lyrics on Android
 
 Open the player, tap Lyrics, then open the **…** menu for cinema view, floating lyrics, text size, romanization, translation or importing a TTML for this recording. Choose Spicy, Simple, Refreshed, Minimal, Apple or the existing Celestify view under **Settings → Lyrics**. This integrates the native renderer adapted from [Spicy Lyrics](https://github.com/Spikerko/spicy-lyrics) and [Spicy Lyrics Mobile](https://github.com/spicylyrics/mobile). The app uses its own playback session.
+
+Cinema View also has a visible film button in the lyrics header. On tablets it uses a two-pane stage: move lyrics between left and right, switch a supported track between cover and synchronized music video, seek, or use the transport controls. Lyrics without timestamps are always shown as static white text without karaoke effects.
 
 - Syllables, duet alignment, background vocals, credits and embedded translations are preserved when present in the TTML. Static lyrics remain untimed. A temporary preview is kept in session memory. Import permanently to keep the file across restarts. Saved Lyrics in Settings lists imported tracks and can remove their files.
 - The community catalogue is opt-in. Enter a **publishable client key** in Settings → Lyrics to send the current Spotify track ID to Spicy Lyrics. With no key, local files and Celestify's providers work independently. Availability and rate limits belong to each provider.

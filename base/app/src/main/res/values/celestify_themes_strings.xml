@@ -1,6 +1,6 @@
 <resources>
     <string name="themes_title">Themes</string>
-    <string name="themes_intro">Discover GitHub themes and preview their native dark palette before applying.</string>
+    <string name="themes_intro">Import Spicetify themes as safe native Android appearances. Glassify receives its own dynamic glass profile.</string>
     <string name="themes_error">Unable to load themes. Check your connection and try again.</string>
     <string name="themes_loading">Loading theme…</string>
     <string name="themes_saving">Saving theme…</string>
@@ -30,4 +30,6 @@
     <string name="themes_unsupported">Unsupported · No convertible palette</string>
     <string name="themes_native_preview">Native preview</string>
     <string name="themes_preview_caption">Your music, your atmosphere</string>
+    <string name="themes_glassify_featured">Open Glassify</string>
+    <string name="themes_glassify_native">Native Glassify profile · artwork atmosphere · translucent surfaces · Liquid Glass</string>
 </resources>

@@ -36,7 +36,7 @@ private fun premiumDarkColorScheme(accent: Color) = darkColorScheme(
     onSurfaceVariant = AppMuted,
     surfaceTint = Color.Transparent,
     surfaceDim = AppBackground,
-    surfaceBright = Color(0xFF303038),
+    surfaceBright = Color(0xFF48484A),
     surfaceContainerLowest = AppBackground,
     surfaceContainerLow = com.music.spotui.ui.immersive.Immersive.Secondary,
     surfaceContainer = com.music.spotui.ui.immersive.Immersive.Raised,
@@ -45,10 +45,10 @@ private fun premiumDarkColorScheme(accent: Color) = darkColorScheme(
     inverseSurface = Color.White,
     inverseOnSurface = Color.Black,
     inversePrimary = accent,
-    outline = Color(0xFF777781),
-    outlineVariant = Color(0xFF3A3A42),
-    error = Color(0xFFF3727F),
-    onError = Color.Black,
+    outline = Color(0xFF8E8E93),
+    outlineVariant = Color(0xFF38383A),
+    error = Color(0xFFFF453A),
+    onError = Color.White,
     scrim = Color.Black,
 )
 
@@ -101,7 +101,8 @@ fun SpotuiTheme(
     val immersive = com.music.spotui.data.preferences.LookPref.look == com.music.spotui.data.preferences.Look.IMMERSIVE
     androidx.compose.runtime.LaunchedEffect(Unit) { com.music.spotui.data.themes.ThemeManager.load() }
     if (com.music.spotui.data.preferences.AtmospherePref.dynamicColors &&
-        com.music.spotui.data.preferences.CelestialThemePref.theme == com.music.spotui.data.preferences.CelestialTheme.ADAPTIVE) {
+        (com.music.spotui.data.preferences.CelestialThemePref.theme == com.music.spotui.data.preferences.CelestialTheme.ADAPTIVE ||
+            com.music.spotui.data.themes.ThemeManager.snapshot.active?.effects?.dynamicArtwork == true)) {
         com.music.spotui.ui.immersive.BindArtworkAccent()
     }
     val light = com.music.spotui.data.preferences.AppearancePref.activeLight

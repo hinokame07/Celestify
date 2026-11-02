@@ -4,6 +4,41 @@ import org.json.JSONObject
 import kotlin.math.pow
 
 enum class ThemeCompatibility { FULL, PARTIAL, UNSUPPORTED }
+enum class ThemePresentation { STANDARD, GLASSIFY }
+
+/** Native-only rendering hints. Remote CSS and JavaScript are never executed. */
+data class NativeEffects(
+    val presentation: ThemePresentation = ThemePresentation.STANDARD,
+    val dynamicArtwork: Boolean = false,
+    val glassOpacity: Float = .84f,
+    val surfaceTint: Float = 0f,
+    val preferLiquidGlass: Boolean = false,
+) {
+    fun json() = JSONObject()
+        .put("presentation", presentation.name)
+        .put("dynamicArtwork", dynamicArtwork)
+        .put("glassOpacity", glassOpacity.toDouble())
+        .put("surfaceTint", surfaceTint.toDouble())
+        .put("preferLiquidGlass", preferLiquidGlass)
+
+    companion object {
+        fun read(o: JSONObject?) = if (o == null) NativeEffects() else NativeEffects(
+            presentation = runCatching { ThemePresentation.valueOf(o.optString("presentation")) }.getOrDefault(ThemePresentation.STANDARD),
+            dynamicArtwork = o.optBoolean("dynamicArtwork"),
+            glassOpacity = o.optDouble("glassOpacity", .84).toFloat().coerceIn(.35f, .96f),
+            surfaceTint = o.optDouble("surfaceTint", 0.0).toFloat().coerceIn(0f, .18f),
+            preferLiquidGlass = o.optBoolean("preferLiquidGlass"),
+        )
+
+        val Glassify = NativeEffects(
+            presentation = ThemePresentation.GLASSIFY,
+            dynamicArtwork = true,
+            glassOpacity = .70f,
+            surfaceTint = .08f,
+            preferLiquidGlass = true,
+        )
+    }
+}
 data class NativeColors(val background: Int, val surface: Int, val elevated: Int, val text: Int, val secondary: Int, val accent: Int) {
     fun json() = JSONObject().put("background", background).put("surface", surface).put("elevated", elevated)
         .put("text", text).put("secondary", secondary).put("accent", accent)
@@ -11,7 +46,44 @@ data class NativeColors(val background: Int, val surface: Int, val elevated: Int
         fun read(o: JSONObject) = NativeColors(o.getInt("background"), o.getInt("surface"), o.getInt("elevated"), o.getInt("text"), o.getInt("secondary"), o.getInt("accent"))
     }
 }
-data class ConvertedTheme(val schemes: Map<String, NativeColors>, val compatibility: ThemeCompatibility, val notices: List<String>)
+data class ConvertedTheme(
+    val schemes: Map<String, NativeColors>,
+    val compatibility: ThemeCompatibility,
+    val notices: List<String>,
+    val effects: NativeEffects = NativeEffects(),
+)
+
+/**
+ * Android profile for sanoojes/spicetify-glassify (AGPL-3.0).
+ *
+ * Glassify's repository-level color.ini intentionally contains only `[dark]`; its appearance is
+ * produced by a TypeScript extension and SCSS. Celestify does not execute that desktop code. It
+ * recognizes the upstream repository and maps its documented/default artwork background, dark
+ * glass, blur and floating-player intent onto Celestify's native renderer instead.
+ */
+object GlassifyAdapter {
+    const val REPOSITORY = "sanoojes/spicetify-glassify"
+    private val colors = NativeColors(
+        background = 0xff000000.toInt(),
+        surface = 0xff1c1c1e.toInt(),
+        elevated = 0xff2c2c2e.toInt(),
+        text = 0xfff5f5f7.toInt(),
+        secondary = 0xffa1a1a6.toInt(),
+        accent = 0xffff5c74.toInt(),
+    )
+
+    fun adapt(repository: String, manifest: JSONObject?, converted: ConvertedTheme): ConvertedTheme {
+        if (repository.lowercase() != REPOSITORY) return converted
+        val manifestName = manifest?.optString("name").orEmpty()
+        require(manifestName.isBlank() || manifestName.equals("Glassify", ignoreCase = true)) { "Unexpected Glassify manifest" }
+        return ConvertedTheme(
+            schemes = if (converted.schemes.isEmpty()) mapOf("Glassify · Dynamic" to colors) else converted.schemes,
+            compatibility = ThemeCompatibility.PARTIAL,
+            notices = converted.notices + "Glassify is rendered natively with artwork colors, translucent surfaces and Liquid Glass. Desktop scripts are not executed.",
+            effects = NativeEffects.Glassify,
+        )
+    }
+}
 
 /** Native conversion v1. CSS is inspected as text, never executed or rendered. */
 object SpicetifyParser {
@@ -32,12 +104,12 @@ object SpicetifyParser {
     fun contrast(a: Int, b: Int): Double = (maxOf(luminance(a), luminance(b)) + .05) / (minOf(luminance(a), luminance(b)) + .05)
     private fun dark(c: Int, fallback: Int) = if (luminance(c) <= .035) c or 0xff000000.toInt() else fallback
     fun normalize(c: NativeColors): NativeColors {
-        val bg = dark(c.background, 0xff050507.toInt())
-        val surface = dark(c.surface, 0xff12151d.toInt())
-        val elevated = dark(c.elevated, 0xff1a1e28.toInt())
+        val bg = dark(c.background, 0xff000000.toInt())
+        val surface = dark(c.surface, 0xff1c1c1e.toInt())
+        val elevated = dark(c.elevated, 0xff2c2c2e.toInt())
         val backgrounds = listOf(bg, surface, elevated)
         fun readable(value: Int, fallback: Int) = if (backgrounds.all { contrast(value, it) >= 4.5 }) value or 0xff000000.toInt() else fallback
-        return NativeColors(bg, surface, elevated, readable(c.text, 0xfff7f9ff.toInt()), readable(c.secondary, 0xffa8b2c3.toInt()), readable(c.accent, 0xffb9deff.toInt()))
+        return NativeColors(bg, surface, elevated, readable(c.text, 0xfff5f5f7.toInt()), readable(c.secondary, 0xffa1a1a6.toInt()), readable(c.accent, 0xffff5c74.toInt()))
     }
     fun parse(ini: String?, css: String?, native: String? = null): ConvertedTheme {
         listOfNotNull(ini, css, native).forEach { require(it.toByteArray().size <= MAX_TEXT && !it.startsWith("PK\u0003\u0004") && '\u0000' !in it) { "Invalid theme text or archive. Only text theme files are supported." } }
@@ -68,7 +140,7 @@ object SpicetifyParser {
         if (sections.isEmpty() && cssColors.isNotEmpty()) sections["CSS colors"] = cssColors
         val schemes = sections.filterValues { "main" in it && ("button" in it || "text" in it) }.mapValues { (_, p) ->
             normalize(NativeColors(p.getValue("main"), p["sidebar"] ?: p.getValue("main"), p["card"] ?: p["player"] ?: p.getValue("main"),
-                p["text"] ?: 0xfff7f9ff.toInt(), p["subtext"] ?: 0xffa8b2c3.toInt(), p["button"] ?: 0xffb9deff.toInt()))
+                p["text"] ?: 0xfff5f5f7.toInt(), p["subtext"] ?: 0xffa1a1a6.toInt(), p["button-active"] ?: p["button"] ?: p["accent"] ?: 0xffff5c74.toInt()))
         }
         return ConvertedTheme(schemes, if (schemes.isEmpty()) ThemeCompatibility.UNSUPPORTED else ThemeCompatibility.PARTIAL,
             listOf("Native color conversion only. Desktop selectors, layouts, fonts, animations and scripts are not applied. Light colors may be adapted for dark mode."))

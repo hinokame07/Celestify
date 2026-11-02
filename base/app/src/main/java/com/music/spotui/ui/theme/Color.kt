@@ -14,7 +14,7 @@ val AppText: Color get() = com.music.spotui.ui.immersive.Immersive.Text
 /** Secondary text and icons. */
 val AppMuted: Color get() = com.music.spotui.ui.immersive.Immersive.TextSecondary
 /** Destructive actions (delete, leave, block) and failures shown as text. */
-val AppDestructive = Color(0xFFF15E6C)
+val AppDestructive = Color(0xFFFF453A)
 /** What a tint is mixed with to make a header. */
 val AppShade: Color = Color.Black
 

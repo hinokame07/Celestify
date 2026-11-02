@@ -15,4 +15,13 @@ class GitHubThemesLiveTest {
         assertTrue(preview.converted.schemes.isNotEmpty())
         assertEquals(ThemeCompatibility.PARTIAL, preview.converted.compatibility)
     }
+
+    @Test fun discoverAndAdaptGlassify() = runBlocking {
+        assumeTrue(System.getenv("CELESTIFY_LIVE_THEMES_TEST") == "1")
+        val candidate = GitHubThemes.discover("https://github.com/${GlassifyAdapter.REPOSITORY}").single { it.path.isBlank() }
+        val preview = GitHubThemes.preview(candidate, includeScreenshot = false)
+        assertEquals("Glassify", preview.name)
+        assertEquals(ThemePresentation.GLASSIFY, preview.converted.effects.presentation)
+        assertTrue(preview.converted.schemes.isNotEmpty())
+    }
 }

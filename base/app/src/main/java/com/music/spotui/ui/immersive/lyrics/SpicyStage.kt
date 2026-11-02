@@ -4,7 +4,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -17,8 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import app.myspoti.engine.R
 import com.music.spotui.data.entity.LyricTiming
 import com.music.spotui.data.preferences.AtmospherePref
@@ -105,7 +102,8 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
     val floating = LocalFloatingLyrics.current
     var romanize by remember { mutableStateOf(prefs.getBoolean("romanize", false)) }
     var scale by remember { mutableFloatStateOf(prefs.getFloat("size", 1f)) }
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    var cinema by rememberSaveable { mutableStateOf(false) }
+    var lyricsOnLeft by rememberSaveable { mutableStateOf(prefs.getBoolean("cinema_lyrics_left", true)) }
     var menu by remember { mutableStateOf(false) }
     val reduced = rememberReduceMotion()
     val style = StagePreference.style
@@ -139,16 +137,38 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
     }
     val view = remember(track, doc) { LyricsViewState() }
     val playing = com.music.spotui.di.Graph.currentSongState.playingState.value
+    val lyricsBody: @Composable (Modifier) -> Unit = { frame ->
+        Box(frame) {
+            if (doc != null && lines.isNotEmpty()) {
+                if (doc.type == LyricsType.Static) {
+                    SpicyStaticLyrics(lines, doc.footer.lines(), romanize, if (floating) scale * .65f else scale, Modifier.fillMaxSize())
+                } else LyricsView(
+                    lines, track, footer = doc.footer, currentTimeMs = {
+                        LyricTiming.position(SongPlayer.getCurrentPosition(), com.music.spotui.di.OutputLag.ms(), AtmospherePref.lyricsOffsetMs)
+                    }, onSeekWord = { SongPlayer.seekTo(LyricTiming.seekPosition(it, AtmospherePref.lyricsOffsetMs)); SongPlayer.play() },
+                    modifier = Modifier.fillMaxSize(), config = config, fontSizeScale = if (floating) scale * 0.65f else scale, lyricsType = doc.type,
+                    romanize = romanize, romanizationMode = RomanizationMode.UnderLine, translation = presentation,
+                    isPlaying = playing, viewState = view, frameCap = if (StagePreference[StageOption.LimitFrames] || reduced) 30 else 0)
+            } else if (state is LyricsViewModel.State.NotFound && doc == null) {
+                if (!StagePreference[StageOption.HideNotice]) Text(stringResource(R.string.immersive_lyrics_none), Modifier.align(Alignment.Center), style = Immersive.Subhead)
+            } else CircularProgressIndicator(Modifier.align(Alignment.Center))
+            if (!floating && doc?.type != LyricsType.Static && view.activeLineDirection != null) {
+                com.music.spotui.ui.components.FollowLyricsButton(Modifier.align(Alignment.BottomCenter)) { view.scrollToActive() }
+            }
+        }
+    }
     val content: @Composable (Modifier) -> Unit = { frame ->
         Column(frame) {
             if (!floating) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(if (expanded) com.music.spotui.di.Graph.currentSongState.title.value else "Spicy Lyrics",
+                    Text("Spicy Lyrics",
                         style = Immersive.BodyStrong, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                    if (expanded) Text(com.music.spotui.di.Graph.currentSongState.singer.value,
-                        style = Immersive.Caption, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    if (doc?.type == LyricsType.Static) Text(stringResource(R.string.spicy_static_reading),
+                        style = Immersive.Caption, maxLines = 1)
                 }
-                if (expanded) IconButton(onClick = { expanded = false }) { Icon(Icons.Rounded.Close, stringResource(R.string.lyrics_fullscreen_close_button_readout_value)) }
+                IconButton(onClick = { cinema = true }) {
+                    Icon(Icons.Rounded.Theaters, stringResource(R.string.spicy_cinema))
+                }
                 Box {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreHoriz, stringResource(R.string.content_description_context_menu)) }
                     CelestifyMenu(menu, { menu = false }) {
@@ -158,7 +178,7 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
                                 context.startActivity(android.content.Intent(context, FloatingLyricsActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
                             }
                         }
-                        action(stringResource(R.string.lyrics_fullscreen)) { expanded = !expanded }
+                        action(stringResource(R.string.spicy_cinema)) { cinema = true }
                         action(stringResource(R.string.spicy_romanize) + if (romanize) " ✓" else "") { romanize = !romanize; prefs.edit().putBoolean("romanize", romanize).apply() }
                         if (source != null && local == null && hosted == null) action(stringResource(R.string.spicy_translate)) { vm.toggleTranslation(java.util.Locale.getDefault().language) }
                         action(stringResource(R.string.spicy_size) + " · " + (scale * 100).toInt() + "%") {
@@ -177,37 +197,17 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
                     }
                 }
             }
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                if (doc != null && lines.isNotEmpty()) LyricsView(
-                    lines, track, footer = doc.footer, currentTimeMs = {
-                        LyricTiming.position(SongPlayer.getCurrentPosition(), com.music.spotui.di.OutputLag.ms(), AtmospherePref.lyricsOffsetMs)
-                    }, onSeekWord = { SongPlayer.seekTo(LyricTiming.seekPosition(it, AtmospherePref.lyricsOffsetMs)); SongPlayer.play() },
-                    modifier = Modifier.fillMaxSize(), config = config, fontSizeScale = if (floating) scale * 0.65f else scale, lyricsType = doc.type,
-                    romanize = romanize, romanizationMode = RomanizationMode.UnderLine, translation = presentation,
-                    isPlaying = playing, viewState = view, frameCap = if (StagePreference[StageOption.LimitFrames] || reduced) 30 else 0)
-                else if (state is LyricsViewModel.State.NotFound && doc == null) { if (!StagePreference[StageOption.HideNotice]) Text(stringResource(R.string.immersive_lyrics_none), Modifier.align(Alignment.Center), style = Immersive.Subhead) }
-                else CircularProgressIndicator(Modifier.align(Alignment.Center))
-                if (!floating && view.activeLineDirection != null) com.music.spotui.ui.components.FollowLyricsButton(Modifier.align(Alignment.BottomCenter)) { view.scrollToActive() }
-            }
-            if (expanded && !floating) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                IconButton({ SongPlayer.previous() }) { Icon(Icons.Rounded.SkipPrevious, stringResource(R.string.immersive_player_previous)) }
-                IconButton({ if (playing) SongPlayer.pause() else SongPlayer.play() }) {
-                    Icon(if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        stringResource(if (playing) R.string.immersive_player_pause else R.string.immersive_player_play))
-                }
-                IconButton({ SongPlayer.next() }) { Icon(Icons.Rounded.SkipNext, stringResource(R.string.immersive_player_next)) }
-            }
+            lyricsBody(Modifier.weight(1f).fillMaxWidth())
         }
     }
-    if (expanded) Dialog(onDismissRequest = { expanded = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().background(Immersive.Page)) {
-            val cover = com.music.spotui.di.Graph.currentSongState.coverUri.value
-            val colors = com.music.spotui.ui.look.rememberArtworkColors(cover.takeIf { it.isNotBlank() && AtmospherePref.dynamicColors })
-            if (AtmospherePref.dynamicColors && StagePreference[StageOption.MotionBackground] && !reduced) {
-                com.music.spotui.ui.look.MeshGradientBackground(colors, trackKey = track, continuous = false)
-                Spacer(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f)))
-            } else com.music.spotui.ui.immersive.CelestialPlayerBackground(colors)
-            content(Modifier.fillMaxSize().systemBarsPadding())
-        }
-    } else content(modifier.padding(inset))
+    if (cinema) SpicyCinema(
+        track = track,
+        lyricsOnLeft = lyricsOnLeft,
+        onToggleSide = {
+            lyricsOnLeft = !lyricsOnLeft
+            prefs.edit().putBoolean("cinema_lyrics_left", lyricsOnLeft).apply()
+        },
+        onDismiss = { cinema = false },
+        lyrics = lyricsBody,
+    ) else content(modifier.padding(inset))
 }

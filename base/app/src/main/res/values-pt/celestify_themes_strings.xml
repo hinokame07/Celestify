@@ -1,6 +1,6 @@
 <resources>
     <string name="themes_title">Temas</string>
-    <string name="themes_intro">Descubra temas do GitHub e confira a paleta escura nativa antes de aplicar.</string>
+    <string name="themes_intro">Importe temas do Spicetify como aparências Android nativas e seguras. O Glassify recebe um perfil de vidro dinâmico próprio.</string>
     <string name="themes_error">Não foi possível carregar os temas. Confira a conexão e tente novamente.</string>
     <string name="themes_loading">Carregando tema…</string>
     <string name="themes_saving">Salvando tema…</string>
@@ -30,4 +30,6 @@
     <string name="themes_unsupported">Não suportado · Sem paleta compatível</string>
     <string name="themes_native_preview">Prévia nativa</string>
     <string name="themes_preview_caption">Sua música, sua atmosfera</string>
+    <string name="themes_glassify_featured">Abrir Glassify</string>
+    <string name="themes_glassify_native">Perfil Glassify nativo · atmosfera da capa · superfícies translúcidas · Liquid Glass</string>
 </resources>

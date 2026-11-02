@@ -8,9 +8,9 @@ import com.music.spotui.ui.immersive.Immersive
 enum class DarkCrystal {
     OBSIDIAN, MOONLIGHT, SERAPH, OVERLAY;
     val fill: Color get() = when (this) {
-        OBSIDIAN -> Immersive.Secondary.copy(alpha = .70f)
-        MOONLIGHT -> lerp(Immersive.Secondary, Immersive.Accent, .06f).copy(alpha = .72f)
-        SERAPH -> lerp(Immersive.Secondary, Color(0xFFE9D5A8), .05f).copy(alpha = .76f)
-        OVERLAY -> Immersive.Raised.copy(alpha = .92f)
+        OBSIDIAN -> Immersive.GlassFill
+        MOONLIGHT -> lerp(Immersive.GlassFill, Immersive.Accent, .06f)
+        SERAPH -> lerp(Immersive.GlassFill, Color(0xFFFFD60A), .05f)
+        OVERLAY -> Immersive.Raised.copy(alpha = .90f)
     }
 }

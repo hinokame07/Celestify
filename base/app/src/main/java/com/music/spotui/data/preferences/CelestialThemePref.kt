@@ -8,9 +8,9 @@ import androidx.compose.ui.graphics.Color
 import com.music.spotui.di.Graph
 
 enum class CelestialTheme(val label: String, val accent: Color) {
-    BLUE("Celestial Midnight", Color(0xFFB9DEFF)),
-    GOLD("Golden Seraph", Color(0xFFE9D5A8)),
-    ADAPTIVE("Adaptive Celestial", Color(0xFFE6E6E6));
+    BLUE("Celestial Midnight", Color(0xFF0A84FF)),
+    GOLD("Golden Seraph", Color(0xFFFFD60A)),
+    ADAPTIVE("Adaptive Celestial", Color(0xFFFF5C74));
 }
 
 /** Public Celestify palette, independent of the app's stable technical identifiers. */

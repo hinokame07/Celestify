@@ -76,10 +76,10 @@ object GitHubThemes {
         progress("Inspecting CSS…")
         val css = file("user.css")
         val native = file("celestify.json")
-        progress("Converting native preview…")
-        val converted = SpicetifyParser.parse(ini, css, native)
         val manifestText = file("manifest.json")
         val manifest = manifestText?.let { if (it.trimStart().startsWith('[')) org.json.JSONArray(it).optJSONObject(0) else JSONObject(it) }
+        progress("Converting native preview…")
+        val converted = GlassifyAdapter.adapt(candidate.repository, manifest, SpicetifyParser.parse(ini, css, native))
         val author = manifest?.optJSONArray("authors")?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it)?.optString("name") }.joinToString(", ") }?.takeIf { it.isNotBlank() } ?: candidate.author
         // Only repository-owned raster previews; scripts, SVG and arbitrary external URLs are never loaded.
         val readme = if (includeScreenshot) file("README.md") ?: file("readme.md") else null

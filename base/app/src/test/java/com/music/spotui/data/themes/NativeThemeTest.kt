@@ -38,6 +38,22 @@ class NativeThemeTest {
         assertEquals(ThemeCompatibility.PARTIAL, SpicetifyParser.parse(null, ":root { --spice-main:#050507; --spice-button: #B9DEFF; }").compatibility)
         assertEquals(ThemeCompatibility.UNSUPPORTED, SpicetifyParser.parse(null, "body { color:red; }").compatibility)
     }
+    @Test fun glassifyEmptyIniGetsNativeDynamicProfile() {
+        val parsed = GlassifyAdapter.adapt(
+            GlassifyAdapter.REPOSITORY,
+            org.json.JSONObject("""{"name":"Glassify"}"""),
+            SpicetifyParser.parse("[dark]", null),
+        )
+        assertEquals(ThemeCompatibility.PARTIAL, parsed.compatibility)
+        assertEquals(ThemePresentation.GLASSIFY, parsed.effects.presentation)
+        assertTrue(parsed.effects.dynamicArtwork)
+        assertTrue(parsed.effects.preferLiquidGlass)
+        assertEquals(0xffff5c74.toInt(), parsed.schemes.getValue("Glassify · Dynamic").accent)
+    }
+    @Test fun glassifyAdapterCannotBeSpoofedByAnotherRepository() {
+        val original = SpicetifyParser.parse("[dark]", null)
+        assertSame(original, GlassifyAdapter.adapt("someone/fake-glassify", org.json.JSONObject("""{"name":"Glassify"}"""), original))
+    }
     @Test fun explicitNativeManifest() {
         val native = """{"schema":1,"colors":{"background":"050507","surface":"12151D","elevated":"1A1E28","text":"F7F9FF","secondary":"A8B2C3","accent":"B9DEFF"}}"""
         assertEquals(ThemeCompatibility.FULL, SpicetifyParser.parse(null, null, native).compatibility)
@@ -62,6 +78,18 @@ class NativeThemeTest {
         val restored = storage.read()
         assertEquals(update, restored.installed.single())
         assertEquals(old, restored.active)
+    }
+    @Test fun visualEffectsPersistAndOldRegistryDefaultsRemainReadable() {
+        val storage = ThemeStorage(temporary.newFolder())
+        val glass = installed().copy(effects = NativeEffects.Glassify)
+        storage.write(ThemeSnapshot(listOf(glass), glass.id, glass))
+        assertEquals(NativeEffects.Glassify, storage.read().active?.effects)
+
+        val legacyDir = temporary.newFolder()
+        val legacy = glass.json().apply { remove("effects") }
+        java.io.File(legacyDir, "themes.json").writeText(org.json.JSONObject()
+            .put("installed", org.json.JSONArray().put(legacy)).put("active", glass.id).put("applied", legacy).toString())
+        assertEquals(NativeEffects(), ThemeStorage(legacyDir).read().active?.effects)
     }
     @Test fun failedInstallPreservesRegistry() {
         val storage = ThemeStorage(temporary.newFolder())
