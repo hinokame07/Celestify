@@ -10,6 +10,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SpicyDocumentTest {
+    @Test fun desktopDocumentKeepsFragmentTimesAndBackingVoiceGroups() {
+        val lead = Line(listOf(Word("Hel", 1000, 1225), Word("lo", 1225, 1600, isPartOfWord=true)),1000,2000,groupId=5,oppositeAligned=true)
+        val back = Line(listOf(Word("oh",1250,1800)),1250,1800,groupId=5,role=com.tx24.spicyplayer.lyrics.spicy.models.LineRole.BACKGROUND)
+        val doc=com.tx24.spicyplayer.lyrics.spicy.models.LyricsDocument(listOf(lead,back))
+        val json=desktopLyrics(doc.lines,doc)
+        assertEquals("Syllable",json.getString("Type"))
+        val group=json.getJSONArray("Content").getJSONObject(0)
+        val words=group.getJSONObject("Lead").getJSONArray("Syllables")
+        assertTrue(group.getBoolean("OppositeAligned"))
+        assertTrue(words.getJSONObject(0).getBoolean("IsPartOfWord"))
+        assertFalse(words.getJSONObject(1).getBoolean("IsPartOfWord"))
+        assertEquals(1.225,words.getJSONObject(1).getDouble("StartTime"),.00001)
+        assertEquals(1.25,group.getJSONArray("Background").getJSONObject(0).getDouble("StartTime"),.00001)
+    }
     @Test fun staticLyricsStayStaticAndPreserveText() {
         val doc = Lyrics(listOf(LyricLine(0, "A whole line")), false).spicyDocument(9000)
         assertEquals(LyricsType.Static, doc.type)
@@ -24,12 +38,6 @@ class SpicyDocumentTest {
         ), 0, 0)
         assertEquals("Hello world!", spicyStaticLineText(line, romanize = false))
         assertEquals("Helo world!", spicyStaticLineText(line, romanize = true))
-    }
-
-    @Test fun cinemaUsesTwoPanesAtTabletWidth() {
-        assertFalse(SpicyCinemaPolicy.twoPane(699f))
-        assertTrue(SpicyCinemaPolicy.twoPane(700f))
-        assertTrue(SpicyCinemaPolicy.twoPane(1280f))
     }
 
     @Test fun partsOfAWordJoinButSeparateWordsDoNot() {

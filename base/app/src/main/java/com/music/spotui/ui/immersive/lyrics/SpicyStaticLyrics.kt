@@ -20,10 +20,13 @@ import com.tx24.spicyplayer.lyrics.spicy.models.FooterLine
 import com.tx24.spicyplayer.lyrics.spicy.models.Line
 
 internal fun spicyStaticLineText(line: Line, romanize: Boolean): String =
-    line.words.mapIndexed { index, word ->
-        val value = if (romanize) word.romanizedText ?: word.text else word.text
-        (if (index > 0 && !word.isPartOfWord) " " else "") + value
-    }.joinToString("").trim()
+    line.words
+        .mapIndexed { index, word ->
+            val value = if (romanize) word.romanizedText ?: word.text else word.text
+            (if (index > 0 && !word.isPartOfWord) " " else "") + value
+        }
+        .joinToString("")
+        .trim()
 
 /** Plain reading mode for provider lyrics that contain no timestamps. */
 @Composable
@@ -39,7 +42,8 @@ internal fun SpicyStaticLyrics(
         val horizontal = if (tablet) 44.dp else 20.dp
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = horizontal, vertical = if (tablet) 42.dp else 28.dp),
+            contentPadding =
+                PaddingValues(horizontal = horizontal, vertical = if (tablet) 42.dp else 28.dp),
             verticalArrangement = Arrangement.spacedBy(if (tablet) 22.dp else 16.dp),
         ) {
             items(lines.filterNot { it.isInterlude }) { line ->
@@ -47,17 +51,15 @@ internal fun SpicyStaticLyrics(
                 if (text.isNotBlank()) {
                     Text(
                         text = text,
-                        style = Immersive.Lyric.copy(
-                            color = Color.White,
-                            fontSize = Immersive.Lyric.fontSize * scale,
-                            lineHeight = Immersive.Lyric.lineHeight * scale,
-                        ),
+                        style =
+                            Immersive.Lyric.copy(
+                                color = Color.White,
+                                fontSize = Immersive.Lyric.fontSize * scale,
+                                lineHeight = Immersive.Lyric.lineHeight * scale,
+                            ),
                     )
                     line.translation?.takeIf(String::isNotBlank)?.let { translated ->
-                        Text(
-                            text = translated,
-                            style = Immersive.Body.copy(color = Color.White),
-                        )
+                        Text(text = translated, style = Immersive.Body.copy(color = Color.White))
                     }
                 }
             }

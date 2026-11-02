@@ -589,6 +589,15 @@ class Api constructor(
     }
 
     /** The full artist page; [knownArtistId] avoids the fuzzy name lookup. */
+    suspend fun lyricArtistBackdrop(name: String): String {
+        if (name.isBlank() || !ready()) return ""
+        val artist = findArtist(name) ?: return ""
+        val cached = ArtistCache.map[artist.uri]?.second
+        if (cached != null) return cached.headerImage.ifBlank { cached.avatarImage }
+        val page = api.catalog.artistPage(artist.uri)
+        return big(page.headerImages).ifBlank { big(page.artist.images) }
+    }
+
     suspend fun getArtistOverview(artistName: String, knownArtistId: String = ""): Flow<Response<ArtistOverviewModel>> = flow {
         emit(Response.Loading())
         if (artistName.isBlank() && knownArtistId.isBlank()) { emit(Response.Success(ArtistOverviewModel(name = artistName))); return@flow }

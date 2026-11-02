@@ -83,6 +83,17 @@ The corresponding source is included in this repository. See
 Myspoti's GPL-3.0 notices remain in force. Sections 13 of the licenses govern the combination.
 The Spicy Lyrics hosted service, assets and databases are separate from this port.
 
+## Spicy Lyrics desktop renderer and Cinema View
+
+Celestify 2.3.1 includes original Spicy Lyrics desktop modules at revision
+`34ad8c683204c522f227060475bf4f8aae36508e`. The AGPL-3.0 sources and build scripts are in
+`third_party/spicy-cinema` and `third_party/spicy-renderer`. The app packages the desktop CSS,
+icons, compiled controller and renderer under `assets/spicy-cinema`. Android-specific services
+adapt Spotify playback, timing, stored documents, touch and window lifecycle. The adapted frame
+loop parks when idle. The original spring port credits Fraktality (MIT, also reproduced in the
+mobile notices). Kawarp 1.3.1 and the renderer dependencies have their own licenses in
+`third_party/spicy-cinema/Kawarp-LICENSE` and `third_party/spicy-renderer/licenses/`.
+
 ## Spicy Lyrics Mobile renderer
 
 The canvas, layout, clock-driven animation models, scroll physics, TTML parser, tests and catalogue response converter in `com/tx24/spicyplayer` are adapted from [Spicy Lyrics Mobile](https://github.com/spicylyrics/mobile/tree/4565dde58003a7796c2be32f3022cef773dfa73b), the Kotlin port of Spikerko's Spicy Lyrics. Celestify connects it to its own playback clock, fonts, image loader, storage and preferences. Changes dated 2026-11-02. Its [upstream notices](base/licenses/Spicy-Lyrics-Mobile-NOTICES.md) and AGPL-3.0 license are included.

@@ -453,7 +453,14 @@ fun LyricsScreen(
             }
         }
 
-        when (state) {
+        if (com.music.spotui.ui.immersive.lyrics.StagePreference.style != com.music.spotui.ui.immersive.lyrics.StageStyle.Celestify) {
+            com.music.spotui.ui.immersive.lyrics.ImmersiveLyricsPanel(Modifier.weight(1f).fillMaxWidth())
+            if(state is LyricsViewModel.State.Loaded) LyricsControls(palette,position,
+                showTranslate=state.translationChecked,translationActive=state.showTranslation,
+                translating=state.translating && state.translationRequested,
+                onTranslate={vm.toggleTranslation(targetLanguage)},
+                onShare={shareLyrics(context,title,artist,state.lyrics.lines.getOrNull(activeIndexFor(state.lyrics,position()))?.text)})
+        } else when (state) {
             is LyricsViewModel.State.Loading ->
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     com.music.spotui.ui.components.SkeletonLyrics(palette.highlight)

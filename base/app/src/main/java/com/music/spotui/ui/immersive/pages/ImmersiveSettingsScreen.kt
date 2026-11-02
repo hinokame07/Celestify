@@ -1,5 +1,10 @@
 package com.music.spotui.ui.immersive.pages
 
+import com.music.spotui.ui.immersive.lyrics.StageBackground
+import com.music.spotui.ui.immersive.lyrics.StageOption
+import com.music.spotui.ui.immersive.lyrics.StagePreference
+import androidx.compose.foundation.layout.Column
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
@@ -368,11 +373,14 @@ internal fun LyricsTimingPage(back: () -> Unit) {
                 ImmersiveGroupRow(stringResource(R.string.spicy_library), icon = Icons.Rounded.GraphicEq, chevron = true,
                     onClick = { library = com.music.spotui.ui.immersive.lyrics.SpicyImports.library(context) })
                 library?.let { entries ->
+                    var filter by rememberSaveable { mutableStateOf("") }
                     AlertDialog(onDismissRequest = { library = null }, title = { Text(stringResource(R.string.spicy_library)) },
                         text = {
                             androidx.compose.foundation.lazy.LazyColumn {
+                                item { androidx.compose.material3.OutlinedTextField(filter,{filter=it},singleLine=true,
+                                    label={Text(stringResource(android.R.string.search_go))}) }
                                 if (entries.isEmpty()) item { Text(stringResource(R.string.spicy_library_empty)) }
-                                entries.toList().sortedBy { it.second }.forEach { (key, title) -> item(key) {
+                                entries.toList().filter { it.second.contains(filter,true) || it.first.contains(filter,true) }.sortedBy { it.second }.forEach { (key, title) -> item(key) {
                                     var confirm by remember { mutableStateOf(false) }
                                     TextButton(onClick = { confirm = true }) { Text(title, style = Immersive.Body) }
                                     if (confirm) AlertDialog(onDismissRequest = { confirm = false },
@@ -388,10 +396,66 @@ internal fun LyricsTimingPage(back: () -> Unit) {
                 }
             }
         }
-        immersiveGroup("spicy-effects", headerRes = R.string.settings_atmosphere_title) {
-            for (option in com.music.spotui.ui.immersive.lyrics.StageOption.entries) row {
-                val pref = com.music.spotui.ui.immersive.lyrics.StagePreference
-                ImmersiveSwitchRow(stringResource(option.label), checked = pref[option], onChecked = { pref.set(option, it) })
+        val settings = StagePreference
+        immersiveGroup("stage-background", headerRes=R.string.stage_background) {
+            row {
+                var select by remember { mutableStateOf(false) }
+                ImmersiveGroupRow(stringResource(R.string.stage_style), value=settings.background.name, chevron=true,onClick={select=true})
+                if(select) AlertDialog(onDismissRequest={select=false},text={Column {
+                    StageBackground.entries.forEach { style ->
+                        TextButton({settings.background(style);select=false}) { Text(style.name) }
+                    }
+                }},confirmButton={})
+            }
+            if(settings.background==StageBackground.Artist || settings.background==StageBackground.Cover) row {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.stage_blur)+" · "+settings.blur+" px")
+                    androidx.compose.material3.Slider(settings.blur.toFloat(),{settings.blur(it.toInt())},valueRange=0f..64f)
+                }
+            }
+        }
+        val groups=listOf(
+            R.string.celestify_lyrics_settings to listOf(StageOption.Duets,StageOption.JoinWords,StageOption.Credits,StageOption.ProviderFirst),
+            R.string.stage_playback to listOf(StageOption.Smooth,StageOption.Lead,StageOption.SeekFade),
+            R.string.stage_interface to listOf(StageOption.BottomControls,StageOption.Timeline,StageOption.Volume,StageOption.LockedCover,StageOption.HideNotice,StageOption.Hover,StageOption.Popup),
+            R.string.stage_appearance to listOf(StageOption.MotionBackground,StageOption.SystemFont,StageOption.LimitFrames),
+            R.string.stage_experiments to listOf(StageOption.Canvas,StageOption.GlassSlider,StageOption.RefinedColors,StageOption.RefinedCredits,StageOption.ScrubPreview,StageOption.BackgroundVocals,StageOption.Skeleton,StageOption.PopupDock,StageOption.Overlap)
+        )
+        for((group,options) in groups) immersiveGroup("stage-$group", headerRes=group) {
+            for(option in options) row { ImmersiveSwitchRow(stringResource(option.label), checked=settings[option],onChecked={settings.set(option,it)}) }
+            if(group==R.string.stage_playback && settings[StageOption.Lead]) row {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.spicy_lead)+" · "+settings.leadMs+" ms")
+                    androidx.compose.material3.Slider(settings.leadMs.toFloat(),{settings.setLead(it.toInt())},valueRange=0f..800f)
+                }
+            }
+            if(group==R.string.stage_appearance && settings[StageOption.LimitFrames]) row {
+                Column(Modifier.padding(16.dp)) {
+                    Text("${settings.fps} FPS")
+                    androidx.compose.material3.Slider(settings.fps.toFloat(),{settings.fps(it.toInt())},valueRange=15f..120f,steps=6)
+                }
+            }
+        }
+        immersiveGroup("stage-cache",headerRes=R.string.stage_advanced) {
+            row {
+                ImmersiveSwitchRow(stringResource(R.string.spicy_diagnostics),
+                    checked=settings[StageOption.Diagnostics], onChecked={settings.set(StageOption.Diagnostics,it)})
+            }
+            val player = com.music.spotui.di.SongPlayer
+            if (player.currentLyricsTrack() != null) row {
+                ImmersiveGroupRow(stringResource(R.string.spicy_clear_track), chevron=true,onClick={
+                    player.currentLyricsTrack()?.let { com.music.spotui.data.api.LyricsApi.forget(it) }
+                    com.music.spotui.ui.immersive.lyrics.SpicyCatalogue.forget(player.currentTrackId)
+                    android.widget.Toast.makeText(context,R.string.spicy_track_cleared,android.widget.Toast.LENGTH_SHORT).show()
+                })
+            }
+            row {
+                var confirm by remember { mutableStateOf(false) }
+                ImmersiveGroupRow(stringResource(R.string.stage_clear_cache), chevron=true,onClick={confirm=true})
+                if(confirm)AlertDialog(onDismissRequest={confirm=false},text={Text(stringResource(R.string.stage_clear_cache))},
+                    confirmButton={TextButton({com.music.spotui.data.api.LyricsApi.forgetAll()
+                        com.music.spotui.ui.immersive.lyrics.SpicyCatalogue.forget();confirm=false}){Text(stringResource(android.R.string.ok))}},
+                    dismissButton={TextButton({confirm=false}){Text(stringResource(android.R.string.cancel))}})
             }
         }
         immersiveGroup("lyrics-format") {

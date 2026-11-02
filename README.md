@@ -24,6 +24,8 @@ Open the player, tap Lyrics, then open the **…** menu for cinema view, floatin
 
 Cinema View also has a visible film button in the lyrics header. On tablets it uses a two-pane stage: move lyrics between left and right, switch a supported track between cover and synchronized music video, seek, or use the transport controls. Lyrics without timestamps are always shown as static white text without karaoke effects.
 
+In 2.3.1 the default timed lyrics use the desktop Spicy Lyrics applyers, animator, virtualizer and scroll controller. Cinema runs its original fullscreen controller and artwork-driven Kawarp shader. Tap the artwork to reveal the controls. The layout button can switch a medium tablet from compact to split. The settings gear offers a synchronized music video when available. See the [port inventory and validation report](docs/SPICY_PORT.md).
+
 - Syllables, duet alignment, background vocals, credits and embedded translations are preserved when present in the TTML. Static lyrics remain untimed. A temporary preview is kept in session memory. Import permanently to keep the file across restarts. Saved Lyrics in Settings lists imported tracks and can remove their files.
 - The community catalogue is opt-in. Enter a **publishable client key** in Settings → Lyrics to send the current Spotify track ID to Spicy Lyrics. With no key, local files and Celestify's providers work independently. Availability and rate limits belong to each provider.
 - Cinema includes transport controls and artwork-derived backgrounds. Floating lyrics require Android picture-in-picture support. The Compose Celestify mode remains available for the text list and Genius notes.

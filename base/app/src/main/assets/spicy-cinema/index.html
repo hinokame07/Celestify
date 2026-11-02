@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- Spicy Lyrics PageView / NowBar, revision 34ad8c6. Android host adaptation, AGPL-3.0. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src data:; media-src https://*.scdn.co https://*.spotifycdn.com; frame-src 'none'; base-uri 'none'"
+    />
+    <link rel="stylesheet" href="upstream/tokens.css" />
+    <link rel="stylesheet" href="upstream/default.css" />
+    <link rel="stylesheet" href="upstream/ContentBox.css" />
+    <link rel="stylesheet" href="upstream/CanvasImmersive.css" />
+    <link rel="stylesheet" href="upstream/PopupDock.css" />
+    <link rel="stylesheet" href="upstream/Lyrics-main.css" />
+    <link rel="stylesheet" href="upstream/Lyrics-Mixed.css" />
+    <link rel="stylesheet" href="upstream/Simplebar.css" />
+    <link rel="stylesheet" href="upstream/keyframes.css" />
+    <link rel="stylesheet" href="upstream/LyricsSkeleton.css" />
+    <link rel="stylesheet" href="upstream/spicy-dynamic-bg.css" />
+    <link rel="stylesheet" href="host.css" />
+    <script type="module" src="stage.js"></script>
+  </head>
+  <body>
+    <main
+      id="SpicyLyricsPage"
+      class="SpicyRenderer Fullscreen NowBarStatus__Open NowBarSide__Left Exp_NewProgressBar ShowVolumeSlider Lyrics_RomanizationAvailable"
+    >
+      <div class="ContentBox">
+        <canvas class="spicy-dynamic-bg" id="warp" hidden></canvas>
+        <div class="StaticArtwork" hidden></div>
+        <div class="spicy-dynamic-bg ColorBackground" hidden></div>
+        <div class="NowBar Active LeftSide">
+          <div class="CenteredView">
+            <div class="Header">
+              <div class="MediaBox">
+                <div class="MediaContent">
+                  <div class="ViewControls"></div>
+                  <button class="Heart" data-action="like"></button>
+                  <div class="PlaybackControls"></div>
+                  <div class="VolumeControl" role="slider" tabindex="0">
+                    <div class="VolumeFill"></div>
+                    <div class="VolumeIcon"></div>
+                  </div>
+                </div>
+                <div
+                  class="MediaImageContainer"
+                  tabindex="0"
+                  role="button"
+                ></div>
+              </div>
+              <div class="Timeline">
+                <span class="Time Position">0:00</span>
+                <div class="SliderBar" role="slider" tabindex="0">
+                  <div class="Handle"></div>
+                </div>
+                <span class="Time Duration">0:00</span>
+              </div>
+              <div class="Metadata">
+                <div class="SongName"><span></span></div>
+                <div class="Artists"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="LyricsContainer">
+          <div class="LyricsContent"></div>
+          <div aria-hidden="true" class="LyricsContent boundsProbe">
+            <div class="simplebar-content-wrapper">
+              <div class="SpicyLyricsScrollContainer">
+                <div id="nativeLyrics"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

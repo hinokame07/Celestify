@@ -2,6 +2,11 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.3.1
+
+- Desktop Spicy Lyrics timing, word and letter animation, scrolling, Cinema controls, styles and Kawarp background from revision 34ad8c6.
+- Five background styles, touch controls, persisted display and timeline preferences, and per-recording TTML management in the Classic and Immersive lyrics screens.
+
 ## 2.3.0
 
 - Apple Music-inspired black and neutral color system with artwork-driven ambient accents.
