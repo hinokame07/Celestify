@@ -71,7 +71,7 @@ object ConnectMirrorPref {
  */
 object AutoUpdateCheckPref {
     private const val KEY = "auto_update_check"
-    var on by androidx.compose.runtime.mutableStateOf(prefs(com.music.spotui.di.Graph.app).getBoolean(KEY, true))
+    var on by androidx.compose.runtime.mutableStateOf(prefs(com.music.spotui.di.Graph.app).getBoolean(KEY, false))
         private set
 
     fun set(c: Context, value: Boolean) {

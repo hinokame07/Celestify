@@ -9,6 +9,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.getValue
@@ -34,13 +37,16 @@ fun Modifier.immersiveClickable(
 ): Modifier = composed {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
+    val reduce = com.music.spotui.ui.look.rememberReduceMotion()
+    val focused by interaction.collectIsFocusedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) pressedScale else 1f,
+        targetValue = if (pressed && !reduce) pressedScale else 1f,
         animationSpec = com.music.spotui.ui.immersive.motion.ImmersiveMotion.pressSpring(),
         label = "immersiveClickableScale",
     )
     val haptics = LocalHapticFeedback.current
     this
+        .then(if (focused) Modifier.border(1.dp, com.music.spotui.ui.immersive.Immersive.Accent, com.music.spotui.ui.immersive.Immersive.Button) else Modifier)
         .graphicsLayer {
             scaleX = scale
             scaleY = scale

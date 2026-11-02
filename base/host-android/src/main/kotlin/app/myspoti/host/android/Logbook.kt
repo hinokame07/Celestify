@@ -166,7 +166,7 @@ object Logbook {
         val summary = app.myspoti.spotify.report.Refusal402.summary(facts["account"], installAge)
         // Masked and cut down (DiagnosticDigest): small enough to paste, nothing that opens an account.
         return buildString {
-            appendLine("Myspoti diagnostic report")
+            appendLine("Celestify diagnostic report")
             // The 402 questions answered in one screen (Refusal402), before anything else.
             appendLine("--- 402 summary ---")
             summary.forEach { (k, v) -> appendLine("${k.padEnd(12)}: ${app.myspoti.spotify.report.DiagnosticDigest.mask(v)}") }

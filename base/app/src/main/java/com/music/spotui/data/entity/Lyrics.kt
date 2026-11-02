@@ -1,6 +1,6 @@
 package com.music.spotui.data.entity
 
-/** One word (or syllable) of word-synced lyrics; [endMs] 0 = until the next word. */
+/** One word (or syllable) of word-synced lyrics; [endMs] at or before the start means only its onset is known. */
 data class LyricWord(
     val startMs: Long,
     val endMs: Long,
@@ -38,7 +38,8 @@ data class Lyrics(
     val colors: LyricsColors? = null,
     /** False when Spotify only gives a preview (Free cap): the card says "Aperçu des paroles". */
     val uncapped: Boolean = true,
+    val ttml: String? = null,
 ) {
     val isEmpty: Boolean get() = lines.isEmpty()
-    val wordSynced: Boolean get() = lines.any { it.words != null }
+    val wordSynced: Boolean get() = lines.any { !it.words.isNullOrEmpty() }
 }

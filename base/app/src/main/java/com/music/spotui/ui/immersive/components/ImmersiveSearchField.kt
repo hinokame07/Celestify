@@ -5,6 +5,7 @@
 package com.music.spotui.ui.immersive.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -70,8 +71,9 @@ fun ImmersiveSearchField(
         modifier = modifier
             .fillMaxWidth()
             // Fixed height prevents the row from growing when text is entered.
-            .height(46.dp)
+            .height(50.dp)
             .background(Immersive.Raised, Immersive.Button)
+            .border(1.dp, Immersive.Separator, Immersive.Button)
             // Asymmetric: the magnifier is a button and wants a real touch target, so it is given
             // the room by pulling the field's own start padding in.
             .padding(start = 8.dp, end = 12.dp),

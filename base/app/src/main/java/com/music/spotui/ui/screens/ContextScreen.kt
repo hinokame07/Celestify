@@ -1195,7 +1195,7 @@ internal fun MembersSheet(
                         Box {
                             Icon(Icons.Default.MoreVert, contentDescription = null, tint = AppText,
                                 modifier = Modifier.size(40.dp).clip(CircleShape).clickable { open = true }.padding(8.dp))
-                            androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = tone(0xFF282828)) {
+                            com.music.spotui.ui.components.CelestifyMenu(expanded = open, onDismissRequest = { open = false }) {
                                 @Composable fun item(label: Int, action: () -> Unit) = androidx.compose.material3.DropdownMenuItem(
                                     text = { Text(stringResource(label), color = AppText) },
                                     onClick = { open = false; action() })
@@ -1488,7 +1488,7 @@ private fun TrackSortButton(sort: TrackOrder, onSort: (TrackOrder) -> Unit) {
             contentDescription = stringResource(R.string.filter_and_sort_sort_section_title),
             tint = if (sort.isCustom) AppText.copy(alpha = 0.8f) else SpotifyGreen,
             modifier = Modifier.size(26.dp).pressable(0.9f) { open = true })
-        androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = tone(0xFF282828)) {
+        com.music.spotui.ui.components.CelestifyMenu(expanded = open, onDismissRequest = { open = false }) {
             Text(stringResource(R.string.filter_and_sort_sort_section_title), color = AppMuted, fontSize = 13.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
             TrackSort.entries.forEach { option ->

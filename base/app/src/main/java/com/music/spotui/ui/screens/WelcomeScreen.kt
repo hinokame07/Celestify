@@ -72,8 +72,10 @@ import kotlin.math.sin
 fun WelcomeScreen(onLogin: () -> Unit) {
     // One entrance per part, a beat apart: logo, name, features, button.
     val parts = remember { List(4) { Animatable(0f) } }
-    LaunchedEffect(Unit) {
-        parts.forEachIndexed { i, a -> launch { delay(150L + i * 180L); a.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) } }
+    val reduceMotion = com.music.spotui.ui.look.rememberReduceMotion()
+    LaunchedEffect(reduceMotion) {
+        if (reduceMotion) parts.forEach { it.snapTo(1f) }
+        else parts.forEachIndexed { i, a -> launch { delay(150L + i * 180L); a.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) } }
     }
     fun Modifier.rise(i: Int) = graphicsLayer {
         val v = parts[i].value
@@ -103,7 +105,7 @@ fun WelcomeScreen(onLogin: () -> Unit) {
                         .background(tone(0xFF181818)),
                 )
                 Spacer(Modifier.height(28.dp))
-                Text("Myspoti", color = AppText, fontFamily = AppSans, fontWeight = FontWeight.ExtraBold, fontSize = 40.sp,
+                Text("Celestify", color = AppText, fontFamily = AppSans, fontWeight = FontWeight.SemiBold, fontSize = 40.sp,
                     modifier = Modifier.rise(1))
                 Spacer(Modifier.height(12.dp))
                 Box(Modifier.rise(2)) { Features() }
@@ -121,7 +123,7 @@ fun WelcomeScreen(onLogin: () -> Unit) {
                         .clip(RoundedCornerShape(50))
                         .background(AppAccent),
                 ) {
-                    Text(stringResource(R.string.welcome_login), color = Color.Black, fontFamily = AppSans,
+                    Text(stringResource(R.string.welcome_login), color = if (com.music.spotui.data.preferences.AppearancePref.activeLight) Color.White else Color.Black, fontFamily = AppSans,
                         fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 }
                 Text(

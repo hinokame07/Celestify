@@ -46,6 +46,18 @@ class LyricsApiAuditTest {
             parse("[00:59.999] a\n[01:00] b\n[01:00:3] c").map { it.timeMs })
     }
 
+    @Test fun enhancedLrcPreservesOnlyProviderStampedWordSegments() {
+        val line = parse("[00:01.00]<00:01.20>Hello <00:01.65>world<00:02.10>").single()
+        assertEquals("Hello world", line.text)
+        assertEquals(listOf(1200L, 1650L), line.words?.map { it.startMs })
+        assertEquals(listOf(1650L, 2100L), line.words?.map { it.endMs })
+        assertEquals(listOf("Hello", "world"), line.words?.map { it.text })
+    }
+
+    @Test fun ordinaryLrcHasNoInventedWordTiming() {
+        assertNull(parse("[00:01.00]Hello world").single().words)
+    }
+
     @Test fun plausibleExactAndRemasterWithinThreeSeconds() {
         assertTrue(LyricsApi.isPlausibleMatch("Hello - 2011 Remaster", "Adele", 203, "Hello", "Adele", 200))
         assertFalse(LyricsApi.isPlausibleMatch("Hello", "Adele", 204, "Hello", "Adele", 200))

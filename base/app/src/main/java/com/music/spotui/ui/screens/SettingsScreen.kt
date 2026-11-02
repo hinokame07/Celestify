@@ -35,7 +35,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material.icons.rounded.*
+import com.music.spotui.ui.immersive.pages.ImmersivePage
+import com.music.spotui.ui.immersive.pages.ImmersiveGroupRow
+import com.music.spotui.ui.immersive.pages.immersiveGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -65,32 +68,32 @@ import com.music.spotui.ui.theme.AppBackground
 fun SettingsScreen(navController: NavController) {
     val energy by app.myspoti.power.EnergySettings.state.collectAsStateWithLifecycle()
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(-1) }
+    val tabs = listOf(R.string.settings_section_playback, R.string.settings_section_downloads,
+        R.string.settings_tab_appearance, R.string.extensions_title, R.string.settings_tab_about, R.string.celestify_lyrics_settings)
+    val icons = listOf(Icons.Rounded.PlayArrow, Icons.Rounded.Download, Icons.Rounded.Palette, Icons.Rounded.Extension, Icons.Rounded.Info, Icons.Rounded.GraphicEq)
+    if (tab !in tabs.indices) {
+        ImmersivePage(title = stringResource(R.string.settings_title), onBack = { navController.popBackStack() }) {
+            immersiveGroup("listen", headerRes = R.string.celestify_listening) {
+                for (i in listOf(0, 5, 1)) row { ImmersiveGroupRow(stringResource(tabs[i]), icon = icons[i], chevron = true, onClick = { tab = i }) }
+            }
+            immersiveGroup("device", headerRes = R.string.celestify_device) {
+                for (i in 2..4) row { ImmersiveGroupRow(stringResource(tabs[i]), icon = icons[i], chevron = true, onClick = { tab = i }) }
+            }
+        }
+        return
+    }
+    androidx.activity.compose.BackHandler { tab = -1 }
+    if (tab == 5) {
+        com.music.spotui.ui.immersive.pages.LyricsTimingPage { tab = -1 }
+        return
+    }
     Column(Modifier.fillMaxSize().background(AppBackground).statusBarsPadding()) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(4.dp)) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = { tab = -1 }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.accessibility_navigate_back), tint = AppText)
             }
-            Text(stringResource(R.string.settings_title), color = AppText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        }
-        // One tab per group, so the page is no longer one long list.
-        var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
-        val tabs = listOf(R.string.settings_section_playback, R.string.settings_section_downloads, R.string.settings_tab_appearance,
-            R.string.extensions_title, R.string.settings_tab_about)
-        androidx.compose.material3.ScrollableTabRow(
-            selectedTabIndex = tab, containerColor = Color.Transparent, contentColor = AppText, edgePadding = 12.dp,
-            indicator = { positions ->
-                androidx.compose.material3.TabRowDefaults.SecondaryIndicator(
-                    Modifier.tabIndicatorOffset(positions[tab]), color = com.music.spotui.ui.theme.AppAccent)
-            },
-            divider = { HorizontalDivider(color = tone(0xFF2A2A2A)) },
-        ) {
-            tabs.forEachIndexed { i, title ->
-                androidx.compose.material3.Tab(
-                    selected = tab == i, onClick = { tab = i },
-                    text = { Text(stringResource(title), fontSize = 14.sp, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Normal) },
-                    selectedContentColor = AppText, unselectedContentColor = AppMuted,
-                )
-            }
+            Text(stringResource(tabs[tab]), style = com.music.spotui.ui.immersive.Immersive.Title)
         }
         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).navigationBarsPadding()) {
             if (tab == 0) {
@@ -124,19 +127,6 @@ fun SettingsScreen(navController: NavController) {
                 detail = stringResource(R.string.settings_headset_skip_detail),
                 checked = headsetSkip,
                 onChecked = { headsetSkip = it; app.myspoti.host.android.PlaybackService.setSkipsOnEpisodes(ctx, it) },
-            )
-            // Lyrics: word by word (karaoke) first, or line by line with Spotify's first.
-            var wordSync by remember { mutableStateOf(com.music.spotui.data.preferences.isLyricsWordSync(ctx)) }
-            OptionRow(
-                label = stringResource(R.string.lyrics_word_sync_title),
-                detail = stringResource(if (wordSync) R.string.lyrics_word_sync_on else R.string.lyrics_word_sync_off),
-                checked = wordSync,
-                onChecked = {
-                    wordSync = it
-                    com.music.spotui.data.preferences.setLyricsWordSync(ctx, it)
-                    com.music.spotui.data.api.LyricsApi.wordSync = it
-                    com.music.spotui.data.api.LyricsApi.forgetAll()
-                },
             )
             // Songs an extension streams, played by Spotify too (unheard): counted there, seen by Connect.
             if (com.music.spotui.extensions.Extensions.sources(app.myspoti.extensions.Action.AUDIO_SOURCE).isNotEmpty())
@@ -226,7 +216,6 @@ fun SettingsScreen(navController: NavController) {
                 checked = com.music.spotui.data.preferences.SolidNavBar.on,
                 onChecked = { com.music.spotui.data.preferences.SolidNavBar.set(ctx, it) },
             )
-            AccentRow(com.music.spotui.data.preferences.Look.CLASSIC)
             LookRow()
             OrientationRow()
             LanguageRow()
@@ -245,13 +234,6 @@ fun SettingsScreen(navController: NavController) {
             if (tab == 4) {
             Section(R.string.settings_section_app)
             AboutRow()
-            // A18: the launch check can be turned off; the manual check below keeps working.
-            OptionRow(
-                label = stringResource(R.string.settings_auto_update_title),
-                detail = stringResource(R.string.settings_auto_update_detail),
-                checked = com.music.spotui.data.preferences.AutoUpdateCheckPref.on,
-                onChecked = { com.music.spotui.data.preferences.AutoUpdateCheckPref.set(ctx, it) },
-            )
             // The hidden Web Player stuck or crashed: rebuild it without leaving the app.
             Column(
                 Modifier.fillMaxWidth().clickable {
@@ -352,34 +334,6 @@ private fun LookRow() {
                     Text(stringResource(if (classic) R.string.look_classic else R.string.look_immersive), color = AppText, fontSize = 15.sp)
                     Text(stringResource(if (classic) R.string.look_classic_detail else R.string.look_immersive_detail), color = AppMuted, fontSize = 12.sp)
                 }
-            }
-        }
-    }
-}
-
-/** The accent colour of one look, for everyone (the same palette the supporter sheet uses). */
-@Composable
-private fun AccentRow(look: com.music.spotui.data.preferences.Look) {
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
-        Text(stringResource(R.string.supporter_accent), color = AppText, fontSize = 16.sp)
-        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp), modifier = Modifier.padding(top = 10.dp)) {
-            for (a in com.music.spotui.data.api.SupportReminder.Accent.entries) {
-                val selected = com.music.spotui.data.api.SupportReminder.accentOf(look) == a
-                val name = stringResource(when (a) {
-                    com.music.spotui.data.api.SupportReminder.Accent.GREEN -> R.string.color_green
-                    com.music.spotui.data.api.SupportReminder.Accent.BLUE -> R.string.color_blue
-                    com.music.spotui.data.api.SupportReminder.Accent.PURPLE -> R.string.color_purple
-                    com.music.spotui.data.api.SupportReminder.Accent.PINK -> R.string.color_pink
-                    com.music.spotui.data.api.SupportReminder.Accent.ORANGE -> R.string.color_orange
-                })
-                Box(
-                    Modifier.size(40.dp)
-                        .semantics { contentDescription = name; role = Role.RadioButton }
-                        .clip(CircleShape).background(a.color)
-                        .then(if (selected) Modifier.border(3.dp, AppText, CircleShape) else Modifier)
-                        .clickable { com.music.spotui.data.api.SupportReminder.setAccent(ctx, look, a) },
-                )
             }
         }
     }
@@ -549,46 +503,24 @@ private fun OptionRow(label: String, detail: String, checked: Boolean,
     }
 }
 
-/**
- * The installed version with a refresh button: it asks GitHub right now (no cache), shows the
- * answer and the time of the last check. A newer release opens the update card on tap.
- */
+/** Installed Celestify version. Release updates require a dedicated Celestify feed. */
 @Composable
 private fun AboutRow() {
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val check = com.music.spotui.data.api.rememberUpdateCheckState(ctx)
-    // Also what "Later" put aside: the card in the app offers it again from here.
-    val live = com.music.spotui.updateRelease.value
-    val known = live ?: remember { com.music.spotui.data.api.UpdateChecker.known(ctx) }
+    var about by remember { mutableStateOf(false) }
+    if (about) com.music.spotui.ui.components.AboutSheet { about = false }
+    androidx.compose.material3.TextButton(onClick = { about = true }, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Text(stringResource(R.string.celestify_credits_title))
+    }
     Row(
-        Modifier.fillMaxWidth()
-            .then(if (known != null) Modifier.clickable { com.music.spotui.updateRelease.value = known } else Modifier)
-            .padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.settings_about_version, app.myspoti.engine.BuildConfig.VERSION_NAME), color = AppText, fontSize = 16.sp)
-            if (known != null) {
-                Text(stringResource(R.string.settings_update_available, known.version), color = com.music.spotui.ui.theme.AppAccent, fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
-                Text(stringResource(R.string.settings_update_available_detail), color = AppMuted, fontSize = 12.sp)
-            }
-            check.message?.takeIf { known == null || check.isError }?.let {
-                Text(it, color = if (check.isError) androidx.compose.material3.MaterialTheme.colorScheme.error else AppText, fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp))
-            }
-            Text(check.lastCheckedText, color = AppMuted, fontSize = 12.sp)
-        }
-        if (check.checking) {
-            androidx.compose.material3.CircularProgressIndicator(Modifier.padding(12.dp).size(24.dp), strokeWidth = 2.dp, color = AppMuted)
-        } else {
-            androidx.compose.material3.IconButton(onClick = { scope.launch { check.run() } }) {
-                androidx.compose.material3.Icon(Icons.Default.Refresh, stringResource(R.string.settings_update_refresh), tint = AppMuted)
-            }
-        }
+        Text(
+            stringResource(R.string.settings_about_version, app.myspoti.engine.BuildConfig.VERSION_NAME),
+            color = AppText, fontSize = 16.sp,
+        )
     }
 }
-
 /**
  * Hands the exported report to the share sheet. The file goes through the app's FileProvider;
  * if the provider refuses the path (external storage absent), the report's own path is shared
@@ -597,7 +529,7 @@ private fun AboutRow() {
 internal fun shareDiagnosticReport(context: android.content.Context, file: java.io.File) {
     val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(android.content.Intent.EXTRA_SUBJECT, "Myspoti diagnostic report")
+        putExtra(android.content.Intent.EXTRA_SUBJECT, "Celestify diagnostic report")
     }
     val uri = runCatching {
         androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -607,7 +539,7 @@ internal fun shareDiagnosticReport(context: android.content.Context, file: java.
         send.putExtra(android.content.Intent.EXTRA_STREAM, uri)
         send.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
     } else {
-        send.putExtra(android.content.Intent.EXTRA_TEXT, "Myspoti diagnostic report: ${file.absolutePath}")
+        send.putExtra(android.content.Intent.EXTRA_TEXT, "Celestify diagnostic report: ${file.absolutePath}")
     }
     context.startActivity(android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
 }

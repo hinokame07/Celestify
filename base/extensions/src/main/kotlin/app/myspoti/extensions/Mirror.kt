@@ -23,7 +23,7 @@ class MirrorGuard(private val clock: () -> Long = System::currentTimeMillis) {
     @Synchronized
     fun enable(id: String, localPlaying: Boolean, trackUri: String?, durationMs: Long): String? {
         val now = clock()
-        if (!localPlaying || trackUri.isNullOrBlank()) return "setLocalMute: Myspoti's own player is not playing"
+        if (!localPlaying || trackUri.isNullOrBlank()) return "setLocalMute: Celestify's own player is not playing"
         active?.let { if (it.extensionId != id && now < it.untilMs) return "setLocalMute: another extension (${it.extensionId}) is mirroring" }
         val last = lastEnable[id]
         if (last != null && now - last < MIN_INTERVAL_MS) return "setLocalMute: too often (once per ${MIN_INTERVAL_MS / 1000} s)"

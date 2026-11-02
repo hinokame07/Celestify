@@ -54,7 +54,7 @@ fun ImmersiveButton(
     shape: Shape = Immersive.Button,
     enabled: Boolean = true,
 ) {
-    val content = if (filled) Color.White else Immersive.Accent
+    val content = if (filled) Immersive.OnAccent else Immersive.Accent
     Row(
         modifier = modifier
             .immersiveClickable(onClick = onClick, enabled = enabled)

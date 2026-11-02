@@ -7,6 +7,7 @@ package com.music.spotui.ui.immersive.screens
 
 import com.music.spotui.ui.immersive.shell.immersiveHazeSource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -105,7 +106,7 @@ fun ImmersiveHomeScreen(navController: NavController) {
 
     val homeTitle = stringResource(R.string.navigationbar_musicappitems_home_title)
     val title = feed?.greeting?.takeIf { it.isNotBlank() } ?: homeTitle
-    var showProfile by remember { mutableStateOf(false) }
+    var showProfile by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (showProfile) {
         ImmersiveProfileSheet(
             onOpen = { route -> showProfile = false; navController.navigate(route) },
@@ -327,47 +328,48 @@ private fun ShelfSection(navController: NavController, section: HomeSection, pla
     }
 }
 
-/** The two-column shortcuts the web home starts with: a small cover and a name on a raised tile. */
+/** Quick destinations: two columns on phones and four on wider screens. */
 @Composable
 private fun ShortcutGrid(navController: NavController, items: List<HomeItem>, playingContext: State<String>) {
-    Column(
-        modifier = Modifier.padding(horizontal = Immersive.Gutter).padding(bottom = 22.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        items.chunked(2).forEach { rowItems ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                rowItems.forEach { item ->
-                    val playing = item.isPlayingIn(playingContext.value)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .pressHint { prefetchHomeItem(item) }
-                            .immersiveClickable(onClick = { onHomeItemClick(navController, item) })
-                            .clip(Immersive.CoverMedium)
-                            .background(Immersive.Raised),
-                    ) {
-                        ImmersiveCover(
-                            url = item.imageUrl,
-                            modifier = Modifier.size(56.dp),
-                            shape = Immersive.CoverMedium,
-                            border = false,
-                        )
-                        Text(
-                            text = item.name,
-                            style = Immersive.Subhead.copy(
-                                color = if (playing) Immersive.Accent else Immersive.Text,
-                                fontWeight = FontWeight.SemiBold,
-                                lineHeight = 17.sp,
-                            ),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 10.dp).weight(1f),
-                        )
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = Immersive.Gutter).padding(bottom = 26.dp)) {
+        val columns = if (maxWidth >= 600.dp) 4 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items.chunked(columns).forEach { rowItems ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    rowItems.forEach { item ->
+                        val playing = item.isPlayingIn(playingContext.value)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp)
+                                .pressHint { prefetchHomeItem(item) }
+                                .immersiveClickable(onClick = { onHomeItemClick(navController, item) })
+                                .clip(Immersive.CoverMedium)
+                                .background(Immersive.Raised)
+                                .border(1.dp, Immersive.Separator, Immersive.CoverMedium),
+                        ) {
+                            ImmersiveCover(
+                                url = item.imageUrl,
+                                modifier = Modifier.size(64.dp),
+                                shape = Immersive.CoverMedium,
+                                border = false,
+                            )
+                            Text(
+                                text = item.name,
+                                style = Immersive.Subhead.copy(
+                                    color = if (playing) Immersive.Accent else Immersive.Text,
+                                    fontWeight = FontWeight.SemiBold,
+                                    lineHeight = 17.sp,
+                                ),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 12.dp).weight(1f),
+                            )
+                        }
                     }
+                    repeat(columns - rowItems.size) { Box(Modifier.weight(1f)) }
                 }
-                if (rowItems.size == 1) Box(Modifier.weight(1f))
             }
         }
     }

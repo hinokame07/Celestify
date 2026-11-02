@@ -284,11 +284,15 @@ class WebPlayerHost(private val context: Context) : BridgeHost {
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                // Login challenges run in third-party frames. This callback is also invoked for
+                // subframes, so the top-level navigation allowlist must not abort CAPTCHA frames.
+                if (!request.isForMainFrame) return false
                 val host = request.url.host.orEmpty()
                 // Stay on Spotify's own pages (player, login, consent); open nothing else.
                 // Exact or subdomain match: "evilspotify.com" must not count as Spotify.
                 val allowed = listOf("spotify.com", "spotify.net", "scdn.co", "google.com", "facebook.com", "apple.com")
                     .any { host == it || host.endsWith(".$it") }
+                if (!allowed) Logbook.log("blocked navigation ${request.url.scheme}://$host")
                 return !allowed
             }
 

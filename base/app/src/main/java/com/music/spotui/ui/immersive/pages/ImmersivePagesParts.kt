@@ -111,7 +111,7 @@ internal fun ImmersiveSegmentedControl(
                 label = "segment pill",
             )
             val labelColor by animateColorAsState(
-                targetValue = if (chosen) Color.White else Immersive.TextSecondary,
+                targetValue = if (chosen) Immersive.OnAccent else Immersive.TextSecondary,
                 animationSpec = if (reduceMotion) snap() else tween(ImmersiveMotion.FADE_MS),
                 label = "segment label",
             )
@@ -133,6 +133,7 @@ internal fun ImmersiveSegmentedControl(
                     text = label,
                     style = Immersive.Subhead.copy(color = labelColor, fontWeight = FontWeight.Medium),
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -221,7 +222,7 @@ internal fun ImmersiveNameDialog(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.White.copy(alpha = 0.08f), Immersive.Button)
+                    .background(Immersive.Secondary, Immersive.Button)
                     .padding(horizontal = 14.dp, vertical = 12.dp),
             ) {
                 if (text.isEmpty()) {

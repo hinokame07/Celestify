@@ -38,7 +38,7 @@ class UpdateCheckerTest {
     @Test fun findsTheReleaseApk() {
         val release = org.json.JSONObject("""{"assets":[
             {"name":"checksums.txt","browser_download_url":"https://x/c.txt"},
-            {"name":"myspoti-2.0.0-beta.4.apk","browser_download_url":"https://x/myspoti.apk"}]}""")
+            {"name":"Celestify-2.0.0-beta.4.apk","browser_download_url":"https://x/myspoti.apk"}]}""")
         assertEquals("https://x/myspoti.apk", UpdateChecker.apkAsset(release))
         assertEquals("", UpdateChecker.apkAsset(org.json.JSONObject("{}")))
     }

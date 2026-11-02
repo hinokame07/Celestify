@@ -5,6 +5,7 @@ import com.music.spotui.ui.theme.AppText
 import com.music.spotui.ui.theme.AppMuted
 import com.music.spotui.ui.theme.tone
 
+import com.music.spotui.ui.components.localProfilePhoto
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -129,7 +130,7 @@ fun ProfileScreen(navController: NavController, userId: String, userName: String
                             Icons.Default.MoreVert, stringResource(R.string.profile_more_options), tint = AppText,
                             modifier = Modifier.pressable(0.96f) { menu = true }.padding(16.dp).size(26.dp),
                         )
-                        androidx.compose.material3.DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, containerColor = tone(0xFF282828)) {
+                        com.music.spotui.ui.components.CelestifyMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             androidx.compose.material3.DropdownMenuItem(
                                 text = { Text(stringResource(if (b) R.string.profile_unblock else R.string.profile_block), color = AppText) },
                                 onClick = {
@@ -151,7 +152,7 @@ fun ProfileScreen(navController: NavController, userId: String, userName: String
         item {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 com.music.spotui.ui.components.ProfileAvatar(
-                    url = spotifyImageUrl(p?.images?.best(300)?.url),
+                    url = spotifyImageUrl((if (me) localProfilePhoto() else null) ?: p?.images?.best(300)?.url),
                     name = p?.name ?: userName, size = 150.dp,
                 )
                 Spacer(Modifier.height(14.dp))

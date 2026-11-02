@@ -1,0 +1,20 @@
+<resources>
+    <string name="spicy_romanize">Romanization</string>
+    <string name="spicy_translate">Translate</string>
+    <string name="spicy_size">Text size</string>
+    <string name="spicy_import">Save TTML for this song</string>
+    <string name="spicy_preview">Preview TTML for this session</string>
+    <string name="spicy_restore">Restore provider lyrics</string>
+    <string name="spicy_import_error">Could not read this TTML. Choose a valid lyric file under 1 MB.</string>
+    <string name="spicy_catalogue">Community catalogue</string>
+    <string name="spicy_key_hint">Optional. Enter a publishable Spicy Lyrics client key to look up the current Spotify track. Clear it to disconnect.</string>
+    <string name="spicy_smooth">Smooth scrolling</string>
+    <string name="spicy_lead">Scroll slightly ahead</string>
+    <string name="spicy_seek_fade">Seek fade compensation</string>
+    <string name="spicy_duets">Indent duet voices</string>
+    <string name="spicy_backing">Reveal backing vocals</string>
+    <string name="spicy_join">Join steady syllables</string>
+    <string name="spicy_credits">Align credits with final singer</string>
+    <string name="spicy_motion_bg">Animated cinema background</string>
+    <string name="spicy_floating">Floating lyrics</string>
+</resources>

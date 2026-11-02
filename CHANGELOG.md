@@ -2,6 +2,17 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.2.0
+
+- Adaptive album colors, unified menus and grouped settings.
+- Native Spicy Lyrics letter emphasis, white highlights and manual lyric browsing.
+- GitHub release links, version checks and Android installation flow.
+
+## Celestify development build
+
+- Choose or restore a device-local profile photo from the Home avatar in Classic or Immersive.
+- The adaptive launcher, themed icon, splash, welcome screen and About panel share a crescent and star mark.
+
 ## 2.1.0
 
 The first stable release since 2.0.1, with everything from the 2.0.2 betas (their notes are below) and more.

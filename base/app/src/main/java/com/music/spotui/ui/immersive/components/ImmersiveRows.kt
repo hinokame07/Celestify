@@ -56,7 +56,7 @@ private val RowMoreOutset = 14.dp
 /** Where a divider under a track row starts: clear of the cover. */
 val ImmersiveRowDividerInset = Immersive.Gutter + RowCover + 14.dp
 
-private val RowTitle = Immersive.Body.copy(fontWeight = FontWeight.Medium)
+private val RowTitle get() = Immersive.Body.copy(fontWeight = FontWeight.Medium)
 
 /**
  * One track row for search results, album and playlist pages, the library: a 52 dp cover (or

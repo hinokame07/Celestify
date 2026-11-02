@@ -857,7 +857,7 @@ private fun DownloadCircle(downloaded: Int, total: Int, busy: Boolean, kept: Boo
 /** The sort menu: picking the sort already chosen flips its direction (the arrow shows it). */
 @Composable
 private fun SortMenu(open: Boolean, sort: TrackOrder, onDismiss: () -> Unit, onSort: (TrackOrder) -> Unit) {
-    DropdownMenu(expanded = open, onDismissRequest = onDismiss, containerColor = Immersive.Raised) {
+    com.music.spotui.ui.components.CelestifyMenu(expanded = open, onDismissRequest = onDismiss) {
         Text(
             stringResource(R.string.filter_and_sort_sort_section_title),
             style = Immersive.Caption,
@@ -989,7 +989,7 @@ private fun InviteJoinBar(vm: ContextViewModel, p: ContextPageModel, modifier: M
         Text(stringResource(R.string.playlist_invite_banner), style = Immersive.Body, modifier = Modifier.weight(1f).padding(end = 12.dp))
         androidx.compose.material3.Button(
             enabled = !joining,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Immersive.Accent, contentColor = Color.White),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Immersive.Accent, contentColor = Immersive.OnAccent),
             onClick = {
                 joining = true
                 com.music.spotui.data.api.InviteLinks.join(context, offered, p) { ok ->

@@ -113,7 +113,7 @@ object ShareCard {
             color = Color.argb(170, 255, 255, 255); textSize = 40f; textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD); letterSpacing = 0.12f
         }
-        c.drawText("Myspoti", W / 2f, H - 150f, mark)
+        c.drawText("Celestify", W / 2f, H - 150f, mark)
         return out
     }
 }

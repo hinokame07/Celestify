@@ -480,7 +480,7 @@ private fun ClassicLyricsCard(clock: DemoClock, phases: DemoPhases, open: () -> 
                             buildAnnotatedString {
                                 line.words.forEachIndexed { i, w ->
                                     if (i > 0) append(" ")
-                                    withStyle(SpanStyle(color = if (first + i < sungWords) Color.White else DemoSong.lyricsText)) { append(w.text) }
+                                    withStyle(SpanStyle(color = if (first + i < sungWords) Color.White else Color.White.copy(alpha = 0.58f))) { append(w.text) }
                                 }
                             },
                             fontSize = 26.sp, lineHeight = 33.sp, fontWeight = FontWeight.Bold, fontFamily = AppSans,
@@ -736,7 +736,7 @@ private fun ImmersiveLyrics(clock: DemoClock, phases: DemoPhases, modifier: Modi
                     clock = clock.song,
                     style = style,
                     dimAlpha = tail,
-                    color = if (distance == 0) Color.White else ImmersiveTint,
+                    color = Color.White,
                     glowAlpha = if (distance == 0) GLOW_ALPHA else 0f,
                     glowRoom = GLOW_ROOM,
                     feather = distance == 0,

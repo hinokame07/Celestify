@@ -417,7 +417,7 @@ private fun SettingRow(id: String, s: Setting) {
             Text(s.label, style = Immersive.Caption)
             Box(
                 Modifier.padding(top = 6.dp).fillMaxWidth()
-                    .background(Color.White.copy(alpha = 0.08f), Immersive.Button)
+                    .background(Immersive.Raised, Immersive.Button)
                     .padding(horizontal = 14.dp, vertical = 12.dp),
             ) {
                 BasicTextField(

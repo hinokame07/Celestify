@@ -22,22 +22,22 @@ android {
     // signed with the first key, as "Myspoti Beta"; releases are "app.myspoti.stable",
     // signed with their own key, as "Myspoti".
     // Local builds (no version given) are on the beta side, like the phone test builds.
-    val version = (findProperty("appVersionName") as String?) ?: "2.1.0"
+    val version = (findProperty("appVersionName") as String?) ?: "2.2.0"
     // "-beta" as in UpdateChecker.isBeta, one predicate for the app id, the label and the log stripping.
     val beta = findProperty("appVersionName") == null || version.contains("-beta")
     defaultConfig {
-        applicationId = if (beta) "app.myspoti" else "app.myspoti.stable"
-        manifestPlaceholders["appLabel"] = if (beta) "Myspoti Beta" else "Myspoti"
+        applicationId = "app.myspoti.dev" // Preserve the installed Celestify package across releases.
+        manifestPlaceholders["appLabel"] = "Celestify"
         // The adb command line (com.music.spotui.cli): betas and debug builds only.
         manifestPlaceholders["cliEnabled"] = beta.toString()
         minSdk = 29
         targetSdk = 36
         // CI release builds pass the tag's version (-PappVersionName / -PappVersionCode).
-        versionCode = (findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 200
+        versionCode = (findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 2002000
         versionName = version
         // GitHub "owner/repo" whose releases the app checks for updates; empty = off
         // (local builds). CI sets it to the repository it builds.
-        buildConfigField("String", "UPDATE_REPO", "\"${(findProperty("updateRepo") as String?) ?: System.getenv("MYSPOTI_UPDATE_REPO") ?: ""}\"")
+        buildConfigField("String", "UPDATE_REPO", "\"${(findProperty("updateRepo") as String?) ?: "hinokame07/Celestify"}\"")
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
@@ -77,8 +77,7 @@ android {
     buildTypes {
         debug {
             // Installs next to the release apps (own data, own sign-in).
-            applicationIdSuffix = ".dev"
-            manifestPlaceholders["appLabel"] = "Myspoti dev"
+            manifestPlaceholders["appLabel"] = "Celestify"
             manifestPlaceholders["cliEnabled"] = "true"
         }
         release {
@@ -88,8 +87,7 @@ android {
             // -PoverDev: the optimised build under the dev app's id, to measure the speed of a
             // beta on the test phone without replacing the signed beta installed there.
             if (findProperty("overDev") != null) {
-                applicationIdSuffix = ".dev"
-                manifestPlaceholders["appLabel"] = "Myspoti dev"
+                    manifestPlaceholders["appLabel"] = "Celestify"
             }
             isMinifyEnabled = true
             isShrinkResources = true
@@ -109,11 +107,14 @@ android {
 
 dependencies {
     implementation(project(":host-android"))
+    implementation("com.google.code.gson:gson:2.11.0")
+    constraints { implementation("com.google.errorprone:error_prone_annotations:2.36.0") }
     // Third-party extensions: the sandbox (Rhino), manifests, packages and catalogues.
     implementation(project(":extensions"))
     // Jam: scan the invite QR code (Google code scanner, no camera permission).
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("net.sf.kxml:kxml2:2.3.0")
     // The real org.json in unit tests (android.jar only has stubs).
     testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.test:runner:1.6.2")

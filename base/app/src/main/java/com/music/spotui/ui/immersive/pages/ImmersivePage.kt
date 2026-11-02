@@ -4,6 +4,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -130,12 +134,12 @@ internal fun LazyListScope.immersiveGroup(
         Column(Modifier.fillMaxWidth().padding(horizontal = Immersive.Gutter).padding(top = 14.dp)) {
             if (header != null) {
                 Text(
-                    header.uppercase(),
-                    style = Immersive.Caption,
-                    modifier = Modifier.padding(start = GroupSeparatorInset, bottom = 6.dp),
+                    header,
+                    style = Immersive.BodyStrong,
+                    modifier = Modifier.padding(start = 6.dp, bottom = 8.dp),
                 )
             }
-            Column(Modifier.fillMaxWidth().clip(Immersive.Card).background(Immersive.Raised)) {
+            Column(Modifier.fillMaxWidth().clip(Immersive.Card).background(Brush.linearGradient(listOf(androidx.compose.ui.graphics.lerp(Immersive.Raised, Immersive.Accent, 0.05f), Immersive.Secondary))).border(0.75.dp, Immersive.Separator, Immersive.Card)) {
                 scope.rows.forEachIndexed { i, row ->
                     row()
                     if (i < scope.rows.lastIndex) {
@@ -179,6 +183,7 @@ internal fun ImmersiveGroupRow(
     icon: ImageVector? = null,
     value: String? = null,
     chevron: Boolean = false,
+    selected: Boolean = false,
     destructive: Boolean = false,
     enabled: Boolean = true,
     detailColor: Color = Immersive.TextSecondary,
@@ -190,12 +195,15 @@ internal fun ImmersiveGroupRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .then(if (selected) Modifier.background(Immersive.Accent.copy(alpha = 0.10f)).semantics { this.selected = true } else Modifier)
             .then(if (onClick != null) Modifier.immersiveClickable(onClick = onClick, pressedScale = 0.99f, enabled = enabled) else Modifier)
             .heightIn(min = 52.dp)
             .padding(horizontal = GroupSeparatorInset, vertical = 10.dp),
     ) {
         if (icon != null) {
-            Icon(icon, null, tint = Immersive.Accent, modifier = Modifier.size(22.dp))
+            Box(Modifier.size(36.dp).background(Immersive.Accent.copy(alpha = 0.11f), Immersive.CoverMedium), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = Immersive.Accent, modifier = Modifier.size(20.dp))
+            }
             Spacer(Modifier.width(12.dp))
         }
         Column(Modifier.weight(1f)) {
@@ -252,12 +260,12 @@ internal fun ImmersiveSwitchRow(
             enabled = enabled,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Immersive.Accent,
+                checkedTrackColor = androidx.compose.ui.graphics.lerp(Immersive.Accent, Immersive.OnAccent, 0.36f),
                 uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFF3A3A3F),
+                uncheckedTrackColor = if (com.music.spotui.data.preferences.AppearancePref.activeLight) Color(0xFFD1D1D9) else Color(0xFF3A3A3F),
                 uncheckedBorderColor = Color.Transparent,
                 disabledCheckedTrackColor = Immersive.Accent.copy(alpha = 0.4f),
-                disabledUncheckedTrackColor = Color(0xFF2A2A2E),
+                disabledUncheckedTrackColor = if (com.music.spotui.data.preferences.AppearancePref.activeLight) Color(0xFFE2E2E8) else Color(0xFF2A2A2E),
                 disabledUncheckedBorderColor = Color.Transparent,
             ),
         )

@@ -1,6 +1,7 @@
 # build outputs
 build/
 .gradle/
+.toolchain/
 .kotlin/
 *.apk
 *.zip
@@ -20,3 +21,6 @@ docs/RESTE-A-FAIRE.md
 tools/handoff_state.sh
 REDDIT-*.md
 tools/qa-results/
+
+# Local Codex attachments can include device diagnostics.
+.codex-attachments/

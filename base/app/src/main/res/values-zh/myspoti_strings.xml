@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Myspoti's own texts (English default, French, Italian). -->
+<!-- Celestify's own texts (English default, French, Italian). -->
 <resources>
     <string name="welcome_lead">你的音乐，</string>
     <string name="welcome_rotate_ads">没有广告。</string>
@@ -7,7 +7,7 @@
     <string name="welcome_rotate_clips">官方视频。</string>
     <string name="welcome_rotate_offline">通过扩展离线收听。</string>
     <string name="welcome_login">使用 Spotify 登录</string>
-    <string name="welcome_privacy">你将在 Spotify 自己的页面登录。Myspoti 永远看不到你的密码。</string>
+    <string name="welcome_privacy">你将在 Spotify 自己的页面登录。Celestify 永远看不到你的密码。</string>
     <string name="remove_from_liked">从“已点赞的歌曲”中移除</string>
     <string name="repeat_on">循环播放：开</string>
     <string name="repeat_one">单曲循环</string>
@@ -53,7 +53,7 @@
     <string name="local_files_none_subtitle">在此设备上没有找到可播放的音频文件。有文件后会显示在这里。</string>
     <string name="downloads_empty_title">下载后可离线收听</string>
     <string name="downloads_empty_subtitle">点按歌曲菜单中的“下载”，或专辑、播放列表的下载按钮。</string>
-    <string name="downloads_source">无损 FLAC，已与原始录音核对。仅保存在 Myspoti 内。</string>
+    <string name="downloads_source">无损 FLAC，已与原始录音核对。仅保存在 Celestify 内。</string>
     <string name="downloads_size">此手机上占用 %1$s</string>
     <string name="download_unavailable">未找到匹配的录音</string>
     <string name="download_retry">重试</string>
@@ -66,8 +66,8 @@
     <string name="playlist_not_found">未找到播放列表</string>
     <string name="browse_new_releases">新发行</string>
     <string name="language_auto">自动</string>
-    <string name="language_auto_detail">若 Myspoti 支持手机的语言则使用该语言（中文、德语、俄语、法语、希腊语、葡萄牙语、波兰语、西班牙语、意大利语、英语），否则使用英语</string>
-    <string name="language_partial_note">其他语言：仅翻译 Spotify 自身的标签，Myspoti 的文字仍为英语。</string>
+    <string name="language_auto_detail">若 Celestify 支持手机的语言则使用该语言（中文、德语、俄语、法语、希腊语、葡萄牙语、波兰语、西班牙语、意大利语、英语），否则使用英语</string>
+    <string name="language_partial_note">其他语言：仅翻译 Spotify 自身的标签，Celestify 的文字仍为英语。</string>
     <string name="restart_player_title">重启播放器</string>
     <string name="restart_player_detail">音乐无响应时：重新加载 Spotify 播放器</string>
     <string name="ad_playing">广告</string>
@@ -85,34 +85,12 @@
     <string name="local_playlist_empty">点按“本地文件”中的 + 按钮来添加歌曲。</string>
     <string name="playlist_change_refused">Spotify 拒绝了对此播放列表的更改</string>
     <string name="download_kept_by_list">仍保留下载：已下载的播放列表包含它</string>
-    <string name="support_title">支持 Myspoti</string>
-    <string name="support_body">Myspoti 免费、无广告，由我在业余时间制作。如果你喜欢它，一点小小的捐助能帮助它继续下去。</string>
-    <string name="support_action">在 Ko-fi 上支持</string>
-    <string name="support_decline">不用了</string>
-    <string name="support_row_detail">在 Ko-fi 或 GitHub Sponsors 上的小额捐助有助于应用持续更新</string>
-    <string name="supporter_perks_title">支持者福利</string>
-    <string name="supporter_perks_detail">强调色、应用图标和徽章，以表谢意</string>
-    <string name="supporter_perks_locked">支持 Myspoti 后解锁。全凭自觉：不会进行任何验证。</string>
-    <string name="supporter_i_supported">我已支持 Myspoti</string>
-    <string name="supporter_how">你是如何支持的？</string>
-    <string name="supporter_once">一次捐助</string>
-    <string name="supporter_monthly">每月</string>
-    <string name="supporter_badge">支持者</string>
-    <string name="supporter_thanks_title">感谢你的支持！</string>
-    <string name="supporter_thanks_body">如果 Myspoti 仍然对你有帮助，再次小额捐助能帮助它继续下去。</string>
-    <string name="support_again">再次支持</string>
-    <string name="supporter_accent">强调色</string>
-    <string name="supporter_icon">应用图标</string>
-    <string name="supporter_icon_note">更换图标后，其主屏幕快捷方式可能会消失：应用仍保留在应用列表中。</string>
-    <string name="supporter_monthly_switch">我每月支持（不再提醒）</string>
     <string name="color_green">绿色</string>
     <string name="color_blue">蓝色</string>
     <string name="color_purple">紫色</string>
     <string name="color_pink">粉色</string>
     <string name="color_orange">橙色</string>
-    <string name="about_detail">版本、Discord 社区、源代码</string>
-    <string name="about_discord">Discord</string>
-    <string name="about_discord_detail">新闻、帮助和创意：加入社区</string>
+    <string name="about_detail">版本、许可与源代码</string>
     <string name="about_github">源代码</string>
     <string name="about_github_detail">GitHub 上的版本发布、问题和代码</string>
     <string name="about_free">免费、开源、无广告。与 Spotify 无关联。</string>
@@ -122,7 +100,7 @@
     <string name="song_radio_name">%1$s 电台</string>
     <string name="local_files_find_hint">在本地文件中查找</string>
     <string name="data_saver_title">流量节省</string>
-    <string name="data_saver_summary">使用移动数据时，Myspoti 不使用流量：只播放已下载的歌曲和本地文件</string>
+    <string name="data_saver_summary">使用移动数据时，Celestify 不使用流量：只播放已下载的歌曲和本地文件</string>
     <string name="data_saver_blocked">流量节省：使用移动数据时，只播放已下载的歌曲和本地文件</string>
     <string name="new_releases_followed">来自你关注的艺人</string>
     <string name="new_releases_latest">最新发行</string>
@@ -154,7 +132,7 @@
     <string name="recap_top_tracks">热门曲目</string>
     <string name="recap_top_artists">热门艺人</string>
     <string name="recap_top_albums">热门专辑</string>
-    <string name="recap_private_note">统计在 Myspoti 中播放的所有内容（Spotify、下载、本地文件）。数据仅保存在此手机上，绝不会发送给 Spotify。</string>
+    <string name="recap_private_note">统计在 Celestify 中播放的所有内容（Spotify、下载、本地文件）。数据仅保存在此手机上，绝不会发送给 Spotify。</string>
     <string name="recap_detail">你的收听记录，包括下载和本地文件</string>
     <string name="track_credits">创作人员</string>
     <string name="exclude_taste">从你的口味档案中排除</string>
@@ -182,7 +160,7 @@
     <string name="track_sort_artist">艺人</string>
     <string name="track_sort_album">专辑</string>
     <string name="track_sort_duration">时长</string>
-    <string name="setup_title">设置 Myspoti</string>
+    <string name="setup_title">设置 Celestify</string>
     <string name="setup_subtitle">按需授权；之后可在手机设置中更改。</string>
     <string name="setup_notifications_title">通知</string>
     <string name="setup_notifications_detail">在锁屏和通知栏中控制播放</string>
@@ -194,7 +172,7 @@
     <string name="setup_battery_detail">息屏后音乐继续播放</string>
     <string name="setup_enable">允许</string>
     <string name="setup_continue">继续</string>
-    <string name="setup_intro_title">Myspoti 如何运作</string>
+    <string name="setup_intro_title">Celestify 如何运作</string>
     <string name="setup_intro_subtitle">开始前需要知道的三件事。</string>
     <string name="setup_intro_spotify_title">Spotify，没有广告</string>
     <string name="setup_intro_spotify_detail">你的账号、歌单和喜欢的歌曲，由 Spotify 自己的网页播放器播放。免费账号也能用。</string>
@@ -203,16 +181,16 @@
     <string name="setup_intro_ext_title">扩展，按需使用</string>
     <string name="setup_intro_ext_detail">社区制作的附加组件：其他音源、下载等等。稍后详细介绍。</string>
     <string name="setup_ext_title">扩展</string>
-    <string name="setup_ext_subtitle">Myspoti 本身就能用：它播放 Spotify。扩展是社区制作的可选附加组件，能做得更多。</string>
+    <string name="setup_ext_subtitle">Celestify 本身就能用：它播放 Spotify。扩展是社区制作的可选附加组件，能做得更多。</string>
     <string name="setup_ext_audio_title">其他音源</string>
     <string name="setup_ext_audio_detail">扩展可以从其他音源播放你的歌曲，音质由它提供。</string>
     <string name="setup_ext_download_title">下载</string>
-    <string name="setup_ext_download_detail">想离线收听，请安装下载类扩展。歌曲会加密保存在 Myspoti 中。</string>
+    <string name="setup_ext_download_detail">想离线收听，请安装下载类扩展。歌曲会加密保存在 Celestify 中。</string>
     <string name="setup_ext_more_title">更多</string>
     <string name="setup_ext_more_detail">由作者添加的首页板块、页面和工具。</string>
     <string name="setup_ext_safe_title">一切由你掌控</string>
     <string name="setup_ext_safe_detail">安装前，它会显示可以做什么。需要更多权限时会再次询问，你也可以随时移除。</string>
-    <string name="setup_ext_where">在 设置 › 扩展 中查找，来源包括 GitHub、GitLab 和 Codeberg。扩展由其作者编写，而非 Myspoti。</string>
+    <string name="setup_ext_where">在 设置 › 扩展 中查找，来源包括 GitHub、GitLab 和 Codeberg。扩展由其作者编写，而非 Celestify。</string>
     <string name="setup_ext_browse">查看扩展</string>
     <string name="setup_ext_later">稍后</string>
     <string name="local_folders_button">文件夹</string>
@@ -246,7 +224,7 @@
     <string name="quality_download_hires">FLAC Hi-Res</string>
     <string name="quality_download_hires_detail">有则使用 24 位，文件约大三倍</string>
     <string name="setup_quality_title">音质</string>
-    <string name="setup_quality_subtitle">选择 Myspoti 播放和保存音乐的方式。之后可在“设置”中更改。</string>
+    <string name="setup_quality_subtitle">选择 Celestify 播放和保存音乐的方式。之后可在“设置”中更改。</string>
     <string name="downloads_off_toast">下载已关闭。请在“设置”中开启。</string>
     <string name="quality_streaming_high_detail">160 kbit/s，最佳音质</string>
     <string name="quality_download_small">最小</string>
@@ -260,7 +238,7 @@
     <string name="quality_now_unknown">暂时未知：请先播放一首歌</string>
     <string name="update_downloading">正在下载… %1$d%%</string>
     <string name="update_installing">正在安装…</string>
-    <string name="update_needs_permission">要更新，请允许 Myspoti 安装应用，然后回到这里。</string>
+    <string name="update_needs_permission">要更新，请允许 Celestify 安装应用，然后回到这里。</string>
     <string name="update_allow">允许</string>
     <string name="update_failed">更新失败：%1$s</string>
     <string name="update_retry">重试</string>
@@ -270,7 +248,7 @@
     <string name="settings_check_update_title">立即检查更新</string>
     <string name="settings_check_update_detail">查找较新的版本并提示安装</string>
     <string name="settings_update_checking">正在检查…</string>
-    <string name="settings_update_check_latest">Myspoti 已是最新版本</string>
+    <string name="settings_update_check_latest">Celestify 已是最新版本</string>
     <!-- A25: stop the queue, keep the songs already downloaded. -->
     <string name="downloads_stop_all_title">停止所有下载</string>
     <string name="downloads_stop_all_detail">取消剩余的下载；已下载的歌曲会保留</string>
@@ -350,7 +328,6 @@
     <string name="settings_rotation_portrait">竖屏</string>
     <string name="settings_rotation_auto">自动</string>
     <string name="settings_rotation_landscape">横屏</string>
-    <string name="support_github_action">在 GitHub 上赞助</string>
     <string name="download_on_mobile_data">正在使用移动数据下载：会消耗你的流量套餐</string>
 
     <!-- Podcast show page, episode page and podcast player -->
@@ -414,7 +391,7 @@
     <string name="playlist_invite_join">加入</string>
     <string name="playlist_invite_joined">你现在是协作者</string>
     <string name="settings_keep_playing_title">关闭应用后继续播放</string>
-    <string name="settings_keep_playing_detail">关闭后，从最近任务中关闭 Myspoti 会停止音乐</string>
+    <string name="settings_keep_playing_detail">关闭后，从最近任务中关闭 Celestify 会停止音乐</string>
     <string name="recommended_songs_from_name">根据此播放列表的名称</string>
     <string name="recommended_songs_from_songs">根据此播放列表中的内容</string>
     <string name="recommended_songs_refresh">刷新</string>

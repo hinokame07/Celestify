@@ -100,7 +100,7 @@ fun ImmersiveMiniPlayer(navController: NavController, modifier: Modifier = Modif
             // Where the Classic sheet rises from; kept up to date for the pages that read it.
             .onGloballyPositioned { PlayerSheet.miniTop = it.boundsInWindow().top }
             .miniPlayerGestures()
-            .immersiveGlassSurface(shape, interactionSource = capsuleSource)
+            .immersiveGlassSurface(shape, interactionSource = capsuleSource, material = com.music.spotui.ui.immersive.shell.DarkCrystal.MOONLIGHT)
             .clip(shape)
             .clickable(interactionSource = capsuleSource, indication = null) { PlayerSheet.show() }
             .padding(horizontal = 12.dp, vertical = 8.dp),

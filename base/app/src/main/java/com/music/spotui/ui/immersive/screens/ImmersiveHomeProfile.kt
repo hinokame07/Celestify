@@ -5,6 +5,16 @@
  */
 package com.music.spotui.ui.immersive.screens
 
+import com.music.spotui.ui.components.ProfilePhotoActions
+import com.music.spotui.ui.components.localProfilePhoto
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.ui.graphics.Brush
+import com.music.spotui.ui.immersive.pages.ImmersiveGroupRow
+import com.music.spotui.ui.immersive.sheets.ImmersiveSheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -39,13 +49,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.myspoti.engine.R
 import com.music.spotui.data.api.ProfileCache
-import com.music.spotui.data.api.SupportReminder
 import com.music.spotui.di.Graph
 import com.music.spotui.di.SessionActions
 import com.music.spotui.ui.components.AboutSheet
-import com.music.spotui.ui.components.SupporterBadge
-import com.music.spotui.ui.components.SupporterSheet
-import com.music.spotui.ui.components.SupportSheet
 import com.music.spotui.ui.immersive.Immersive
 import com.music.spotui.ui.immersive.components.ImmersiveCover
 import com.music.spotui.ui.immersive.components.immersiveClickable
@@ -59,7 +65,7 @@ import com.music.spotui.ui.screens.AccountBrowser
  */
 @Composable
 internal fun ProfileDisc(onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
-    val avatar = ProfileCache.imageUrl
+    val avatar = localProfilePhoto() ?: ProfileCache.imageUrl
     val initial = ProfileCache.name?.trim()?.firstOrNull()?.uppercase() ?: "•"
     AvatarDisc(
         url = avatar,
@@ -111,127 +117,62 @@ internal fun AvatarDisc(
 @Composable
 internal fun ImmersiveProfileSheet(onOpen: (route: String) -> Unit, onDismiss: () -> Unit) {
     val name = ProfileCache.name.orEmpty()
-    val avatar = ProfileCache.imageUrl
+    val avatar = localProfilePhoto() ?: ProfileCache.imageUrl
     val myId = ProfileCache.id
-    // Opened in full: half-open, the sheet and its list both moved under the finger.
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = Immersive.Raised,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 16.dp),
-        ) {
-            // Name and picture open the public profile.
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = myId != null, role = Role.Button) { myId?.let { onOpen(profileRoute(it, name)) } }
-                    .padding(horizontal = Immersive.Gutter, vertical = 8.dp),
-            ) {
-                AvatarDisc(
-                    url = avatar,
-                    initial = name.trim().firstOrNull()?.uppercase() ?: "•",
-                    contentDescription = null,
-                    onClick = null,
-                    size = 48.dp,
-                )
-                Text(
-                    text = name.ifBlank { stringResource(R.string.immersive_screens_account) },
-                    style = Immersive.Headline,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 14.dp),
-                )
-                if (SupportReminder.level != SupportReminder.Level.NONE) SupporterBadge(Modifier.padding(start = 10.dp))
-            }
-            if (myId != null) {
-                Text(
-                    text = stringResource(R.string.view_profile),
-                    style = Immersive.Caption,
-                    modifier = Modifier.padding(start = 82.dp, bottom = 4.dp),
-                )
-            }
-            HorizontalDivider(color = Immersive.Separator, modifier = Modifier.padding(vertical = 8.dp))
-            SheetRow(stringResource(R.string.settings_title), stringResource(R.string.settings_detail)) {
-                onOpen(Routes.Settings.route)
-            }
-            SheetRow(stringResource(R.string.recap_title), stringResource(R.string.recap_detail)) {
-                onOpen(Routes.Recap.route)
-            }
-            SheetRow(stringResource(R.string.recents_title), stringResource(R.string.recents_detail)) {
-                onOpen(Routes.Recent.route)
-            }
-            // What the followed people are listening to (the official Friend Activity feed).
-            SheetRow(stringResource(R.string.friends_title), stringResource(R.string.friends_detail)) {
-                onOpen(Routes.Friends.route)
-            }
-            // Third-party extensions: installed, enabled, repositories.
-            val extRegistry by com.music.spotui.extensions.Extensions.registry.collectAsState()
-            val installed = extRegistry.extensions
-            SheetRow(
-                stringResource(R.string.extensions_title),
-                if (installed.isEmpty()) stringResource(R.string.extensions_row_detail)
-                else stringResource(R.string.extensions_row_count, installed.size, installed.count { it.enabled }),
-            ) {
-                onOpen(Routes.Extensions.route)
-            }
-            // The account page (plan, privacy, devices), in the app's signed-in browser.
-            SheetRow(
-                stringResource(R.string.immersive_screens_account_page),
-                stringResource(R.string.immersive_screens_account_page_detail),
-            ) {
-                onDismiss()
-                AccountBrowser.open(Graph.app, AccountBrowser.ACCOUNT_URL)
-            }
-            // Donations: always here, never in the way.
-            var support by remember { mutableStateOf(false) }
-            if (support) SupportSheet(onDismiss = { support = false })
-            SheetRow(
-                stringResource(R.string.support_title),
-                stringResource(R.string.support_row_detail),
-                titleColor = Immersive.Accent,
-            ) { support = true }
-            // About: version, Discord, source code and Ko-fi.
-            var about by remember { mutableStateOf(false) }
-            if (about) AboutSheet(onDismiss = { about = false })
-            SheetRow(stringResource(R.string.creator_biography_section_title), stringResource(R.string.about_detail)) {
-                about = true
-            }
-            var perks by remember { mutableStateOf(false) }
-            if (perks) SupporterSheet(onDismiss = { perks = false })
-            if (SupportReminder.PERKS_ENABLED) {
-                SheetRow(stringResource(R.string.supporter_perks_title), stringResource(R.string.supporter_perks_detail)) {
-                    perks = true
+    val registry by com.music.spotui.extensions.Extensions.registry.collectAsState()
+    val installed = registry.extensions
+    var about by remember { mutableStateOf(false) }
+    if (about) AboutSheet { about = false }
+
+    ImmersiveSheet(onDismiss = onDismiss, imageUrl = avatar, maxHeightFraction = 0.94f) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            ProfileGroup {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                        .clickable(enabled = myId != null, role = Role.Button) { myId?.let { onOpen(profileRoute(it, name)) } }
+                        .padding(16.dp)) {
+                    AvatarDisc(avatar, name.trim().firstOrNull()?.uppercase() ?: "•", null, null, size = 62.dp)
+                    Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                        Text(name.ifBlank { stringResource(R.string.immersive_screens_account) },
+                            style = Immersive.Title, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        if (myId != null) Text(stringResource(R.string.view_profile), style = Immersive.Subhead)
+                    }
                 }
+                ProfilePhotoActions()
             }
-            SheetRow(stringResource(R.string.connect_device_menu_logout), null) {
-                onDismiss()
-                SessionActions.logout(Graph.app)
+            ProfileGroup {
+                ImmersiveGroupRow(stringResource(R.string.settings_title), detail = stringResource(R.string.settings_detail),
+                    icon = Icons.Rounded.Settings, chevron = true, onClick = { onOpen(Routes.Settings.route) })
+                ImmersiveGroupRow(stringResource(R.string.extensions_title), icon = Icons.Rounded.Extension, chevron = true,
+                    detail = if (installed.isEmpty()) stringResource(R.string.extensions_row_detail)
+                    else stringResource(R.string.extensions_row_count, installed.size, installed.count { it.enabled }),
+                    onClick = { onOpen(Routes.Extensions.route) })
             }
+            Text(stringResource(R.string.celestify_listening), style = Immersive.Headline, modifier = Modifier.padding(start = 6.dp))
+            ProfileGroup {
+                ImmersiveGroupRow(stringResource(R.string.recap_title), icon = Icons.Rounded.BarChart,
+                    chevron = true, onClick = { onOpen(Routes.Recap.route) })
+                ImmersiveGroupRow(stringResource(R.string.recents_title), icon = Icons.Rounded.History,
+                    chevron = true, onClick = { onOpen(Routes.Recent.route) })
+                ImmersiveGroupRow(stringResource(R.string.friends_title), icon = Icons.Rounded.People,
+                    chevron = true, onClick = { onOpen(Routes.Friends.route) })
+            }
+            ProfileGroup {
+                ImmersiveGroupRow(stringResource(R.string.immersive_screens_account_page), icon = Icons.Rounded.ManageAccounts,
+                    chevron = true, onClick = { onDismiss(); AccountBrowser.open(Graph.app, AccountBrowser.ACCOUNT_URL) })
+                ImmersiveGroupRow(stringResource(R.string.creator_biography_section_title), icon = Icons.Rounded.Info,
+                    detail = stringResource(R.string.celestify_credits_title), chevron = true, onClick = { about = true })
+            }
+            ImmersiveGroupRow(stringResource(R.string.connect_device_menu_logout), destructive = true,
+                onClick = { onDismiss(); SessionActions.logout(Graph.app) })
         }
     }
 }
 
 @Composable
-private fun SheetRow(
-    title: String,
-    detail: String?,
-    titleColor: androidx.compose.ui.graphics.Color = Immersive.Text,
-    onClick: () -> Unit,
-) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = Immersive.Gutter, vertical = if (detail == null) 14.dp else 10.dp),
-    ) {
-        Text(title, style = Immersive.Body.copy(color = titleColor))
-        if (detail != null) Text(detail, style = Immersive.Caption)
-    }
+private fun ProfileGroup(content: @Composable ColumnScope.() -> Unit) {
+    Column(Modifier.fillMaxWidth().clip(Immersive.Card)
+        .background(Brush.verticalGradient(listOf(Immersive.Raised, Immersive.Secondary)))
+        .border(0.75.dp, Immersive.Separator, Immersive.Card), content = content)
 }

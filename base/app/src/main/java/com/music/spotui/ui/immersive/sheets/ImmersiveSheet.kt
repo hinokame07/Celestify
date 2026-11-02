@@ -56,7 +56,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -64,7 +63,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.ColorUtils
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.music.spotui.ui.components.spotifyImageUrl
@@ -81,7 +79,8 @@ import com.music.spotui.ui.look.rememberReduceMotion
 val ImmersiveSheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
 /** The ground of a sheet that is not about one cover (BitChord's player drawer, without its blur). */
-private val FlatSheetColor = Color(0xFF121212)
+private val FlatSheetColor get() = (if (com.music.spotui.data.preferences.CelestialThemePref.theme == com.music.spotui.data.preferences.CelestialTheme.GOLD)
+    com.music.spotui.ui.immersive.shell.DarkCrystal.SERAPH else com.music.spotui.ui.immersive.shell.DarkCrystal.OVERLAY).fill.copy(alpha = 1f)
 
 /** What a sheet is painted in: [background] under everything, [accent] for values, ticks and highlights. */
 @Immutable
@@ -104,18 +103,19 @@ val LocalImmersiveRowStyle = staticCompositionLocalOf { ImmersiveRowStyle.Sheet 
  */
 @Composable
 fun rememberImmersiveSheetTint(imageUrl: String?): ImmersiveSheetTint {
-    val hasCover = !imageUrl.isNullOrBlank()
-    val colors = rememberArtworkColors(if (hasCover) spotifyImageUrl(imageUrl) ?: imageUrl else null).colors
+    val light = com.music.spotui.data.preferences.AppearancePref.activeLight
+    val hasCover = !imageUrl.isNullOrBlank() && com.music.spotui.data.preferences.AtmospherePref.dynamicColors
+    val colors = rememberArtworkColors(if (hasCover && !light) spotifyImageUrl(imageUrl) ?: imageUrl else null).colors
     val seed = colors.firstOrNull() ?: Immersive.Accent
-    val target = remember(seed, hasCover) {
-        if (!hasCover) return@remember ImmersiveSheetTint(FlatSheetColor, Immersive.Accent)
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(seed.toArgb(), hsl)
-        val ground = floatArrayOf(hsl[0], hsl[1].coerceIn(0.25f, 0.6f), 0.14f)
-        val accent = floatArrayOf(hsl[0], hsl[1].coerceIn(0.55f, 1f), 0.68f)
+    val accentColor = Immersive.Accent
+    val flat = FlatSheetColor
+    val secondary = Immersive.Secondary
+    val target = remember(seed, hasCover, light, accentColor, flat, secondary) {
+        if (light) return@remember ImmersiveSheetTint(secondary, accentColor)
+        if (!hasCover) return@remember ImmersiveSheetTint(flat, accentColor)
         ImmersiveSheetTint(
-            Color(ColorUtils.HSLToColor(ground)),
-            Color(ColorUtils.HSLToColor(accent)),
+            androidx.compose.ui.graphics.lerp(flat, seed, 0.17f),
+            com.music.spotui.ui.immersive.readableArtworkAccent(seed),
         )
     }
     val spec = if (rememberReduceMotion()) snap<Color>() else tween(ImmersiveMotion.SHEET_TINT_MS)
@@ -147,7 +147,7 @@ fun ImmersiveSheet(
 ) {
     val tint = rememberImmersiveSheetTint(imageUrl)
     val maxHeight = LocalConfiguration.current.screenHeightDp.dp * maxHeightFraction
-    val canBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val canBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !rememberReduceMotion()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -174,14 +174,14 @@ fun ImmersiveSheet(
                                 .fillMaxHeight(WASH_FRACTION)
                                 // Overscaled so the blur's clamped edges never reach a visible one.
                                 .graphicsLayer { scaleX = 1.4f; scaleY = 1.4f }
-                                .blur(72.dp, BlurredEdgeTreatment.Unbounded),
+                                .blur(42.dp, BlurredEdgeTreatment.Unbounded),
                         )
                     }
                     Box(
                         Modifier.fillMaxSize().background(
                             Brush.verticalGradient(
-                                0f to tint.background.copy(alpha = 0.40f),
-                                0.20f to tint.background.copy(alpha = 0.55f),
+                                0f to tint.background.copy(alpha = 0.62f),
+                                0.20f to tint.background.copy(alpha = 0.70f),
                                 0.55f to tint.background.copy(alpha = 0.85f),
                                 WASH_FRACTION to tint.background,
                             ),
@@ -321,12 +321,13 @@ fun ImmersiveSheetRow(
     val menu = LocalImmersiveRowStyle.current == ImmersiveRowStyle.Menu
     val alpha = if (enabled) 1f else 0.4f
     val glyph: @Composable () -> Unit = {
-        Box(Modifier.size(if (menu) 20.dp else 24.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(if (menu) 22.dp else 34.dp)
+            .background(if (menu) Color.Transparent else accent.copy(alpha = 0.12f), Immersive.CoverMedium), contentAlignment = Alignment.Center) {
             when {
                 leading != null -> leading()
                 icon != null -> Icon(
                     icon, contentDescription = null,
-                    tint = (tint ?: Immersive.Text).copy(alpha = alpha),
+                    tint = (tint ?: if (menu) Immersive.Text else accent).copy(alpha = alpha),
                     modifier = Modifier.size(if (menu) 20.dp else 22.dp),
                 )
             }
@@ -338,13 +339,13 @@ fun ImmersiveSheetRow(
             .immersiveClickable(onClick = onClick, enabled = enabled, pressedScale = 0.98f)
             .then(
                 if (menu) Modifier.heightIn(min = 46.dp).padding(horizontal = 18.dp, vertical = 11.dp)
-                else Modifier.padding(horizontal = 22.dp, vertical = 15.dp),
+                else Modifier.heightIn(min = 54.dp).padding(horizontal = 20.dp, vertical = 8.dp),
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (!menu) {
             glyph()
-            Spacer(Modifier.width(18.dp))
+            Spacer(Modifier.width(12.dp))
         }
         Text(
             text = label,

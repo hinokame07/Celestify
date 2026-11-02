@@ -57,7 +57,9 @@ val LocalReduceMotion = compositionLocalOf<Boolean?> { null }
  * scale is 0). Read once per composition; the setting rarely changes while a screen is up.
  */
 @Composable
-fun rememberReduceMotion(): Boolean = LocalReduceMotion.current ?: rememberReduceMotionSetting()
+fun rememberReduceMotion(): Boolean =
+    com.music.spotui.data.preferences.AtmospherePref.reduceAnimations ||
+        (LocalReduceMotion.current ?: rememberReduceMotionSetting())
 
 @Composable
 private fun rememberReduceMotionSetting(): Boolean {

@@ -42,6 +42,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.VolumeDown
@@ -91,7 +93,7 @@ import kotlin.math.roundToInt
  * lifted pale rather than a translucent white. White wherever nothing provides it. The title,
  * transport, seek and volume bars stay white on purpose.
  */
-internal val LocalPlayerTint = compositionLocalOf { Color.White }
+internal val LocalPlayerTint = compositionLocalOf { Color(0xFF3F739B) }
 
 private const val PLAYER_TINT_LIGHTNESS = 0.88f
 private const val PLAYER_TINT_MAX_SATURATION = 0.40f
@@ -160,12 +162,12 @@ private fun ScrubTimes(frame: State<Long>, scrub: PlayerScrub, state: ImmersiveP
         val elapsed = (shown * duration).toLong()
         Text(
             text = formatTime(elapsed),
-            style = Immersive.Caption,
+            style = Immersive.ArtworkCaption,
             color = LocalPlayerTint.current.copy(alpha = 0.55f),
         )
         Text(
             text = "-" + formatTime(duration - elapsed),
-            style = Immersive.Caption,
+            style = Immersive.ArtworkCaption,
             color = LocalPlayerTint.current.copy(alpha = 0.55f),
         )
     }
@@ -231,12 +233,15 @@ internal fun TransportRow(
     isPlaying: Boolean,
     /** While the stream resolves and buffers, the play glyph would be a lie. */
     isLoading: Boolean,
+    compact: Boolean = false,
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
 ) {
-    val playSize = 88.dp
-    val playTouch = 92.dp
+    val playSize = if (compact) 54.dp else 64.dp
+    val playTouch = if (compact) 64.dp else 76.dp
+    val skipSize = if (compact) 38.dp else 46.dp
+    val skipTouch = if (compact) 56.dp else PLAYER_SKIP_TOUCH_SIZE
     Row(
         modifier = Modifier.fillMaxWidth(),
         // SpaceAround, not SpaceEvenly: the outer margins take half a gap.
@@ -244,17 +249,17 @@ internal fun TransportRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TransportGlyph(
-            icon = Icons.Rounded.SkipPrevious,
+            icon = Icons.Rounded.FastRewind,
             contentDescription = stringResource(R.string.immersive_player_previous),
-            size = 64.dp,
-            touchSize = PLAYER_SKIP_TOUCH_SIZE,
+            size = skipSize,
+            touchSize = skipTouch,
             heightScale = PLAYER_SKIP_HEIGHT_SCALE,
             onClick = onPrevious,
         )
         if (isLoading) {
             // Same footprint as the play/pause target: a smaller box would shunt everything below it.
             Box(Modifier.size(playTouch), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color.White, strokeWidth = 3.dp, modifier = Modifier.size(38.dp))
+                CircularProgressIndicator(color = Immersive.OnArtwork, strokeWidth = 3.dp, modifier = Modifier.size(38.dp))
             }
         } else {
             TransportGlyph(
@@ -266,10 +271,10 @@ internal fun TransportRow(
             )
         }
         TransportGlyph(
-            icon = Icons.Rounded.SkipNext,
+            icon = Icons.Rounded.FastForward,
             contentDescription = stringResource(R.string.immersive_player_next),
-            size = 64.dp,
-            touchSize = PLAYER_SKIP_TOUCH_SIZE,
+            size = skipSize,
+            touchSize = skipTouch,
             heightScale = PLAYER_SKIP_HEIGHT_SCALE,
             onClick = onNext,
         )
@@ -304,7 +309,7 @@ private fun TransportGlyph(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color.White,
+            tint = Immersive.OnArtwork,
             modifier = Modifier
                 .size(size)
                 .then(if (heightScale != 1f) Modifier.graphicsLayer { scaleY = heightScale } else Modifier),
@@ -553,15 +558,10 @@ internal fun PlayerActionRow(
                         )
                     }
                 } else {
-                    Pill {
-                        PillSegment(
-                            icon = Icons.Rounded.Devices,
-                            contentDescription = stringResource(R.string.immersive_player_devices),
-                            onClick = onOpenDevices,
-                            highlighted = deviceActive,
-                            width = pillWidth(2),
-                        )
-                    }
+                    BottomGlyph(
+                        icon = Icons.Rounded.Devices, contentDescription = stringResource(R.string.immersive_player_devices),
+                        onClick = onOpenDevices, highlighted = deviceActive,
+                    )
                 }
             }
             Box(Modifier.align(Alignment.CenterEnd)) {

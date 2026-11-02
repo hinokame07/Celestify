@@ -89,7 +89,7 @@ data class Catalog(
     companion object {
         fun parse(text: String): Catalog {
             val c = ExtJson.decodeFromString(serializer(), text)
-            if (c.format != 1) throw ExtensionException("index format ${c.format}: this Myspoti reads format 1")
+            if (c.format != 1) throw ExtensionException("index format ${c.format}: Celestify reads format 1")
             return c
         }
 

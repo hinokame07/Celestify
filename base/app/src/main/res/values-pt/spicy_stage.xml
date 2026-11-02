@@ -1,0 +1,20 @@
+<resources>
+    <string name="spicy_romanize">Romanização</string>
+    <string name="spicy_translate">Traduzir</string>
+    <string name="spicy_size">Tamanho do texto</string>
+    <string name="spicy_import">Salvar TTML para esta faixa</string>
+    <string name="spicy_preview">Testar TTML nesta sessão</string>
+    <string name="spicy_restore">Restaurar letra do provedor</string>
+    <string name="spicy_import_error">Não foi possível ler o TTML. Escolha uma letra válida de até 1 MB.</string>
+    <string name="spicy_catalogue">Catálogo da comunidade</string>
+    <string name="spicy_key_hint">Opcional. Informe uma chave pública de cliente do Spicy Lyrics para consultar a faixa atual do Spotify. Apague a chave para desconectar.</string>
+    <string name="spicy_smooth">Rolagem suave</string>
+    <string name="spicy_lead">Antecipar a rolagem</string>
+    <string name="spicy_seek_fade">Compensar fade ao avançar</string>
+    <string name="spicy_duets">Recuar vozes em duetos</string>
+    <string name="spicy_backing">Revelar vocais de fundo</string>
+    <string name="spicy_join">Unir sílabas com ritmo regular</string>
+    <string name="spicy_credits">Alinhar créditos à última voz</string>
+    <string name="spicy_motion_bg">Fundo animado no modo cinema</string>
+    <string name="spicy_floating">Letras em janela flutuante</string>
+</resources>

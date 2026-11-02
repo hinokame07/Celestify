@@ -32,10 +32,10 @@ val AppSansTitle = AppSans
 // Kept as an alias so existing references (Theme.kt etc.) don't break.
 val Montserrat = AppSans
 
-private val base = TextStyle(fontFamily = AppSans)
-private val title = TextStyle(fontFamily = AppSansTitle, fontWeight = FontWeight.Bold)
-
-val Typography = Typography(
+private fun appTypography(family: FontFamily): Typography {
+    val base = TextStyle(fontFamily = family)
+    val title = base.copy(fontWeight = FontWeight.Bold)
+    return Typography(
     displayLarge = title, displayMedium = title, displaySmall = title,
     headlineLarge = title, headlineMedium = title, headlineSmall = title,
     titleLarge = base.copy(fontWeight = FontWeight.Bold),
@@ -44,4 +44,8 @@ val Typography = Typography(
     bodyLarge = base.copy(fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = base, bodySmall = base,
     labelLarge = base, labelMedium = base, labelSmall = base,
-)
+    )
+}
+
+val Typography = appTypography(AppSans)
+val ImmersiveTypography = appTypography(com.music.spotui.ui.look.ImmersiveSans)

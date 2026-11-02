@@ -122,12 +122,13 @@ internal fun Modifier.immersiveGlassSurface(
     state: HazeState? = LocalImmersiveHaze.current,
     liquid: Boolean = true,
     interactionSource: androidx.compose.foundation.interaction.InteractionSource? = null,
+    material: DarkCrystal = DarkCrystal.OBSIDIAN,
 ): Modifier {
     val page = LocalImmersiveBackdrop.current
     val press = rememberGlassPress(interactionSource)
     if (liquid && page != null && state != null && state === LocalImmersiveHaze.current) {
         // Not clipped here: the glass clips itself, and its shadow falls outside the shape.
-        return this.immersiveLiquidGlass(shape, page, press = press)
+        return this.immersiveLiquidGlass(shape, page, tint = material.fill, press = press)
     }
     return this
         .then(
@@ -138,6 +139,6 @@ internal fun Modifier.immersiveGlassSurface(
             },
         )
         .clip(shape)
-        .then(if (state != null) Modifier.immersiveFrost(state) else Modifier.background(Immersive.GlassFill))
+        .then(if (state != null) Modifier.immersiveFrost(state) else Modifier.background(material.fill.copy(alpha = .94f)))
         .border(1.dp, Immersive.GlassEdge, shape)
 }

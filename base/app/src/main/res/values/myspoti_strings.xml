@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Myspoti's own texts (English default, French, Italian). -->
+<!-- Celestify's own texts (English default, French, Italian). -->
 <resources>
     <string name="welcome_lead">Your music,</string>
     <string name="welcome_rotate_ads">without ads.</string>
@@ -7,7 +7,7 @@
     <string name="welcome_rotate_clips">with the official videos.</string>
     <string name="welcome_rotate_offline">offline, through extensions.</string>
     <string name="welcome_login">Log in with Spotify</string>
-    <string name="welcome_privacy">You sign in on Spotify\'s own page. Myspoti never sees your password.</string>
+    <string name="welcome_privacy">You sign in on Spotify\'s own page. Celestify never sees your password.</string>
     <string name="remove_from_liked">Remove from Liked Songs</string>
     <string name="repeat_on">Repeat: on</string>
     <string name="repeat_one">Repeat one</string>
@@ -54,7 +54,7 @@
     <string name="local_files_none_subtitle">We didn\'t find any playable audio files on this device. When there are some, they\'ll show up here.</string>
     <string name="downloads_empty_title">Download to listen offline</string>
     <string name="downloads_empty_subtitle">Tap Download in a song\'s menu, or the download button of an album or playlist.</string>
-    <string name="downloads_source">From your download-source extension, checked against the original recording. Kept inside Myspoti only.</string>
+    <string name="downloads_source">From your download-source extension, checked against the original recording. Kept inside Celestify only.</string>
     <string name="downloads_size">%1$s on this phone</string>
     <string name="downloads_lists">Albums and playlists</string>
     <string name="downloads_singles">Songs</string>
@@ -72,8 +72,8 @@
     <string name="playlist_not_found">Playlist not found</string>
     <string name="browse_new_releases">New releases</string>
     <string name="language_auto">Automatic</string>
-    <string name="language_auto_detail">Your phone\'s language when Myspoti has it (English, Chinese, French, German, Greek, Italian, Polish, Portuguese, Russian, Spanish), English otherwise</string>
-    <string name="language_partial_note">Other languages: Spotify\'s own labels are translated, Myspoti\'s texts stay in English.</string>
+    <string name="language_auto_detail">Your phone\'s language when Celestify has it (English, Chinese, French, German, Greek, Italian, Polish, Portuguese, Russian, Spanish), English otherwise</string>
+    <string name="language_partial_note">Other languages: Spotify\'s own labels are translated, Celestify\'s texts stay in English.</string>
     <string name="restart_player_title">Restart the player</string>
     <string name="restart_player_detail">If the music stops responding: reloads Spotify\'s player</string>
     <string name="ad_playing">Advertisement</string>
@@ -91,34 +91,12 @@
     <string name="local_playlist_empty">Add songs from Local Files with their + button.</string>
     <string name="playlist_change_refused">Spotify refused the change to this playlist</string>
     <string name="download_kept_by_list">Still downloaded: a downloaded playlist holds it</string>
-    <string name="support_title">Support Myspoti</string>
-    <string name="support_body">Myspoti is free, without ads, and made in my spare time. If you enjoy it, a small donation helps keep it going.</string>
-    <string name="support_action">Support on Ko-fi</string>
-    <string name="support_decline">No thanks</string>
-    <string name="support_row_detail">A small donation on Ko-fi or GitHub Sponsors helps keep the app going</string>
-    <string name="supporter_perks_title">Supporter perks</string>
-    <string name="supporter_perks_detail">Accent colour, app icon and a badge, to say thanks</string>
-    <string name="supporter_perks_locked">Unlocked by supporting Myspoti. It\'s on your word: nothing is checked.</string>
-    <string name="supporter_i_supported">I\'ve supported Myspoti</string>
-    <string name="supporter_how">How did you support it?</string>
-    <string name="supporter_once">A donation</string>
-    <string name="supporter_monthly">Every month</string>
-    <string name="supporter_badge">Supporter</string>
-    <string name="supporter_thanks_title">Thank you for your support!</string>
-    <string name="supporter_thanks_body">If Myspoti still serves you well, a new small donation helps keep it going.</string>
-    <string name="support_again">Support again</string>
-    <string name="supporter_accent">Accent colour</string>
-    <string name="supporter_icon">App icon</string>
-    <string name="supporter_icon_note">When the icon changes, its home-screen shortcut may go away: the app stays in your app list.</string>
-    <string name="supporter_monthly_switch">I support every month (no more reminders)</string>
     <string name="color_green">Green</string>
     <string name="color_blue">Blue</string>
     <string name="color_purple">Purple</string>
     <string name="color_pink">Pink</string>
     <string name="color_orange">Orange</string>
-    <string name="about_detail">Version, Discord community, source code</string>
-    <string name="about_discord">Discord</string>
-    <string name="about_discord_detail">News, help and ideas: join the community</string>
+    <string name="about_detail">Version, licenses and source code</string>
     <string name="about_github">Source code</string>
     <string name="about_github_detail">Releases, issues and code on GitHub</string>
     <string name="about_free">Free, open source and without ads. Not affiliated with Spotify.</string>
@@ -128,7 +106,7 @@
     <string name="song_radio_name">%1$s Radio</string>
     <string name="local_files_find_hint">Find in Local Files</string>
     <string name="data_saver_title">Data saver</string>
-    <string name="data_saver_summary">On mobile data, Myspoti uses no data: only downloaded songs and Local Files play</string>
+    <string name="data_saver_summary">On mobile data, Celestify uses no data: only downloaded songs and Local Files play</string>
     <string name="data_saver_blocked">Data saver: on mobile data, only downloaded songs and Local Files play</string>
     <string name="new_releases_followed">From artists you follow</string>
     <string name="new_releases_latest">Latest releases</string>
@@ -160,7 +138,7 @@
     <string name="recap_top_tracks">Top tracks</string>
     <string name="recap_top_artists">Top artists</string>
     <string name="recap_top_albums">Top albums</string>
-    <string name="recap_private_note">Counts everything played in Myspoti (Spotify, downloads, local files). It stays on this phone and is never sent to Spotify.</string>
+    <string name="recap_private_note">Counts everything played in Celestify (Spotify, downloads, local files). It stays on this phone and is never sent to Spotify.</string>
     <string name="recap_detail">Your listening, downloads and local files included</string>
     <string name="track_credits">Credits</string>
     <string name="exclude_taste">Exclude from your taste profile</string>
@@ -188,7 +166,7 @@
     <string name="track_sort_artist">Artist</string>
     <string name="track_sort_album">Album</string>
     <string name="track_sort_duration">Duration</string>
-    <string name="setup_title">Set up Myspoti</string>
+    <string name="setup_title">Set up Celestify</string>
     <string name="setup_subtitle">Allow what you want; you can change it later in the phone settings.</string>
     <string name="setup_notifications_title">Notifications</string>
     <string name="setup_notifications_detail">Controls on the lock screen and in the notification shade</string>
@@ -200,7 +178,7 @@
     <string name="setup_battery_detail">Music keeps playing with the screen off</string>
     <string name="setup_enable">Allow</string>
     <string name="setup_continue">Continue</string>
-    <string name="setup_intro_title">How Myspoti works</string>
+    <string name="setup_intro_title">How Celestify works</string>
     <string name="setup_intro_subtitle">Three things to know before you start.</string>
     <string name="setup_intro_spotify_title">Spotify, without the ads</string>
     <string name="setup_intro_spotify_detail">Your account, playlists and likes, played by Spotify\'s own web player. Free accounts work too.</string>
@@ -209,16 +187,16 @@
     <string name="setup_intro_ext_title">Extensions, if you want them</string>
     <string name="setup_intro_ext_detail">Add-ons made by the community: other audio sources, downloads and more. More on them in a moment.</string>
     <string name="setup_ext_title">Extensions</string>
-    <string name="setup_ext_subtitle">Myspoti works as it is: it plays Spotify. Extensions are optional add-ons, made by the community, that do more.</string>
+    <string name="setup_ext_subtitle">Celestify works as it is: it plays Spotify. Extensions are optional add-ons, made by the community, that do more.</string>
     <string name="setup_ext_audio_title">Other audio sources</string>
     <string name="setup_ext_audio_detail">An extension can play your songs from another source, in the quality it offers.</string>
     <string name="setup_ext_download_title">Downloads</string>
-    <string name="setup_ext_download_detail">To listen offline, install a download-source extension. Songs stay encrypted in Myspoti.</string>
+    <string name="setup_ext_download_detail">To listen offline, install a download-source extension. Songs stay encrypted in Celestify.</string>
     <string name="setup_ext_more_title">And more</string>
     <string name="setup_ext_more_detail">Home sections, pages and tools added by their authors.</string>
     <string name="setup_ext_safe_title">You stay in control</string>
     <string name="setup_ext_safe_detail">Before you install one, it shows what it may do. It asks again for anything more, and you can remove it at any time.</string>
-    <string name="setup_ext_where">Find them in Settings, Extensions, from GitHub, GitLab and Codeberg. They are written by their authors, not by Myspoti.</string>
+    <string name="setup_ext_where">Find them in Settings, Extensions, from GitHub, GitLab and Codeberg. They are written by their authors, not by Celestify.</string>
     <string name="setup_ext_browse">See the extensions</string>
     <string name="setup_ext_later">Later</string>
     <string name="local_folders_button">Folders</string>
@@ -257,7 +235,7 @@
     <string name="quality_download_hires">FLAC Hi-Res</string>
     <string name="quality_download_hires_detail">24-bit when it exists, files about three times bigger</string>
     <string name="setup_quality_title">Sound quality</string>
-    <string name="setup_quality_subtitle">Choose how Myspoti plays and saves your music. You can change it later in Settings.</string>
+    <string name="setup_quality_subtitle">Choose how Celestify plays and saves your music. You can change it later in Settings.</string>
     <string name="setup_look_title">Choose your look</string>
     <string name="setup_look_subtitle">Watch the preview, then pick the one you like.</string>
     <string name="look_classic">Classic</string>
@@ -287,7 +265,7 @@
     <string name="quality_now_unknown">Not known yet: start a song</string>
     <string name="update_downloading">Downloading… %1$d%%</string>
     <string name="update_installing">Installing…</string>
-    <string name="update_needs_permission">To update, allow Myspoti to install apps, then come back here.</string>
+    <string name="update_needs_permission">To update, allow Celestify to install apps, then come back here.</string>
     <string name="update_allow">Allow</string>
     <string name="update_failed">The update failed: %1$s</string>
     <string name="update_retry">Try again</string>
@@ -297,7 +275,7 @@
     <string name="settings_check_update_title">Check for updates now</string>
     <string name="settings_check_update_detail">Looks for a newer version and offers to install it</string>
     <string name="settings_update_checking">Checking…</string>
-    <string name="settings_update_check_latest">Myspoti is up to date</string>
+    <string name="settings_update_check_latest">Celestify is up to date</string>
     <string name="settings_update_refresh">Check for updates</string>
     <string name="settings_update_uptodate_now">Up to date (checked just now)</string>
     <string name="settings_update_last_checked">Last checked: %1$s</string>
@@ -385,7 +363,6 @@
     <string name="settings_rotation_portrait">Portrait</string>
     <string name="settings_rotation_auto">Automatic</string>
     <string name="settings_rotation_landscape">Landscape</string>
-    <string name="support_github_action">Sponsor on GitHub</string>
     <string name="download_on_mobile_data">Downloading on mobile data: it uses your data plan</string>
 
     <!-- Podcast show page, episode page and podcast player -->
@@ -452,7 +429,7 @@
     <string name="playlist_invite_join">Join</string>
     <string name="playlist_invite_joined">You are now a collaborator</string>
     <string name="settings_keep_playing_title">Keep playing after closing the app</string>
-    <string name="settings_keep_playing_detail">When off, closing Myspoti from the recent apps stops the music</string>
+    <string name="settings_keep_playing_detail">When off, closing Celestify from the recent apps stops the music</string>
     <string name="recommended_songs_from_name">Based on this playlist\'s name</string>
     <string name="recommended_songs_from_songs">Based on what\'s in this playlist</string>
     <string name="recommended_songs_refresh">Refresh</string>

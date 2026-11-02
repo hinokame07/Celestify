@@ -17,7 +17,7 @@ object ProfileCache {
     var imageUrl by mutableStateOf<String?>(null)
         private set
     /** Spotify user id (owner of the playlists the user can edit). */
-    @Volatile var id: String? = null
+    var id by mutableStateOf<String?>(null)
         private set
 
     private val fetching = AtomicBoolean(false)

@@ -1,5 +1,9 @@
 package com.music.spotui.ui.immersive.player
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -97,7 +101,7 @@ private val TITLE_HEIGHT = 60.dp
 private val ART_TITLE_GAP = 20.dp
 private val ART_TOP_PAD = 8.dp
 private val DISMISS_STRIP_HEIGHT = 32.dp
-private val ArtCorner = RoundedCornerShape(8.dp)
+private val ArtCorner = RoundedCornerShape(16.dp)
 
 /** The cover is always decoded at the size of the largest cover, whatever the box measures. */
 private const val COVER_DECODE_PX = 640
@@ -136,7 +140,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     val palette = rememberArtworkColors(state.coverUrl.takeIf { it.isNotBlank() })
-    val tint by animateColorAsState(playerTintOf(palette), tween(com.music.spotui.ui.immersive.motion.ImmersiveMotion.TINT_MS), label = "podcastTint")
+    val tint by animateColorAsState(Immersive.Accent, tween(com.music.spotui.ui.immersive.motion.ImmersiveMotion.TINT_MS), label = "podcastTint")
     val reduce = rememberReduceMotion()
     val pauseScale = rememberPauseScale(state.playing)
 
@@ -145,8 +149,14 @@ fun ImmersivePodcastPlayer(navController: NavController) {
         if (showId.isNotBlank()) navController.navigate(showRoute(showId, showName))
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        MeshGradientBackground(palette = palette, trackKey = state.coverUrl)
+    BoxWithConstraints(Modifier.fillMaxSize().background(Immersive.Page)) {
+        val compactPhone = PlayerWindowPolicy.compact(maxWidth.value)
+        val shortPhone = PlayerWindowPolicy.scrollControls(maxWidth.value, maxHeight.value, androidx.compose.ui.platform.LocalDensity.current.fontScale,
+            androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp.toFloat())
+        val phoneHeight = maxHeight
+        val gutter = if (compactPhone) 18.dp else PLAYER_GUTTER
+        com.music.spotui.ui.immersive.CelestialPlayerBackground(palette)
+        com.music.spotui.ui.immersive.AmbientParticles(tint, moving = state.playing)
         CompositionLocalProvider(LocalPlayerTint provides tint) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 // The handle: always hands its drags to the sheet.
@@ -163,19 +173,19 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = PLAYER_GUTTER)
+                        .padding(horizontal = gutter)
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { openShow() },
                 ) {
                     Text(
                         stringResource(R.string.podcast_playing_from),
-                        style = Immersive.Caption,
+                        style = Immersive.ArtworkCaption,
                         color = tint.copy(alpha = 0.55f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         showName,
-                        style = Immersive.BodyStrong.copy(fontSize = 14.sp, lineHeight = 18.sp),
+                        style = Immersive.ArtworkBodyStrong.copy(fontSize = 14.sp, lineHeight = 18.sp),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -183,7 +193,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                 }
 
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                    val contentWidth = minOf(maxWidth - PLAYER_GUTTER * 2, PLAYER_MAX_WIDTH)
+                    val contentWidth = minOf(maxWidth - gutter * 2, PLAYER_MAX_WIDTH)
                     val art = minOf(contentWidth, maxHeight - ART_TOP_PAD - ART_TITLE_GAP - TITLE_HEIGHT - 16.dp).coerceAtLeast(96.dp)
                     Column(
                         modifier = Modifier.fillMaxSize().padding(top = ART_TOP_PAD),
@@ -202,7 +212,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                                     shape = ArtCorner
                                     clip = true
                                 }
-                                .background(Color.Black.copy(alpha = 0.18f))
+                                .background(Immersive.Secondary)
                                 .dragToClose(),
                         ) {
                             GlideImage(
@@ -226,7 +236,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     text = title,
-                                    style = Immersive.Title.copy(fontSize = 20.sp, lineHeight = if (sourceLabel.isNotBlank()) 22.sp else 24.sp),
+                                    style = Immersive.ArtworkTitle.copy(fontSize = 20.sp, lineHeight = if (sourceLabel.isNotBlank()) 22.sp else 24.sp),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
@@ -237,7 +247,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                                 )
                                 Text(
                                     text = showName,
-                                    style = Immersive.Title.copy(
+                                    style = Immersive.ArtworkTitle.copy(
                                         fontSize = 20.sp,
                                         lineHeight = if (sourceLabel.isNotBlank()) 22.sp else 24.sp,
                                         fontWeight = FontWeight.W500,
@@ -252,7 +262,7 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                                 // What the sound is when Myspoti's own player plays it; a tap opens its quality.
                                 if (sourceLabel.isNotBlank()) Text(
                                     text = sourceLabel,
-                                    style = Immersive.Caption.copy(lineHeight = 14.sp),
+                                    style = Immersive.ArtworkCaption.copy(lineHeight = 14.sp),
                                     color = tint.copy(alpha = 0.45f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -279,10 +289,12 @@ fun ImmersivePodcastPlayer(navController: NavController) {
                 // ---- Bottom: scrubber, podcast transport, speed / sleep / devices / queue ----
                 Column(
                     modifier = Modifier
-                        .widthIn(max = PLAYER_MAX_WIDTH + PLAYER_GUTTER * 2)
+                        .widthIn(max = PLAYER_MAX_WIDTH + gutter * 2)
                         .fillMaxWidth()
-                        .padding(horizontal = PLAYER_GUTTER)
-                        .align(Alignment.CenterHorizontally),
+                        .padding(horizontal = gutter)
+                        .align(Alignment.CenterHorizontally)
+                        .then(if (shortPhone) Modifier.heightIn(max = phoneHeight * 0.55f)
+                            .verticalScroll(rememberScrollState()) else Modifier),
                 ) {
                     PlayerScrubber(state = state, onSeek = actions.seekTo)
                     Spacer(Modifier.height(8.dp))
@@ -373,7 +385,7 @@ private fun PodcastTransportRow(
         if (isLoading) {
             // Same footprint as the play/pause target: a smaller box would shunt everything below it.
             Box(Modifier.size(playTouch), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color.White, strokeWidth = 3.dp, modifier = Modifier.size(38.dp))
+                CircularProgressIndicator(color = Immersive.OnArtwork, strokeWidth = 3.dp, modifier = Modifier.size(38.dp))
             }
         } else {
             TransportButton(
@@ -401,8 +413,8 @@ private fun SkipButton(back: Boolean, onClick: () -> Unit) {
         )
         Text(
             text = "15",
-            style = Immersive.Caption.copy(fontSize = 12.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold),
-            color = Color.White,
+            style = Immersive.ArtworkCaption.copy(fontSize = 12.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold),
+            color = Immersive.OnArtwork,
             textAlign = TextAlign.Center,
         )
     }
@@ -420,7 +432,7 @@ private fun TransportButton(icon: ImageVector, contentDescription: String, size:
             },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = contentDescription, tint = Color.White, modifier = Modifier.size(size))
+        Icon(icon, contentDescription = contentDescription, tint = Immersive.OnArtwork, modifier = Modifier.size(size))
     }
 }
 
@@ -439,7 +451,7 @@ private fun SpeedChip(label: String, onClick: () -> Unit) {
             }
             .padding(horizontal = 16.dp),
     ) {
-        Text(label, style = Immersive.Subhead.copy(fontWeight = FontWeight.Bold), color = LocalPlayerTint.current, maxLines = 1)
+        Text(label, style = Immersive.ArtworkSubhead.copy(fontWeight = FontWeight.Bold), color = LocalPlayerTint.current, maxLines = 1)
     }
 }
 

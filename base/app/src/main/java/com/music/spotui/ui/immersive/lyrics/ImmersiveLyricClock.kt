@@ -57,7 +57,10 @@ private const val SEEK_JUMP_MS = 800L
 /** How often the position is looked at while paused, for a seek made from elsewhere. */
 private const val PAUSED_POLL_MS = 120L
 
-private fun playerPosition(): Long = SongPlayer.getCurrentPosition().coerceAtLeast(0L)
+private fun playerPosition(): Long = com.music.spotui.data.entity.LyricTiming.position(
+    SongPlayer.getCurrentPosition(), com.music.spotui.di.OutputLag.ms(),
+    com.music.spotui.data.preferences.AtmospherePref.lyricsOffsetMs,
+)
 
 /**
  * The song position, ticking every frame while [playing].

@@ -100,7 +100,7 @@ private const val LIKED_URI = "spotify:collection:tracks"
 /** The saved-episodes collection: a podcast context whose page is the app's own Episodes screen. */
 private const val YOUR_EPISODES_URI = "spotify:collection:your-episodes"
 
-private val ChevronRing = Color.White.copy(alpha = 0.35f)
+private val ChevronRing get() = Immersive.TextSecondary.copy(alpha = 0.55f)
 
 /**
  * "Recents" of the Immersive look, replacing the Classic `RecentlyPlayedScreen`: a plain list

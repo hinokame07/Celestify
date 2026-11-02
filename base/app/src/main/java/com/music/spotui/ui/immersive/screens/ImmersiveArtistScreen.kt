@@ -344,7 +344,7 @@ private fun ArtistOverviewContent(
                         },
                         size = PlayButton,
                         iconScale = PLAY_ICON_SCALE,
-                        containerColor = Color.White,
+                        containerColor = Immersive.Accent,
                     )
                     ImmersiveCircleButton(
                         icon = if (isFollowing) Icons.Rounded.Check else Icons.Rounded.PersonAdd,

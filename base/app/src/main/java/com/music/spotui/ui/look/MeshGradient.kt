@@ -56,12 +56,7 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
-private val FallbackColors = listOf(
-    Color(0xFF3A1C71),
-    Color(0xFFD76D77),
-    Color(0xFF2B5876),
-    Color(0xFFFFAF7B),
-)
+private val FallbackColors = listOf(Color.DarkGray, Color.Gray, Color.DarkGray, Color.Black)
 
 /** The four mesh colours, wrapped so the backdrop can skip recomposition. */
 @Immutable
@@ -311,20 +306,20 @@ private fun Color.isCloseTo(other: Color): Boolean {
     return hueGap < 15f && abs(a[2] - b[2]) < 0.12f
 }
 
-/** Fill the empty slots off the art itself, fanning hue and lightness out. */
+/** Fill the empty slots off the art itself, varying lightness within the colours already present. */
 private fun List<Color>.expandedToFour(): List<Color> {
     val out = toMutableList()
     var step = 1
     while (out.size < 4) {
-        out += this[(out.size - size) % size].shifted(24f * step, 0.12f * step)
+        out += this[(out.size - size) % size].shifted(0.08f * step)
         step++
     }
     return out
 }
 
-private fun Color.shifted(hue: Float, lightness: Float): Color {
+private fun Color.shifted(lightness: Float): Color {
     val hsl = hsl()
-    hsl[0] = (hsl[0] + hue) % 360f
+    // Preserve the hue of limited-colour artwork and vary only its lightness.
     hsl[2] = (hsl[2] + lightness).coerceIn(0.2f, 0.7f)
     return Color(ColorUtils.HSLToColor(hsl))
 }

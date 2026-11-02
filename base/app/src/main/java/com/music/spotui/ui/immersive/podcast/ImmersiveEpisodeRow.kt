@@ -144,7 +144,7 @@ internal fun PlayDisc(playing: Boolean, onClick: () -> Unit, modifier: Modifier 
             Icon(
                 imageVector = if (on) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 contentDescription = stringResource(if (on) R.string.notif_action_pause else R.string.episode_play),
-                tint = Color.White,
+                tint = Immersive.OnAccent,
                 modifier = Modifier.size(24.dp),
             )
         }

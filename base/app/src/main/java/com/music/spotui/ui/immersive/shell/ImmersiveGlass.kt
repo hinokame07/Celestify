@@ -141,19 +141,19 @@ private const val THIN_DP = 56f
 /** From this size on a surface is "large" glass: a sheet or a card, whose text must stay readable. */
 private const val LARGE_DP = 200f
 
-/** The glass's own body over the refracted page: dark, so white text holds on any artwork. */
-internal val GlassTint = Color(0xFF1C1C22).copy(alpha = 0.42f)
+/** The glass body over the refracted page, matched to the current appearance. */
+internal val GlassTint: Color get() = DarkCrystal.OBSIDIAN.fill
 
 /** Alpha of the body on large glass: more opaque, there is text on it. */
-private const val LARGE_TINT_ALPHA = 0.60f
+private const val LARGE_TINT_ALPHA = 0.86f
 
-private val GlassShadow = Shadow(radius = 18.dp, color = Color.Black.copy(alpha = 0.22f))
+private val GlassShadow = Shadow(radius = 18.dp, color = Color.Black.copy(alpha = 0.32f))
 
 /** A brighter, thicker specular rim than the library's default, like iOS 26's glass edge. */
-private val GlassHighlight = Highlight(width = 0.75f.dp, alpha = 0.9f)
+private val GlassHighlight = Highlight(width = 0.75f.dp, alpha = 0.64f)
 
 /** How much the lens bulges while the glass is pressed (fraction of its refraction). */
-private const val PRESS_BULGE = 0.35f
+private const val PRESS_BULGE = 0.22f
 
 private fun mix(a: Float, b: Float, t: Float) = a + (b - a) * t
 
@@ -182,14 +182,16 @@ internal fun Modifier.immersiveLiquidGlass(
     // The lens only knows rounded rectangles (it throws on anything else).
     val bend = lens && shape is CornerBasedShape && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
     val adaptive = tint == GlassTint
+    val light = com.music.spotui.data.preferences.AppearancePref.activeLight
     // Stable across recompositions: a new lambda per call would rebuild the effect chain.
-    val effects = remember(bend, press) {
+    val effects = remember(bend, press, light) {
         val block: com.music.spotui.ui.immersive.shell.backdrop.BackdropEffectScope.() -> Unit = {
             val k = GLASS_RESOLUTION_SCALE
             val minDp = size.minDimension / k / density
             val depth = ((minDp - THIN_DP) / (LARGE_DP - THIN_DP)).coerceIn(0f, 1f)
             // Vibrancy, and a touch darker so a bright cover behind never washes the text out.
-            colorControls(brightness = -0.03f, saturation = 1.6f)
+            colorControls(brightness = if (light) 0.015f else -0.03f,
+                saturation = if (light) 1.12f else 1.18f)
             blur(mix(3.5f, 14f, depth) * density * k)
             if (bend) {
                 val bulge = 1f + PRESS_BULGE * (press?.invoke() ?: 0f)
@@ -199,16 +201,17 @@ internal fun Modifier.immersiveLiquidGlass(
                     refractionHeight = height * density * k,
                     refractionAmount = amount * density * k,
                     depthEffect = true,
-                    chromaticAberration = true,
+                    chromaticAberration = false,
                 )
             }
         }
         block
     }
-    val surface = remember(tint, adaptive) {
+    val surface = remember(tint, adaptive, light) {
         val block: DrawScope.() -> Unit = {
             val depth = ((size.minDimension / density - THIN_DP) / (LARGE_DP - THIN_DP)).coerceIn(0f, 1f)
-            drawRect(color = if (adaptive) tint.copy(alpha = mix(tint.alpha, LARGE_TINT_ALPHA, depth)) else tint, size = size)
+            val largeAlpha = if (light) 0.92f else LARGE_TINT_ALPHA
+            drawRect(color = if (adaptive) tint.copy(alpha = mix(tint.alpha, largeAlpha, depth)) else tint, size = size)
         }
         block
     }

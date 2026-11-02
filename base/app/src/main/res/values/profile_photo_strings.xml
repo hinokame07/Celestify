@@ -1,0 +1,7 @@
+<resources>
+    <string name="profile_photo_change">Change photo on this device</string>
+    <string name="profile_photo_restore">Restore account photo</string>
+    <string name="profile_photo_failed">Could not update the photo. Please try again.</string>
+    <string name="celestify_credits_title">Credits and licenses</string>
+    <string name="celestify_credits_projects">Spotui, Metrolist, NewPipeExtractor · GPL-3.0\nBitChord · GPL-3.0-or-later\nBackdrop, Haze, Material Icons · Apache-2.0\nInter, Manrope · SIL OFL 1.1</string>
+</resources>

@@ -125,36 +125,11 @@ import java.util.Locale
 /** The three colours of a lyrics view: background, upcoming text, sung / current text. */
 private data class LyricsPalette(val background: Color, val text: Color, val highlight: Color)
 
-private fun paletteFor(lyrics: Lyrics?, accent: Color): LyricsPalette {
-    lyrics?.colors?.let { c ->
-        // Spotify's colours for the song, with the sung white kept readable: on some songs the
-        // background is light enough for white words to fade into it (reported on one song,
-        // fine on another). The background is darkened only as much as that takes.
-        val hi = Color(c.highlight)
-        var bg = Color(c.background)
-        var step = 0
-        while (contrast(hi, bg) < MIN_CONTRAST && step < 8) { bg = lerp(bg, if (hi.luminance() > 0.5f) Color.Black else Color.White, 0.12f); step++ }
-        // Upcoming lines (often black in Spotify's colours) stay readable on that background too.
-        val text = Color(c.text).let { t -> if (contrast(t.copy(alpha = 1f), bg) < 1.8f) hi.copy(alpha = 0.55f) else t }
-        return LyricsPalette(bg, text, hi)
-    }
-    // No Spotify colours (fallback source): the artwork colour, like Spotify's own fallback.
-    val bg = lerp(accent, Color.Black, 0.15f)
-    // B23: upcoming lines were black at 55 % — invisible on a dark (AMOLED) card. On a dark
-    // background they are drawn in a slightly dimmed white instead, the sung lines staying
-    // the full highlight colour.
-    val text = if (bg.luminance() > 0.35f) Color.Black.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.72f)
-    return LyricsPalette(bg, text, Color.White)
+private fun paletteFor(accent: Color): LyricsPalette {
+    val theme = com.music.spotui.ui.immersive.Immersive
+    val light = if (com.music.spotui.data.preferences.AtmospherePref.dynamicColors) accent else theme.Accent
+    return LyricsPalette(lerp(theme.Page, light, 0.09f), Color.White.copy(alpha = 0.60f), Color.White)
 }
-
-/** WCAG contrast ratio of two colours (1 = the same, 21 = black on white). */
-private fun contrast(a: Color, b: Color): Float {
-    val la = a.luminance(); val lb = b.luminance()
-    return (maxOf(la, lb) + 0.05f) / (minOf(la, lb) + 0.05f)
-}
-
-/** What the sung (and karaoke) words need against the background to read at a glance. */
-private const val MIN_CONTRAST = 3.2f
 
 /** Playback position, re-read on every frame while playing (smooth word highlight). */
 @Composable
@@ -162,21 +137,15 @@ private fun rememberPosition(running: Boolean): () -> Long {
     val frame = rememberFrameClock(running, fps = 30)
     return remember(frame) {
         // What is heard: Bluetooth plays it a little later than the player is.
-        { frame.value; (SongPlayer.getCurrentPosition() - com.music.spotui.di.OutputLag.ms()).coerceAtLeast(0L) }
+        { frame.value; com.music.spotui.data.entity.LyricTiming.position(
+            SongPlayer.getCurrentPosition(), com.music.spotui.di.OutputLag.ms(),
+            com.music.spotui.data.preferences.AtmospherePref.lyricsOffsetMs,
+        ) }
     }
 }
 
 private fun activeIndexFor(lyrics: Lyrics, positionMs: Long): Int {
-    if (!lyrics.synced) return -1
-    // Binary search: last line starting at or before the position.
-    var lo = 0
-    var hi = lyrics.lines.size - 1
-    var found = -1
-    while (lo <= hi) {
-        val mid = (lo + hi) ushr 1
-        if (lyrics.lines[mid].timeMs <= positionMs + 150) { found = mid; lo = mid + 1 } else hi = mid - 1
-    }
-    return found
+    return com.music.spotui.data.entity.LyricTiming.activeLine(lyrics, positionMs)
 }
 
 /**
@@ -187,7 +156,7 @@ private fun sungChars(words: List<LyricWord>, starts: List<Int>, p: Long): Float
     var out = 0f
     for (i in words.indices) {
         if (p < words[i].startMs) break
-        out = (starts[i] + words[i].text.length).toFloat()
+        out = starts[i] + words[i].text.trim().length * com.music.spotui.data.entity.LyricTiming.wordProgress(words[i], p)
     }
     return out
 }
@@ -195,7 +164,8 @@ private fun sungChars(words: List<LyricWord>, starts: List<Int>, p: Long): Float
 /** Seek to a tapped synced line and make sure we're playing. */
 private fun jumpTo(timeMs: Long) {
     com.music.spotui.di.Haptics.click()
-    SongPlayer.seekTo(timeMs)
+    SongPlayer.seekTo(com.music.spotui.data.entity.LyricTiming.seekPosition(
+        timeMs, com.music.spotui.data.preferences.AtmospherePref.lyricsOffsetMs))
     if (!SongPlayer.isPlaying()) SongPlayer.play()
 }
 
@@ -222,25 +192,17 @@ private fun rememberLyricsState(vm: LyricsViewModel, title: String, artist: Stri
 
 /**
  * Keeps the active line about a third down the view, like Spotify. A manual scroll
- * pauses the follow for 3 s.
+ * pauses following until the listener chooses to return.
  */
 @Composable
 private fun AutoFollow(listState: LazyListState, activeIndex: Int, offsetPx: Int, enabled: Boolean) {
-    var userScrollAt by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(listState) {
-        listState.interactionSource.interactions.collect {
-            if (it is DragInteraction.Start || it is DragInteraction.Stop) userScrollAt = System.currentTimeMillis()
-        }
-    }
-    // The first placement is instant: the screen opens (container transform) already on the
-    // current line instead of scrolling there from the top while it grows.
-    var placed by remember { mutableStateOf(false) }
-    LaunchedEffect(activeIndex, enabled) {
+    val reduce = com.music.spotui.ui.look.rememberReduceMotion()
+    var placed by remember(listState) { mutableStateOf(false) }
+    LaunchedEffect(activeIndex, enabled, offsetPx, reduce) {
         if (!enabled || activeIndex < 0) return@LaunchedEffect
-        if (!placed) { placed = true; listState.scrollToItem(activeIndex, -offsetPx); return@LaunchedEffect }
-        val wait = 3000 - (System.currentTimeMillis() - userScrollAt)
-        if (wait > 0) delay(wait)
-        listState.animateScrollToItem(activeIndex, -offsetPx)
+        if (!placed || reduce) listState.scrollToItem(activeIndex, -offsetPx)
+        else listState.animateScrollToItem(activeIndex, -offsetPx)
+        placed = true
     }
 }
 
@@ -262,9 +224,13 @@ private fun LyricLineText(
     onHold: (() -> Unit)? = null,
 ) {
     val target = when (state) {
+        -1 -> palette.text.copy(alpha = 0.77f)
         1 -> palette.text
+        2 -> Color.White
         else -> palette.highlight
     }
+    val whiteGlow = if (com.music.spotui.data.preferences.AtmospherePref.lyricsGlow && state == 0)
+        androidx.compose.ui.graphics.Shadow(Color.White.copy(alpha = 0.24f), androidx.compose.ui.geometry.Offset.Zero, 9f) else null
     val color by animateColorAsState(target, tween(220), label = "lyricColor")
     val lineModifier = modifier
         .fillMaxWidth()
@@ -290,11 +256,18 @@ private fun LyricLineText(
     }
     Column(lineModifier) {
         val words = line.words
-        if (state == 0 && words != null) {
+        if (state == 0 && !words.isNullOrEmpty()) {
             // Karaoke: each word goes straight from the upcoming colour to white as it is sung (drawn
             // on each frame, the line is not recomposed). Words in another colour were hard to tell apart.
-            val shown = remember(line) { words.joinToString("") { it.text }.trimEnd() }
-            val starts = remember(line) { var c = 0; words.map { w -> c.also { c += w.text.length } } }
+            val shown = line.text
+            val starts = remember(line) {
+                var offset = 0
+                words.map { word ->
+                    val start = shown.indexOf(word.text.trim(), offset).takeIf { it >= 0 } ?: offset
+                    offset = (start + word.text.trim().length).coerceAtMost(shown.length)
+                    start
+                }
+            }
             var fill by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
             Box {
                 Text(
@@ -304,15 +277,18 @@ private fun LyricLineText(
                     fontSize = fontSize,
                     lineHeight = fontSize * 1.25f,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = com.music.spotui.ui.look.ImmersiveDisplay,
                     onTextLayout = { layout = it },
                     modifier = underline,
                 )
                 Text(
                     text = shown,
                     color = palette.highlight,
+                    style = androidx.compose.ui.text.TextStyle(shadow = whiteGlow),
                     fontSize = fontSize,
                     lineHeight = fontSize * 1.25f,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = com.music.spotui.ui.look.ImmersiveDisplay,
                     onTextLayout = { fill = it },
                     modifier = Modifier.drawWithContent {
                         val l = fill ?: return@drawWithContent
@@ -337,7 +313,16 @@ private fun LyricLineText(
                 color = color,
                 fontSize = fontSize,
                 lineHeight = fontSize * 1.25f,
-                fontWeight = FontWeight.Bold,
+                fontWeight = if (state == 2) FontWeight.Medium else FontWeight.Bold,
+                fontFamily = com.music.spotui.ui.look.ImmersiveDisplay,
+                style = androidx.compose.ui.text.TextStyle(
+                    shadow = if (state == 2 && com.music.spotui.data.preferences.AtmospherePref.lyricsGlow)
+                        androidx.compose.ui.graphics.Shadow(
+                            color = palette.highlight.copy(alpha = 0.16f),
+                            offset = androidx.compose.ui.geometry.Offset.Zero,
+                            blurRadius = 10f,
+                        ) else whiteGlow,
+                ),
                 onTextLayout = { layout = it },
                 modifier = underline,
             )
@@ -389,8 +374,7 @@ fun LyricsScreen(
     val context = LocalContext.current
     val vm: LyricsViewModel = viewModel()
     val state = rememberLyricsState(vm, title, artist)
-    val lyrics = (state as? LyricsViewModel.State.Loaded)?.lyrics
-    val palette = paletteFor(lyrics, accentColor)
+    val palette = paletteFor(accentColor)
     val bg by animateColorAsState(palette.background, tween(300), label = "lyricsBg")
     val playing = com.music.spotui.di.Graph.currentSongState.playingState.value
     val position = rememberPosition(playing)
@@ -501,7 +485,12 @@ fun LyricsScreen(
                 val staggerBase = remember(l) { (active - 4).coerceAtLeast(0) }
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val offsetPx = with(LocalDensity.current) { (maxHeight * 0.28f).roundToPx() }
-                    AutoFollow(listState, active, offsetPx, enabled = l.synced)
+                    var browsing by remember(l) { mutableStateOf(false) }
+                    LaunchedEffect(listState) {
+                        listState.interactionSource.interactions.collect { if (it is DragInteraction.Start) browsing = true }
+                    }
+                    val hintRows = if (notes.isNotEmpty() && !hintSeen) 1 else 0
+                    AutoFollow(listState, if (active >= 0) active + hintRows else -1, offsetPx, enabled = l.synced && !browsing)
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
@@ -528,10 +517,10 @@ fun LyricsScreen(
                                 line = line,
                                 state = lineState(l, i, active),
                                 palette = palette,
-                                fontSize = 24.sp,
+                                fontSize = if (maxWidth < 360.dp) 25.sp else if (maxWidth < 600.dp) 30.sp else 34.sp,
                                 position = position,
                                 translation = if (state.showTranslation) state.translations?.getOrNull(i) else null,
-                                onTap = if (l.synced) ({ jumpTo(line.timeMs) }) else null,
+                                onTap = if (l.synced) ({ browsing = false; jumpTo(line.timeMs) }) else null,
                                 annotated = i in notes,
                                 onHold = notes[i]?.let { n -> {
                                     haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -552,6 +541,7 @@ fun LyricsScreen(
                             }
                         }
                     }
+                    if (browsing && l.synced) com.music.spotui.ui.components.FollowLyricsButton(Modifier.align(Alignment.BottomCenter)) { browsing = false }
                 }
                 }
                 val sameLanguage = state.sourceLanguage?.substringBefore('-')
@@ -583,7 +573,7 @@ private fun LyricsMenu(
     val context = LocalContext.current
     var extra by remember { mutableStateOf(isLyricsExtraSources(context)) }
     var words by remember { mutableStateOf(com.music.spotui.data.preferences.isLyricsWordSync(context)) }
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+    com.music.spotui.ui.components.CelestifyMenu(expanded = expanded, onDismissRequest = onDismiss) {
         // Word by word (karaoke) or line by line: the app then picks the source by itself.
         DropdownMenuItem(
             text = {
@@ -746,7 +736,7 @@ fun InlineLyrics(
     val state = rememberLyricsState(vm, title, artist)
     val s = state as? LyricsViewModel.State.Loaded ?: return
     val l = s.lyrics
-    val palette = paletteFor(l, accentColor)
+    val palette = paletteFor(accentColor)
     val position = rememberPosition(com.music.spotui.di.Graph.currentSongState.playingState.value)
     val active by remember(l) { derivedStateOf { activeIndexFor(l, position()) } }
     val listState = rememberLazyListState()

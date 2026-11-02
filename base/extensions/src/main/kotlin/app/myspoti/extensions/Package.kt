@@ -44,7 +44,7 @@ class ExtensionPackage(val manifest: Manifest, val script: String, val icon: Byt
             val iconName = manifest.icon ?: "icon.png"
             if (manifest.icon != null && iconName !in files) throw ExtensionException("$iconName (icon) is not in the package")
             val icon = files[iconName]?.also { if (it.size > MAX_ICON) throw ExtensionException("$iconName larger than 256 KB") }
-            (files.keys - KEPT - manifest.main - iconName).takeIf { it.isNotEmpty() }?.let { throw ExtensionException("files not used by Myspoti in the package: ${it.joinToString()}") }
+            (files.keys - KEPT - manifest.main - iconName).takeIf { it.isNotEmpty() }?.let { throw ExtensionException("files not used by Celestify in the package: ${it.joinToString()}") }
             return ExtensionPackage(manifest, script.decodeToString(), icon, sha256(zip))
         }
 

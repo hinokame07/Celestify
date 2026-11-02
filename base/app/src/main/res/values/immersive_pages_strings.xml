@@ -8,4 +8,23 @@
     <string name="immersive_pages_unknown_album">Unknown album</string>
     <string name="immersive_pages_name_hint">Name</string>
     <string name="immersive_pages_play_group">Play %1$s</string>
+    <string name="settings_light_appearance">Light appearance</string>
+    <string name="settings_light_appearance_detail">A soft, high contrast palette for bright surroundings</string>
+    <string name="settings_atmosphere_title">Atmosphere</string>
+    <string name="settings_particles_title">Ambient particles</string>
+    <string name="settings_particle_intensity">Particle intensity</string>
+    <string name="settings_intensity_low">Low</string>
+    <string name="settings_intensity_medium">Medium</string>
+    <string name="settings_intensity_high">High</string>
+    <string name="settings_dynamic_colors">Artwork colors in player</string>
+    <string name="settings_lyrics_glow">Lyrics glow</string>
+    <string name="settings_reduce_animations">Reduce animations</string>
+    <string name="celestify_theme_title">Celestial theme</string>
+    <string name="celestify_blue_name">Celestial Midnight</string>
+    <string name="celestify_gold_name">Golden Seraph</string>
+    <string name="celestify_blue_detail">Obsidian surfaces with icy blue light</string>
+    <string name="celestify_gold_detail">Midnight surfaces with champagne gold</string>
+    <string name="celestify_origin">Based on Myspoti · GPL-3.0</string>
+    <string name="celestify_lyrics_offset">Lyrics timing</string>
+    <string name="celestify_lyrics_offset_detail">Positive values delay the highlight to match what you hear.</string>
 </resources>

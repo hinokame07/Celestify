@@ -285,8 +285,8 @@ internal fun ArtistTopReleaseCard(
             .immersiveClickable(onClick = onClick, pressedScale = 0.98f)
             // A light veil rather than a dark panel, which reads as a hole in a black page.
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.07f), shape)
-            .border(1.dp, Color.White.copy(alpha = 0.10f), shape)
+            .background(Immersive.Raised, shape)
+            .border(1.dp, Immersive.Separator, shape)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

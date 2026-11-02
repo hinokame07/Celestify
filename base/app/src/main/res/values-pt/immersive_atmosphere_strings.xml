@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_atmosphere_title">Atmosfera</string>
+    <string name="settings_particles_title">Partículas ambientes</string>
+    <string name="settings_particle_intensity">Intensidade das partículas</string>
+    <string name="settings_intensity_low">Baixa</string>
+    <string name="settings_intensity_medium">Média</string>
+    <string name="settings_intensity_high">Alta</string>
+    <string name="settings_dynamic_colors">Cores da capa no player</string>
+    <string name="settings_lyrics_glow">Brilho nas letras</string>
+    <string name="settings_reduce_animations">Reduzir animações</string>
+    <string name="celestify_theme_title">Tema celestial</string>
+    <string name="celestify_blue_name">Azul Celestial</string>
+    <string name="celestify_gold_name">Dourado Angelical</string>
+    <string name="celestify_blue_detail">Superfícies escuras com luz azul gelo</string>
+    <string name="celestify_gold_detail">Superfícies escuras com dourado champanhe</string>
+    <string name="celestify_origin">Baseado no Myspoti · GPL-3.0</string>
+    <string name="celestify_lyrics_offset">Tempo da letra</string>
+    <string name="celestify_lyrics_offset_detail">Valores positivos atrasam o destaque para acompanhar o áudio.</string>
+</resources>

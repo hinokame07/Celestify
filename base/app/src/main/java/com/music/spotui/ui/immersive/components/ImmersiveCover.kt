@@ -44,7 +44,7 @@ import com.music.spotui.ui.look.rememberReduceMotion
 
 /** The hairline every cover carries, so a cover with light edges does not dissolve into the page. */
 fun Modifier.immersiveThumbnailBorder(shape: Shape): Modifier =
-    this.border(width = 1.dp, color = Color.White.copy(alpha = 0.12f), shape = shape)
+    this.border(width = 1.dp, color = Immersive.Separator, shape = shape)
 
 /**
  * A cover (album, playlist, artist, show) from [url], clipped to [shape] with the thumbnail

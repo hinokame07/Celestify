@@ -105,7 +105,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        session = MediaSessionCompat(this, "Myspoti").apply {
+        session = MediaSessionCompat(this, "Celestify").apply {
             setCallback(callback)
             setSessionActivity(launchIntent())
             // Android Auto binds on a cold start, before the app has pushed any state: a

@@ -68,3 +68,17 @@ https://github.com/rsms/inter
 The Immersive look's typeface (`base/app/src/main/res/font/inter.ttf`), Copyright 2020 The Inter
 Project Authors. Cut down to Latin with its weight axis only. Licence text in
 `base/licenses/Inter-OFL.txt`.
+
+## Spicy Lyrics — AGPL-3.0
+
+The native letter wave in `GrowingWord.kt` adapts the refreshed emphasis strength,
+stagger, easing, float and glow from [Spikerko and the Spicy Lyrics contributors](https://github.com/Spikerko/spicy-lyrics/blob/34ad8c683204c522f227060475bf4f8aae36508e/src/utils/Lyrics/Animator/Lyrics/LyricsAnimator.ts).
+The Kotlin adaptation is dated 2026-11-02 and licensed under AGPL-3.0.
+The corresponding source is included in this repository. See
+[the component license](base/licenses/Spicy-Lyrics-AGPL-3.0.txt).
+Myspoti's GPL-3.0 notices remain in force. Sections 13 of the licenses govern the combination.
+The Spicy Lyrics hosted service, assets and databases are separate from this port.
+
+## Spicy Lyrics Mobile renderer
+
+The canvas, layout, clock-driven animation models, scroll physics, TTML parser, tests and catalogue response converter in `com/tx24/spicyplayer` are adapted from [Spicy Lyrics Mobile](https://github.com/spicylyrics/mobile/tree/4565dde58003a7796c2be32f3022cef773dfa73b), the Kotlin port of Spikerko's Spicy Lyrics. Celestify connects it to its own playback clock, fonts, image loader, storage and preferences. Changes dated 2026-11-02. Its [upstream notices](base/licenses/Spicy-Lyrics-Mobile-NOTICES.md) and AGPL-3.0 license are included.

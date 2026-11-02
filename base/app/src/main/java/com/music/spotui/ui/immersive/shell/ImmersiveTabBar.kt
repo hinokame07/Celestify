@@ -206,7 +206,8 @@ internal fun TabBarContent(
             tabBarContentModifier = glassSurface,
             colors = FloatingTabBarDefaults.colors(
                 backgroundColor = Color.Transparent,
-                indicatorColor = Color.White.copy(alpha = 0.12f),
+                indicatorColor = if (com.music.spotui.data.preferences.AppearancePref.activeLight)
+                    Color.Black.copy(alpha = 0.07f) else Color.White.copy(alpha = 0.12f),
             ),
             sizes = FloatingTabBarDefaults.sizes(
                 tabBarContentPadding = PaddingValues(PILL_INSET),

@@ -12,7 +12,6 @@
 package com.music.spotui.ui.immersive.lyrics
 
 import android.os.Build
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloat
@@ -37,6 +36,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -121,7 +121,7 @@ import kotlin.math.abs
  * alpha carries the same hierarchy on older devices.
  *
  * Scrolling by hand clears the blur and suspends the auto-follow, so you can read ahead; a
- * moment after you stop it snaps back to the song. Tapping a line seeks to it; holding one that Genius explains opens the note.
+ * tap on Follow Playback brings it back to the song. Tapping a line seeks to it; holding one that Genius explains opens the note.
  *
  * The list brings its own side gutter and top margin; [contentPadding] is the extra room the
  * list keeps clear of whatever the player draws over it.
@@ -141,6 +141,14 @@ fun ImmersiveLyricsPanel(modifier: Modifier = Modifier, contentPadding: PaddingV
     val state by vm.state.collectAsState()
     val trackKey = "$playingUri|${SongPlayer.currentTrackId}|$title|$artist"
 
+    if (StagePreference.style != StageStyle.Celestify) {
+        val recording = SongPlayer.currentLyricsTrack()?.key
+        if (!recording.isNullOrBlank()) {
+            key(recording) { SpicyStage(recording, state, vm, modifier, contentPadding) }
+            return
+        }
+    }
+
     when (val current = state) {
         is LyricsViewModel.State.Loading -> LyricsSkeleton(
             modifier.padding(contentPadding).padding(horizontal = Immersive.Gutter),
@@ -151,8 +159,8 @@ fun ImmersiveLyricsPanel(modifier: Modifier = Modifier, contentPadding: PaddingV
         ) {
             Text(
                 text = stringResource(R.string.immersive_lyrics_none),
-                style = Immersive.Headline,
-                color = Immersive.TextSecondary,
+                style = Immersive.ArtworkHeadline,
+                color = Immersive.OnArtworkSecondary,
             )
         }
         is LyricsViewModel.State.Loaded -> {
@@ -277,10 +285,10 @@ private fun LyricsList(
     modifier: Modifier,
     contentPadding: PaddingValues,
 ) {
-    val isSynced = remember(lyrics) { lyrics.synced && lyrics.lines.any { it.timeMs > 0L } }
+    val isSynced = remember(lyrics) { lyrics.synced && (lyrics.wordSynced || lyrics.lines.size == 1 || lyrics.lines.any { it.timeMs > 0L }) }
     val rows = remember(lyrics, isSynced) { panelLines(lyrics, isSynced) }
     val playing = Graph.currentSongState.playingState.value
-    val head = rememberLyricsPlayhead(trackKey, playing && isSynced)
+    val head = if (isSynced) rememberLyricsPlayhead(trackKey, playing) else remember { LyricsPlayhead(0L) }
     val clock = head.clock
 
     // Genius's notes on the lines, read in the background when the song started (App.kt) and kept
@@ -343,25 +351,6 @@ private fun LyricsList(
         }
     }
 
-    val currentLine by rememberUpdatedState(focusLine)
-    val activeOnScreen by remember(listState) {
-        derivedStateOf { listState.layoutInfo.visibleItemsInfo.any { it.index == currentLine } }
-    }
-    // Paused, there is no song to follow back to, so a hand scroll should sit wherever it was
-    // left rather than snapping back on these timers.
-    LaunchedEffect(browsing, activeOnScreen, listState.isScrollInProgress, playing) {
-        if (playing && browsing && activeOnScreen && !listState.isScrollInProgress) {
-            delay(600)
-            browsing = false
-        }
-    }
-    LaunchedEffect(browsing, listState.isScrollInProgress, playing) {
-        if (playing && browsing && !listState.isScrollInProgress) {
-            delay(5_000)
-            browsing = false
-        }
-    }
-
     // The panel's own journey, published so each row can work out how far behind it should be
     // running. Held as a plain value plus a frame clock rather than an animation per row:
     // sixty rows each with their own Animatable is sixty animations to start and stop on every
@@ -379,12 +368,12 @@ private fun LyricsList(
     var placed by remember { mutableStateOf(false) }
     // A newer line replaces an unfinished automatic scroll. Only a user's browsing gesture
     // should suspend following, not our own animation.
-    LaunchedEffect(focusLine, browsing) {
+    LaunchedEffect(focusLine, browsing, reduceMotion) {
         if (isSynced && !browsing && focusLine >= 0 && focusLine in rows.indices) {
             snapshotFlow { listState.layoutInfo.viewportSize.height }.first { it > 0 }
             val visible = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == focusLine }
             when {
-                !placed -> {
+                !placed || reduceMotion -> {
                     listState.scrollToItem(focusLine, scrollOffset = 0)
                     placed = true
                 }
@@ -407,51 +396,67 @@ private fun LyricsList(
 
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current
-    LazyColumn(
-        state = listState,
-        modifier = modifier
-            .nestedScroll(keepScroll)
-            .fadingEdges(),
-        // Each row carries GLOW_ROOM of its own inset for the halo, so the list hands that
-        // much back — otherwise the lines would sit a glow's width further apart and further in.
-        contentPadding = PaddingValues(
-            start = (Immersive.Gutter + contentPadding.calculateStartPadding(layoutDirection) - GLOW_ROOM)
-                .coerceAtLeast(0.dp),
-            top = contentPadding.calculateTopPadding() + 40.dp - GLOW_ROOM,
-            end = (Immersive.Gutter + contentPadding.calculateEndPadding(layoutDirection) - GLOW_ROOM)
-                .coerceAtLeast(0.dp),
-            bottom = contentPadding.calculateBottomPadding() +
-                if (isSynced) with(density) { viewportHeight.toDp() } * 0.8f else 40.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        itemsIndexed(rows) { index, row ->
-            PanelRow(
-                index = index,
-                row = row,
-                synced = isSynced,
-                activeRow = activeRow,
-                focusLine = focusLine,
-                run = run,
-                since = since,
-                browsing = browsing,
-                blurOk = blurOk,
-                glowing = blurOk,
-                clock = clock,
-                annotated = index in notes,
-                onHold = notes[index]?.let { n ->
-                    {
-                        haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        noteOpen = n
-                    }
-                },
-                onSeek = { timeMs ->
-                    head.announceJump()
-                    SongPlayer.seekTo(timeMs)
-                    SongPlayer.play()
-                },
-            )
+    BoxWithConstraints(modifier) {
+        val lyricSize = when {
+            maxWidth < 360.dp -> 27.sp
+            maxWidth < 600.dp -> 31.sp
+            else -> 35.sp
         }
+        val readingInset = if (isSynced) ((maxHeight - contentPadding.calculateTopPadding() -
+            contentPadding.calculateBottomPadding()) * 0.21f).coerceIn(24.dp, 112.dp) else 32.dp
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize()
+                .nestedScroll(keepScroll)
+                .fadingEdges(),
+            // Each row carries GLOW_ROOM of its own inset for the halo, so the list hands that
+            // much back — otherwise the lines would sit a glow's width further apart and further in.
+            contentPadding = PaddingValues(
+                start = (Immersive.Gutter + contentPadding.calculateStartPadding(layoutDirection) - GLOW_ROOM)
+                    .coerceAtLeast(0.dp),
+                top = contentPadding.calculateTopPadding() + readingInset - GLOW_ROOM,
+                end = (Immersive.Gutter + contentPadding.calculateEndPadding(layoutDirection) - GLOW_ROOM)
+                    .coerceAtLeast(0.dp),
+                bottom = contentPadding.calculateBottomPadding() +
+                    if (isSynced) with(density) { viewportHeight.toDp() } * 0.8f else 40.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            itemsIndexed(rows) { index, row ->
+                PanelRow(
+                    index = index,
+                    row = row,
+                    synced = isSynced,
+                    activeRow = activeRow,
+                    focusLine = focusLine,
+                    run = run,
+                    since = since,
+                    browsing = browsing,
+                    lyricSize = lyricSize,
+                    reduceMotion = reduceMotion,
+                    blurOk = blurOk,
+                    glowing = blurOk && com.music.spotui.data.preferences.AtmospherePref.lyricsGlow,
+                    clock = clock,
+                    annotated = index in notes,
+                    onHold = notes[index]?.let { n ->
+                        {
+                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            noteOpen = n
+                        }
+                    },
+                    onSeek = { timeMs ->
+                        browsing = false
+                        head.announceJump()
+                        SongPlayer.seekTo(com.music.spotui.data.entity.LyricTiming.seekPosition(
+                            timeMs, com.music.spotui.data.preferences.AtmospherePref.lyricsOffsetMs))
+                        SongPlayer.play()
+                    },
+                )
+            }
+        }
+        if (browsing && isSynced) com.music.spotui.ui.components.FollowLyricsButton(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = contentPadding.calculateBottomPadding())
+        ) { browsing = false }
     }
 }
 
@@ -468,6 +473,8 @@ private fun PanelRow(
     run: ScrollRun,
     since: FloatState,
     browsing: Boolean,
+    lyricSize: androidx.compose.ui.unit.TextUnit,
+    reduceMotion: Boolean,
     blurOk: Boolean,
     glowing: Boolean,
     clock: MutableLongState,
@@ -493,8 +500,8 @@ private fun PanelRow(
         .coerceAtMost(LINE_FALLOFF_BLUR.lastIndex)
     val blur by animateDpAsState(
         targetValue = when {
-            !synced || !blurOk || browsing || (focusLine >= 0 && index == focusLine) -> 0.dp
-            else -> LINE_FALLOFF_BLUR[focusStep]
+            !synced || isActive || !blurOk || browsing || (focusLine >= 0 && index == focusLine) -> 0.dp
+            else -> minOf(1.25f * focusStep, 5.5f).dp
         },
         animationSpec = tween(BLUR_SWITCH_MS, easing = LYRIC_EASING),
         label = "lyricBlur",
@@ -504,7 +511,7 @@ private fun PanelRow(
             !synced -> 0.95f
             isActive -> 1f
             // Reading by hand is not following along: the stack flattens to one brightness.
-            browsing -> BROWSING_ALPHA
+            browsing -> 1f
             else -> LINE_FALLOFF_ALPHA[step]
         },
         animationSpec = tween(LYRIC_SETTLE_MS, easing = LYRIC_EASING),
@@ -517,9 +524,20 @@ private fun PanelRow(
     }
 
     val style = if (synced) {
-        Immersive.Lyric
+        Immersive.ArtworkLyric.copy(fontSize = lyricSize, lineHeight = lyricSize * 1.16f,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = (-0.65).sp)
     } else {
-        Immersive.Lyric.copy(fontSize = 26.sp, lineHeight = 33.sp)
+        Immersive.ArtworkLyric.copy(
+            fontSize = 26.sp,
+            lineHeight = 33.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+            letterSpacing = (-0.3).sp,
+            shadow = if (!com.music.spotui.data.preferences.AtmospherePref.lyricsGlow) null else androidx.compose.ui.graphics.Shadow(
+                color = Color.White.copy(alpha = 0.14f),
+                offset = Offset.Zero,
+                blurRadius = 9f,
+            ),
+        )
     }
     // The stack sits fractionally back and the playing line comes forward to meet you. Rows
     // behind the one being scrolled to are the ones that fan out; the ones it is moving away
@@ -531,6 +549,7 @@ private fun PanelRow(
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = when {
+            reduceMotion -> 1f
             pressed -> PRESSED_SCALE
             isActive || !synced -> 1f
             else -> INACTIVE_SCALE
@@ -646,19 +665,12 @@ private fun PanelVoice(
     room: Dp,
     modifier: Modifier = Modifier,
 ) {
-    // The line being sung is white; every other one takes a quieter white. Faded across the
-    // handover rather than cut, so a line warms as it is reached and cools as it is left.
-    // Lyrics with no timing have no line being sung, and stay white throughout.
-    val color by animateColorAsState(
-        targetValue = if (isActive || !synced) Color.White else Immersive.TextSecondary.copy(alpha = 0.85f),
-        label = "lyricLineColor",
-    )
     if (row.isWordSynced && synced) {
         // Every word-synced line goes through the sweep, not just the playing one — a line
         // already sung is fully revealed and one still to come is not, which falls out of the
         // same arithmetic. Animating the tail lets a finished line close up as it dims away.
         val tail by animateFloatAsState(
-            targetValue = if (sung) 1f else UNSUNG_ALPHA,
+            targetValue = if (sung || browsing) 1f else 0.72f,
             label = "lyricTail",
         )
         SweptLyricLine(
@@ -671,20 +683,23 @@ private fun PanelVoice(
             glowAlpha = if (browsing) 0f else glowAlpha,
             glowRoom = room,
             feather = isActive,
-            color = color,
+            rise = !rememberReduceMotion() && !browsing,
+            color = Color.White,
         )
     } else {
         // No word timings, so there is no sweep to light the words as they are sung: the line
         // lights whole, the moment it starts, and holds itself back at the same dim a swept
         // line's unsung words sit at until then.
         val lit by animateFloatAsState(
-            targetValue = if (!synced || sung || isActive) 1f else UNSUNG_ALPHA,
+            targetValue = if (!synced || browsing || sung || isActive) 1f else 0.88f,
             label = "lyricLit",
         )
         Text(
             text = row.text,
-            style = style,
-            color = color.copy(alpha = lit),
+            style = if (glowAlpha > 0f && !browsing) style.copy(shadow = androidx.compose.ui.graphics.Shadow(
+                Color.White.copy(alpha = glowAlpha * 0.35f), Offset.Zero, 9f,
+            )) else style,
+            color = Color.White.copy(alpha = lit),
             modifier = modifier.padding(room),
         )
     }

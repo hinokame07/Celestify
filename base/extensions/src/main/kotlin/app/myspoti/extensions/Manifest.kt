@@ -129,7 +129,7 @@ data class Manifest(
         if (name.isBlank() || name.length > 40) add("name: 1 to 40 characters")
         if (version.isBlank() || version.length > 20) add("version: 1 to 20 characters")
         if (versionCode < 1) add("versionCode: 1 or more")
-        if (apiVersion < 1 || apiVersion > API_VERSION) add("apiVersion $apiVersion: this Myspoti speaks $API_VERSION")
+        if (apiVersion < 1 || apiVersion > API_VERSION) add("apiVersion $apiVersion: Celestify supports $API_VERSION")
         if (author.isBlank() || author.length > 60) add("author: 1 to 60 characters")
         if (description.length > 500) add("description: 500 characters at most")
         if (!main.endsWith(".js") || main.contains("/") || main.contains("\\")) add("main \"$main\": a .js file at the root of the package")

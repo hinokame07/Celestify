@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Myspoti-eigene Texte (Englisch als Standard, Deutsch). -->
+<!-- Celestify-eigene Texte (Englisch als Standard, Deutsch). -->
 <resources>
     <string name="welcome_lead">Deine Musik,</string>
     <string name="welcome_rotate_ads">ohne Werbung.</string>
@@ -7,7 +7,7 @@
     <string name="welcome_rotate_clips">mit den offiziellen Videos.</string>
     <string name="welcome_rotate_offline">offline, über Erweiterungen.</string>
     <string name="welcome_login">Mit Spotify anmelden</string>
-    <string name="welcome_privacy">Du meldest dich auf Spotifys eigener Seite an. Myspoti sieht dein Passwort nie.</string>
+    <string name="welcome_privacy">Du meldest dich auf Spotifys eigener Seite an. Celestify sieht dein Passwort nie.</string>
     <string name="remove_from_liked">Aus Lieblingssongs entfernen</string>
     <string name="repeat_on">Wiederholen: an</string>
     <string name="repeat_one">Titel wiederholen</string>
@@ -54,7 +54,7 @@
     <string name="local_files_none_subtitle">Auf diesem Gerät wurden keine abspielbaren Audiodateien gefunden. Sobald welche da sind, erscheinen sie hier.</string>
     <string name="downloads_empty_title">Lade herunter, um offline zu hören</string>
     <string name="downloads_empty_subtitle">Tippe im Menü eines Songs auf Herunterladen oder auf den Download-Button eines Albums oder einer Playlist.</string>
-    <string name="downloads_source">Verlustfreies FLAC, gegen die Originalaufnahme geprüft. Bleibt nur in Myspoti gespeichert.</string>
+    <string name="downloads_source">Verlustfreies FLAC, gegen die Originalaufnahme geprüft. Bleibt nur in Celestify gespeichert.</string>
     <string name="downloads_size">%1$s auf diesem Telefon</string>
     <string name="download_unavailable">Keine passende Aufnahme gefunden</string>
     <string name="download_retry">Erneut versuchen</string>
@@ -64,8 +64,8 @@
     <string name="playlist_not_found">Playlist nicht gefunden</string>
     <string name="browse_new_releases">Neuheiten</string>
     <string name="language_auto">Automatisch</string>
-    <string name="language_auto_detail">Die Sprache deines Handys, wenn Myspoti sie hat (Chinesisch, Deutsch, Englisch, Französisch, Griechisch, Italienisch, Polnisch, Portugiesisch, Russisch, Spanisch), sonst Englisch</string>
-    <string name="language_partial_note">Andere Sprachen: Die Bezeichnungen von Spotify sind übersetzt, die Texte von Myspoti bleiben auf Englisch.</string>
+    <string name="language_auto_detail">Die Sprache deines Handys, wenn Celestify sie hat (Chinesisch, Deutsch, Englisch, Französisch, Griechisch, Italienisch, Polnisch, Portugiesisch, Russisch, Spanisch), sonst Englisch</string>
+    <string name="language_partial_note">Andere Sprachen: Die Bezeichnungen von Spotify sind übersetzt, die Texte von Celestify bleiben auf Englisch.</string>
     <string name="restart_player_title">Player neu starten</string>
     <string name="restart_player_detail">Wenn die Musik nicht mehr reagiert: lädt den Spotify-Player neu</string>
     <string name="local_playlist_subtitle">Auf diesem Gerät</string>
@@ -78,34 +78,12 @@
     <string name="local_playlist_empty">Füge Songs aus Lokale Dateien mit ihrem +-Button hinzu.</string>
     <string name="playlist_change_refused">Spotify hat die Änderung an dieser Playlist abgelehnt</string>
     <string name="download_kept_by_list">Bleibt heruntergeladen: Eine heruntergeladene Playlist enthält ihn</string>
-    <string name="support_title">Myspoti unterstützen</string>
-    <string name="support_body">Myspoti ist kostenlos, werbefrei und wird in meiner Freizeit entwickelt. Wenn es dir gefällt, hilft eine kleine Spende, es am Laufen zu halten.</string>
-    <string name="support_action">Auf Ko-fi unterstützen</string>
-    <string name="support_decline">Nein danke</string>
-    <string name="support_row_detail">Eine kleine Spende über Ko-fi oder GitHub Sponsors hält die App am Laufen</string>
-    <string name="supporter_perks_title">Vorteile für Unterstützer*innen</string>
-    <string name="supporter_perks_detail">Akzentfarbe, App-Icon und ein Abzeichen als Dankeschön</string>
-    <string name="supporter_perks_locked">Freigeschaltet durch deine Unterstützung für Myspoti. Es basiert auf deinem Wort: Nichts wird geprüft.</string>
-    <string name="supporter_i_supported">Ich habe Myspoti unterstützt</string>
-    <string name="supporter_how">Wie hast du unterstützt?</string>
-    <string name="supporter_once">Eine Spende</string>
-    <string name="supporter_monthly">Jeden Monat</string>
-    <string name="supporter_badge">Unterstützer*in</string>
-    <string name="supporter_thanks_title">Danke für deine Unterstützung!</string>
-    <string name="supporter_thanks_body">Wenn dir Myspoti weiterhin nützt, hilft eine neue kleine Spende, es am Laufen zu halten.</string>
-    <string name="support_again">Erneut unterstützen</string>
-    <string name="supporter_accent">Akzentfarbe</string>
-    <string name="supporter_icon">App-Icon</string>
-    <string name="supporter_icon_note">Wenn sich das Icon ändert, kann die Verknüpfung auf dem Startbildschirm verschwinden: Die App bleibt in deiner App-Liste.</string>
-    <string name="supporter_monthly_switch">Ich unterstütze jeden Monat (keine Erinnerungen mehr)</string>
     <string name="color_green">Grün</string>
     <string name="color_blue">Blau</string>
     <string name="color_purple">Lila</string>
     <string name="color_pink">Pink</string>
     <string name="color_orange">Orange</string>
-    <string name="about_detail">Version, Discord-Community, Quellcode</string>
-    <string name="about_discord">Discord</string>
-    <string name="about_discord_detail">News, Hilfe und Ideen: tritt der Community bei</string>
+    <string name="about_detail">Version, Lizenzen und Quellcode</string>
     <string name="about_github">Quellcode</string>
     <string name="about_github_detail">Releases, Issues und Code auf GitHub</string>
     <string name="about_free">Kostenlos, Open Source und ohne Werbung. Nicht mit Spotify verbunden.</string>
@@ -115,7 +93,7 @@
     <string name="song_radio_name">%1$s-Radio</string>
     <string name="local_files_find_hint">In Lokale Dateien suchen</string>
     <string name="data_saver_title">Datensparmodus</string>
-    <string name="data_saver_summary">Im mobilen Netz verbraucht Myspoti keine Daten: Nur heruntergeladene Songs und lokale Dateien werden abgespielt</string>
+    <string name="data_saver_summary">Im mobilen Netz verbraucht Celestify keine Daten: Nur heruntergeladene Songs und lokale Dateien werden abgespielt</string>
     <string name="data_saver_blocked">Datensparmodus: Im mobilen Netz werden nur heruntergeladene Songs und lokale Dateien abgespielt</string>
     <string name="new_releases_followed">Von Künstler*innen, denen du folgst</string>
     <string name="new_releases_latest">Neueste Veröffentlichungen</string>
@@ -133,7 +111,7 @@
     <string name="recap_top_tracks">Top-Songs</string>
     <string name="recap_top_artists">Top-Künstler*innen</string>
     <string name="recap_top_albums">Top-Alben</string>
-    <string name="recap_private_note">Zählt alles, was in Myspoti abgespielt wird (Spotify, Downloads, lokale Dateien). Bleibt auf diesem Telefon und wird nie an Spotify gesendet.</string>
+    <string name="recap_private_note">Zählt alles, was in Celestify abgespielt wird (Spotify, Downloads, lokale Dateien). Bleibt auf diesem Telefon und wird nie an Spotify gesendet.</string>
     <string name="recap_detail">Mit deinem Hören, deinen Downloads und lokalen Dateien</string>
     <string name="track_credits">Credits</string>
     <string name="exclude_taste">Aus deinem Musikgeschmack ausschließen</string>
@@ -161,7 +139,7 @@
     <string name="track_sort_artist">Künstler*in</string>
     <string name="track_sort_album">Album</string>
     <string name="track_sort_duration">Dauer</string>
-    <string name="setup_title">Myspoti einrichten</string>
+    <string name="setup_title">Celestify einrichten</string>
     <string name="setup_subtitle">Erlaube, was du willst; du kannst es später in den Telefoneinstellungen ändern.</string>
     <string name="setup_notifications_title">Benachrichtigungen</string>
     <string name="setup_notifications_detail">Steuerung auf dem Sperrbildschirm und in der Benachrichtigungsleiste</string>
@@ -173,7 +151,7 @@
     <string name="setup_battery_detail">Musik läuft weiter, wenn der Bildschirm aus ist</string>
     <string name="setup_enable">Erlauben</string>
     <string name="setup_continue">Weiter</string>
-    <string name="setup_intro_title">So funktioniert Myspoti</string>
+    <string name="setup_intro_title">So funktioniert Celestify</string>
     <string name="setup_intro_subtitle">Drei Dinge, bevor es losgeht.</string>
     <string name="setup_intro_spotify_title">Spotify, ohne Werbung</string>
     <string name="setup_intro_spotify_detail">Dein Konto, deine Playlists und Likes, abgespielt von Spotifys eigenem Webplayer. Kostenlose Konten gehen auch.</string>
@@ -182,16 +160,16 @@
     <string name="setup_intro_ext_title">Erweiterungen, wenn du willst</string>
     <string name="setup_intro_ext_detail">Zusätze aus der Community: andere Audioquellen, Downloads und mehr. Gleich mehr dazu.</string>
     <string name="setup_ext_title">Erweiterungen</string>
-    <string name="setup_ext_subtitle">Myspoti funktioniert so, wie es ist: es spielt Spotify. Erweiterungen sind optionale Zusätze aus der Community, die mehr können.</string>
+    <string name="setup_ext_subtitle">Celestify funktioniert so, wie es ist: es spielt Spotify. Erweiterungen sind optionale Zusätze aus der Community, die mehr können.</string>
     <string name="setup_ext_audio_title">Andere Audioquellen</string>
     <string name="setup_ext_audio_detail">Eine Erweiterung kann deine Songs aus einer anderen Quelle abspielen, in der Qualität, die sie bietet.</string>
     <string name="setup_ext_download_title">Downloads</string>
-    <string name="setup_ext_download_detail">Zum Offline-Hören installierst du eine Download-Erweiterung. Die Songs bleiben verschlüsselt in Myspoti.</string>
+    <string name="setup_ext_download_detail">Zum Offline-Hören installierst du eine Download-Erweiterung. Die Songs bleiben verschlüsselt in Celestify.</string>
     <string name="setup_ext_more_title">Und mehr</string>
     <string name="setup_ext_more_detail">Startseiten-Bereiche, Seiten und Werkzeuge ihrer Autoren.</string>
     <string name="setup_ext_safe_title">Du behältst die Kontrolle</string>
     <string name="setup_ext_safe_detail">Vor der Installation zeigt sie, was sie darf. Für alles Weitere fragt sie erneut, und du kannst sie jederzeit entfernen.</string>
-    <string name="setup_ext_where">Du findest sie unter Einstellungen, Erweiterungen, von GitHub, GitLab und Codeberg. Sie stammen von ihren Autoren, nicht von Myspoti.</string>
+    <string name="setup_ext_where">Du findest sie unter Einstellungen, Erweiterungen, von GitHub, GitLab und Codeberg. Sie stammen von ihren Autoren, nicht von Celestify.</string>
     <string name="setup_ext_browse">Erweiterungen ansehen</string>
     <string name="setup_ext_later">Später</string>
     <string name="local_folders_button">Ordner</string>
@@ -225,7 +203,7 @@
     <string name="quality_download_hires">FLAC Hi-Res</string>
     <string name="quality_download_hires_detail">24 Bit, wenn verfügbar, Dateien etwa dreimal so groß</string>
     <string name="setup_quality_title">Klangqualität</string>
-    <string name="setup_quality_subtitle">Wähle, wie Myspoti deine Musik abspielt und speichert. Du kannst es später in den Einstellungen ändern.</string>
+    <string name="setup_quality_subtitle">Wähle, wie Celestify deine Musik abspielt und speichert. Du kannst es später in den Einstellungen ändern.</string>
     <string name="downloads_off_toast">Downloads sind aus. Schalte sie in den Einstellungen ein.</string>
     <string name="quality_streaming_high_detail">160 kbit/s, der beste Klang</string>
     <string name="quality_download_small">Kleinste</string>
@@ -239,7 +217,7 @@
     <string name="quality_now_unknown">Noch nicht bekannt: Spiele einen Song ab</string>
     <string name="update_downloading">Wird heruntergeladen… %1$d%%</string>
     <string name="update_installing">Wird installiert…</string>
-    <string name="update_needs_permission">Erlaube Myspoti, Apps zu installieren, um zu aktualisieren, und komm dann hierher zurück.</string>
+    <string name="update_needs_permission">Erlaube Celestify, Apps zu installieren, um zu aktualisieren, und komm dann hierher zurück.</string>
     <string name="update_allow">Erlauben</string>
     <string name="update_failed">Das Update ist fehlgeschlagen: %1$s</string>
     <string name="update_retry">Erneut versuchen</string>
@@ -309,7 +287,6 @@
     <string name="settings_rotation_portrait">Hochformat</string>
     <string name="settings_rotation_auto">Automatisch</string>
     <string name="settings_rotation_landscape">Querformat</string>
-    <string name="support_github_action">Auf GitHub sponsern</string>
     <string name="download_on_mobile_data">Download über mobile Daten: Er verbraucht dein Datenvolumen</string>
     <string name="restart_player_done">Player neu gestartet</string>
     <string name="spotify_limited">Spotify begrenzt die Wiedergabe gerade. Versuche es in einer Minute erneut.</string>
@@ -365,7 +342,7 @@
     <string name="settings_check_update_title">Jetzt nach Updates suchen</string>
     <string name="settings_check_update_detail">Sucht nach einer neueren Version und bietet die Installation an</string>
     <string name="settings_update_checking">Wird geprüft…</string>
-    <string name="settings_update_check_latest">Myspoti ist auf dem neuesten Stand</string>
+    <string name="settings_update_check_latest">Celestify ist auf dem neuesten Stand</string>
     <string name="downloads_stop_all_title">Alle Downloads stoppen</string>
     <string name="downloads_stop_all_detail">Bricht ab, was noch übrig ist; bereits heruntergeladene Songs bleiben erhalten</string>
     <string name="context_menu_remove_from_playlist">Aus dieser Playlist entfernen</string>
@@ -411,7 +388,7 @@
     <string name="player_forward_15">15 Sekunden vor</string>
     <string name="player_sleep_timer">Schlaftimer</string>
     <string name="settings_keep_playing_title">Nach dem Schließen weiterspielen</string>
-    <string name="settings_keep_playing_detail">Aus: Myspoti in den letzten Apps schließen stoppt die Musik</string>
+    <string name="settings_keep_playing_detail">Aus: Celestify in den letzten Apps schließen stoppt die Musik</string>
     <string name="recommended_songs_from_name">Basierend auf dem Namen dieser Playlist</string>
     <string name="recommended_songs_from_songs">Basierend auf dem Inhalt dieser Playlist</string>
     <string name="recommended_songs_refresh">Aktualisieren</string>

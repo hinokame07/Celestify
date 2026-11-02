@@ -1,0 +1,33 @@
+<resources>
+    <string name="themes_title">Temas</string>
+    <string name="themes_intro">Descubra temas do GitHub e confira a paleta escura nativa antes de aplicar.</string>
+    <string name="themes_error">Não foi possível carregar os temas. Confira a conexão e tente novamente.</string>
+    <string name="themes_loading">Carregando tema…</string>
+    <string name="themes_saving">Salvando tema…</string>
+    <string name="themes_no_supported_files">Nenhum color.ini, user.css ou celestify.json encontrado neste repositório.</string>
+    <string name="themes_reset">Restaurar Adaptive Celestial</string>
+    <string name="themes_compatibility_detail">CSS de desktop, scripts, fontes e layouts não são aplicados. As cores são adaptadas para superfícies escuras e contraste legível. Compatibilidade total exige a especificação nativa Celestify v1.</string>
+    <string name="themes_desktop_preview">Captura do desktop · a aparência no Android é diferente</string>
+    <string name="themes_install">Instalar paleta selecionada</string>
+    <string name="themes_installed_message">Instalado. Toque em Aplicar quando quiser.</string>
+    <string name="themes_active">Ativo</string>
+    <string name="themes_apply">Aplicar</string>
+    <string name="themes_repository">Repositório GitHub</string>
+    <string name="themes_discover">Explorar</string>
+    <string name="themes_installed">Instalados</string>
+    <string name="themes_updates">Atualizações</string>
+    <string name="themes_browse">Explorar / Tentar novamente</string>
+    <string name="themes_check_updates">Buscar atualizações</string>
+    <string name="themes_checked">Busca de atualizações concluída.</string>
+    <string name="themes_empty">Seus temas instalados aparecem aqui e continuam disponíveis sem conexão.</string>
+    <string name="themes_inspect">Prévia e compatibilidade</string>
+    <string name="themes_remove">Remover tema</string>
+    <string name="themes_no_updates">Nenhuma atualização listada. Busque para conferir os repositórios instalados.</string>
+    <string name="themes_update_available">Nova revisão do repositório disponível</string>
+    <string name="themes_preview_update">Ver atualização</string>
+    <string name="themes_full">Totalmente compatível · Nativo v1</string>
+    <string name="themes_partial">Parcialmente compatível · Paleta nativa</string>
+    <string name="themes_unsupported">Não suportado · Sem paleta compatível</string>
+    <string name="themes_native_preview">Prévia nativa</string>
+    <string name="themes_preview_caption">Sua música, sua atmosfera</string>
+</resources>

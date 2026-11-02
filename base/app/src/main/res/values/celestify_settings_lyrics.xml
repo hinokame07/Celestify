@@ -1,0 +1,11 @@
+<resources>
+    <string name="celestify_listening">Listening</string>
+    <string name="celestify_device">App and device</string>
+    <string name="celestify_lyrics_settings">Lyrics</string>
+    <string name="celestify_lyrics_settings_detail">Word highlighting, glow and timing</string>
+    <string name="celestify_follow_playback">Follow playback</string>
+    <string name="settings_find_title">Search settings</string>
+    <string name="settings_find_empty">No matching settings</string>
+    <string name="celestify_github_versions">Versions on GitHub</string>
+    <string name="celestify_private_updates">Sign in with an account that can access this private repository to download the signed APK.</string>
+</resources>

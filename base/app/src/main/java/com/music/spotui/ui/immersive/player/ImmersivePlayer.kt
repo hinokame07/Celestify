@@ -19,6 +19,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -36,6 +38,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -106,7 +109,7 @@ private val THUMB_SIZE = 54.dp
 private val HEADER_HEIGHT = 60.dp
 // Covers.large is 640px: the cover is always decoded at that, whatever size the box has right now.
 private const val COVER_DECODE_PX = 640
-private val ART_TITLE_GAP = 20.dp
+private val ART_TITLE_GAP = 26.dp
 private val ART_BOX_TOP_PAD = 8.dp
 private val DISMISS_STRIP_HEIGHT = 32.dp
 
@@ -122,7 +125,7 @@ internal val PLAYER_MAX_WIDTH = 560.dp
 /** How long the sleeve takes to travel between the full player and the header. */
 private const val PANEL_TRAVEL_MS = com.music.spotui.ui.immersive.motion.ImmersiveMotion.LONG_MS
 
-private val ArtCorner = RoundedCornerShape(8.dp)
+private val ArtCorner = RoundedCornerShape(12.dp)
 
 /** What the middle of the player shows. */
 private object Panel {
@@ -193,8 +196,10 @@ fun ImmersivePlayer(
     navController: NavController? = null,
 ) {
     val context = LocalContext.current
-    val palette = rememberArtworkColors(state.coverUrl.takeIf { it.isNotBlank() })
-    val tint by animateColorAsState(playerTintOf(palette), tween(com.music.spotui.ui.immersive.motion.ImmersiveMotion.TINT_MS), label = "playerTint")
+    val artworkPalette = rememberArtworkColors(state.coverUrl.takeIf { it.isNotBlank() })
+    val palette = if (com.music.spotui.data.preferences.AtmospherePref.dynamicColors) artworkPalette
+        else com.music.spotui.ui.look.MeshPalette(listOf(Color(0xFF19212C), Color(0xFF10121C)))
+    val tint by animateColorAsState(Immersive.Accent, tween(com.music.spotui.ui.immersive.motion.ImmersiveMotion.TINT_MS), label = "playerTint")
 
     var panel by rememberSaveable { mutableIntStateOf(Panel.NONE) }
     var showMenu by remember { mutableStateOf(false) }
@@ -215,8 +220,15 @@ fun ImmersivePlayer(
     // Back leaves the panel first; the sheet (outside) closes on the next one.
     BackHandler(enabled = panel != Panel.NONE) { panel = Panel.NONE }
 
-    Box(modifier.fillMaxSize().background(Color.Black)) {
-        MeshGradientBackground(palette = palette, trackKey = state.coverUrl)
+    BoxWithConstraints(modifier.fillMaxSize().background(Immersive.Page)) {
+        // Only narrow/short windows adapt. Wide tablet measurements stay untouched.
+        val compactPhone = PlayerWindowPolicy.compact(maxWidth.value)
+        val shortPhone = PlayerWindowPolicy.scrollControls(maxWidth.value, maxHeight.value, androidx.compose.ui.platform.LocalDensity.current.fontScale,
+            androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp.toFloat())
+        val phoneHeight = maxHeight
+        val gutter = if (compactPhone) 22.dp else PLAYER_GUTTER
+        com.music.spotui.ui.immersive.CelestialPlayerBackground(palette)
+        com.music.spotui.ui.immersive.AmbientParticles(tint, lyricsMode = lyricsOpen, moving = state.playing)
         CompositionLocalProvider(LocalPlayerTint provides tint) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 // The handle: always hands its drags to the sheet.
@@ -231,7 +243,7 @@ fun ImmersivePlayer(
                 // Everything that changes between the full player and the panels lives in this
                 // one weighted box, so the controls below it never move.
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                    val contentWidth = minOf(maxWidth - PLAYER_GUTTER * 2, PLAYER_MAX_WIDTH)
+                    val contentWidth = minOf(maxWidth - gutter * 2, PLAYER_MAX_WIDTH)
                     val left = (maxWidth - contentWidth) / 2
                     val fullArt = minOf(contentWidth, maxHeight - ART_BOX_TOP_PAD - ART_TITLE_GAP - HEADER_HEIGHT - 16.dp)
                         .coerceAtLeast(THUMB_SIZE)
@@ -281,11 +293,11 @@ fun ImmersivePlayer(
                                 val scale = pauseScale.value + (1f - pauseScale.value) * p()
                                 scaleX = scale
                                 scaleY = scale
-                                shadowElevation = 10.dp.toPx() * (1f - p())
+                                shadowElevation = 18.dp.toPx() * (1f - p())
                                 shape = ArtCorner
                                 clip = true
                             }
-                            .background(Color.Black.copy(alpha = 0.18f))
+                            .background(Immersive.Secondary)
                             .dragToClose()
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                                 if (panel != Panel.NONE) panel = Panel.NONE
@@ -334,7 +346,7 @@ fun ImmersivePlayer(
                         // set tighter, so none is clipped at the bottom.
                         val sourceLabel = com.music.spotui.ui.components.playingSourceLabel()
                         val hasSource = sourceLabel.isNotBlank() && !state.adPlaying
-                        val lineH = if (hasSource) 22.sp else 24.sp
+                        val lineH = if (hasSource) 22.sp else 27.sp
                         Column(
                             Modifier
                                 .weight(1f)
@@ -349,7 +361,7 @@ fun ImmersivePlayer(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = if (state.adPlaying) stringResource(R.string.immersive_player_ad) else state.title,
-                                    style = Immersive.Title.copy(fontSize = 20.sp, lineHeight = lineH),
+                                    style = Immersive.ArtworkTitle.copy(fontSize = if (hasSource) 20.sp else 23.sp, lineHeight = lineH, color = Color.White),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
@@ -365,7 +377,7 @@ fun ImmersivePlayer(
                                     ) {
                                         Text(
                                             text = stringResource(R.string.explicit_badge),
-                                            style = Immersive.Caption.copy(fontSize = 10.sp, lineHeight = 10.sp, fontWeight = FontWeight.Bold),
+                                            style = Immersive.ArtworkCaption.copy(fontSize = 10.sp, lineHeight = 10.sp, fontWeight = FontWeight.Bold),
                                             color = Color.Black,
                                         )
                                     }
@@ -374,8 +386,8 @@ fun ImmersivePlayer(
                             if (!state.adPlaying) {
                                 Text(
                                     text = state.artist,
-                                    style = Immersive.Title.copy(fontSize = 20.sp, lineHeight = lineH, fontWeight = FontWeight.W500),
-                                    color = tint.copy(alpha = 0.55f),
+                                    style = Immersive.ArtworkTitle.copy(fontSize = 20.sp, lineHeight = lineH, fontWeight = FontWeight.W500),
+                                    color = Color.White.copy(alpha = 0.72f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
@@ -387,8 +399,8 @@ fun ImmersivePlayer(
                             // download); a tap opens what plays and its quality. Same state as the Classic player.
                             if (hasSource) Text(
                                 text = sourceLabel,
-                                style = Immersive.Caption.copy(lineHeight = 14.sp),
-                                color = tint.copy(alpha = 0.45f),
+                                style = Immersive.ArtworkCaption.copy(lineHeight = 14.sp),
+                                color = Color.White.copy(alpha = 0.62f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
@@ -418,16 +430,19 @@ fun ImmersivePlayer(
                 // One block, measured at its natural height and pinned to the foot of the player.
                 Column(
                     modifier = Modifier
-                        .widthIn(max = PLAYER_MAX_WIDTH + PLAYER_GUTTER * 2)
+                        .widthIn(max = PLAYER_MAX_WIDTH + gutter * 2)
                         .fillMaxWidth()
-                        .padding(horizontal = PLAYER_GUTTER)
-                        .align(Alignment.CenterHorizontally),
+                        .padding(horizontal = gutter)
+                        .align(Alignment.CenterHorizontally)
+                        .then(if (shortPhone) Modifier.heightIn(max = phoneHeight * 0.55f)
+                            .verticalScroll(rememberScrollState()) else Modifier),
                 ) {
                     PlayerScrubber(state = state, onSeek = actions.seekTo)
                     Spacer(Modifier.height(8.dp))
                     TransportRow(
                         isPlaying = state.playing,
                         isLoading = state.buffering,
+                        compact = compactPhone,
                         onPrevious = actions.previous,
                         onPlayPause = actions.playPause,
                         onNext = actions.next,

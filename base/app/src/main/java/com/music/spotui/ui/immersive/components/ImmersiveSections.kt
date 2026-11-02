@@ -87,7 +87,7 @@ fun SectionHeader(
 ) {
     Row(
         modifier = modifier
-            .padding(horizontal = Immersive.Gutter, vertical = 10.dp)
+            .padding(start = Immersive.Gutter, end = Immersive.Gutter, top = 16.dp, bottom = 12.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {

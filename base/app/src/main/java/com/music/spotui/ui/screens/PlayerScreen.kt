@@ -1429,7 +1429,7 @@ fun PlayerConnectRow(
                         ) { shareMenu = true },
                     contentDescription = stringResource(R.string.action_share_label),
                 )
-                androidx.compose.material3.DropdownMenu(expanded = shareMenu, onDismissRequest = { shareMenu = false }) {
+                com.music.spotui.ui.components.CelestifyMenu(expanded = shareMenu, onDismissRequest = { shareMenu = false }) {
                     androidx.compose.material3.DropdownMenuItem(
                         text = { Text(stringResource(R.string.share_link)) },
                         onClick = {

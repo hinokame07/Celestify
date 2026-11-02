@@ -9,12 +9,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-/** The two looks. [CLASSIC] is the default, so nothing changes for anyone who has not chosen. */
+/** The two looks. New installs start in the current Immersive design; saved choices remain valid. */
 enum class Look {
     CLASSIC, IMMERSIVE;
 
     companion object {
-        fun of(name: String?): Look = entries.firstOrNull { it.name == name } ?: CLASSIC
+        fun of(name: String?): Look = entries.firstOrNull { it.name == name } ?: IMMERSIVE
     }
 }
 
@@ -25,7 +25,8 @@ object LookPref {
     private const val KEY_OFFERED = "look_offered"
 
     /** The chosen look, as Compose state: everything reading it redraws when it changes. */
-    var look by mutableStateOf(Look.of(prefs(com.music.spotui.di.Graph.app).getString(KEY, null)))
+    // Existing Classic selections migrate to Celestify's single public design.
+    var look by mutableStateOf(Look.IMMERSIVE)
         private set
 
     fun set(c: Context, value: Look) {

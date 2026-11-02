@@ -174,7 +174,7 @@ private fun ReleaseFilterChip(label: String, selected: Boolean, onClick: () -> U
         Text(
             text = label,
             style = Immersive.Subhead.copy(
-                color = if (selected) androidx.compose.ui.graphics.Color.White else Immersive.Text,
+                color = if (selected) Immersive.OnAccent else Immersive.Text,
                 fontWeight = FontWeight.SemiBold,
             ),
         )

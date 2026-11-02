@@ -93,6 +93,7 @@ import androidx.compose.ui.unit.dp
 import app.myspoti.engine.R
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.music.spotui.ui.immersive.player.LocalPlayerTint
 import com.music.spotui.data.entity.SongsModel
 import com.music.spotui.di.Graph
 import com.music.spotui.di.SongPlayer
@@ -270,8 +271,8 @@ fun ImmersiveQueuePanel(modifier: Modifier = Modifier, contentPadding: PaddingVa
                 ) {
                     Text(
                         text = stringResource(R.string.clear_queue),
-                        style = Immersive.Subhead,
-                        color = Immersive.TextSecondary,
+                        style = Immersive.ArtworkSubhead,
+                        color = Immersive.OnArtworkSecondary,
                         modifier = Modifier
                             .clip(CircleShape)
                             .clickable { SongPlayer.clearQueue() }
@@ -298,8 +299,8 @@ fun ImmersiveQueuePanel(modifier: Modifier = Modifier, contentPadding: PaddingVa
             item(key = "empty") {
                 Text(
                     text = stringResource(R.string.immersive_queue_empty),
-                    style = Immersive.Body,
-                    color = Immersive.TextSecondary,
+                    style = Immersive.ArtworkBody,
+                    color = Immersive.OnArtworkSecondary,
                     modifier = Modifier.padding(top = 32.dp),
                 )
             }
@@ -461,7 +462,7 @@ private fun LazyListScope.queueSection(
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = stringResource(R.string.immersive_queue_remove),
-                            tint = Immersive.TextSecondary,
+                            tint = Immersive.OnArtworkSecondary,
                             modifier = Modifier.size(22.dp),
                         )
                     }
@@ -479,7 +480,7 @@ private fun LazyListScope.queueSection(
                     Icon(
                         Icons.Rounded.DragHandle,
                         contentDescription = stringResource(R.string.immersive_queue_reorder),
-                        tint = Immersive.TextSecondary,
+                        tint = Immersive.OnArtworkSecondary,
                         modifier = Modifier
                             .size(40.dp)
                             .padding(8.dp)
@@ -525,7 +526,7 @@ private fun QueueHeader(
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = stringResource(R.string.immersive_queue_title),
-            style = Immersive.Title,
+            style = Immersive.ArtworkTitle,
             modifier = Modifier.weight(1f),
         )
         QueueToggle(Icons.Rounded.Shuffle, stringResource(R.string.immersive_queue_shuffle), shuffle, onShuffle)
@@ -547,10 +548,10 @@ private fun QueueToggle(icon: ImageVector, description: String, on: Boolean, onC
         modifier = Modifier
             .size(36.dp)
             .clip(CircleShape)
-            .background(if (on) Color.White else Color.White.copy(alpha = 0.14f))
+            .background(if (on) Immersive.Accent.copy(alpha = 0.22f) else Immersive.OnArtwork.copy(alpha = 0.08f))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
     ) {
-        Icon(icon, contentDescription = description, tint = if (on) Color.Black else Color.White, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = description, tint = if (on) Immersive.Accent else Immersive.OnArtwork, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -563,8 +564,8 @@ private fun QueueHeading(
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = title,
-            style = Immersive.BodyStrong,
-            color = Color.White.copy(alpha = 0.75f),
+            style = Immersive.ArtworkBodyStrong,
+            color = Immersive.OnArtworkSecondary,
             modifier = Modifier.weight(1f),
         )
         trailing()
@@ -603,14 +604,14 @@ private fun QueueRow(
             modifier = Modifier
                 .size(48.dp)
                 .clip(Immersive.CoverSmall)
-                .background(Color.White.copy(alpha = 0.08f)),
+                .background(Immersive.Secondary),
         )
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Text(
                 text = title,
-                style = Immersive.Body,
-                color = if (isCurrent) Immersive.Accent else Immersive.Text,
+                style = Immersive.ArtworkBody,
+                color = if (isCurrent) LocalPlayerTint.current else Immersive.OnArtwork,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -621,7 +622,7 @@ private fun QueueRow(
                 }
                 Text(
                     text = artist,
-                    style = Immersive.Subhead,
+                    style = Immersive.ArtworkSubhead,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -633,7 +634,7 @@ private fun QueueRow(
             Icon(
                 Icons.Rounded.GraphicEq,
                 contentDescription = stringResource(R.string.immersive_queue_now_playing),
-                tint = Immersive.Accent,
+                tint = LocalPlayerTint.current,
                 modifier = Modifier.size(20.dp),
             )
         }

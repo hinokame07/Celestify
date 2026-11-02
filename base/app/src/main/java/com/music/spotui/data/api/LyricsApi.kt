@@ -118,7 +118,7 @@ object LyricsApi {
                 com.music.spotui.extensions.Extensions.lyricsFor(track.trackId, track.title, track.artist, track.album, track.durationMs, track.coverUrl)
             }.getOrNull()
         } else null
-        val own = if (wordSync) wordFirst(track) else fromSpotify(track) ?: lineFallbacks(track)
+        val own = if (wordSync) wordFirst(track) else preferTimed(fromSpotify(track)) { lineFallbacks(track) }
         val fromExt = when {
             ext == null -> null
             own != null && com.music.spotui.extensions.LyricsMerge.rank(own) == 3 && com.music.spotui.extensions.LyricsMerge.isSpotifyComplete(own) -> { ext.cancel(); null }
@@ -181,7 +181,7 @@ object LyricsApi {
         }
 
         private fun encode(l: Lyrics) = JSONObject()
-            .put("synced", l.synced).put("language", l.language).put("provider", l.provider)
+            .put("ttml", l.ttml).put("synced", l.synced).put("language", l.language).put("provider", l.provider)
             .put("colors", l.colors?.let { JSONArray(listOf(it.background, it.text, it.highlight)) })
             .put("lines", JSONArray().also { arr ->
                 l.lines.forEach { line ->
@@ -201,7 +201,7 @@ object LyricsApi {
                 }
             }
             return Lyrics(lines, o.getBoolean("synced"), o.optString("language").takeIf { it.isNotEmpty() && it != "null" },
-                o.optString("provider").takeIf { it.isNotEmpty() && it != "null" }, colors)
+                o.optString("provider").takeIf { it.isNotEmpty() && it != "null" }, colors, ttml = o.optString("ttml").takeIf { it.isNotEmpty() })
         }
     }
 
@@ -229,11 +229,11 @@ object LyricsApi {
         if (sp != null && sp.wordSynced && sp.uncapped) return@coroutineScope sp.also { plus.cancel(); red.cancel(); kugou.cancel() }
         // Shown at once while the word timings are looked for (reported: lyrics slow to come).
         if (sp != null) early.value = track.key to sp
-        val words = (plus.await() ?: red.await() ?: kugou.await())?.takeIf { it.wordSynced }
+        val first = plus.await()
+        val words = first?.takeIf { it.wordSynced } ?: red.await()?.takeIf { it.wordSynced } ?: kugou.await()?.takeIf { it.wordSynced }
         when {
             words != null -> alignTo(words, sp).copy(colors = sp?.colors)
-            sp != null -> sp
-            else -> lineFallbacks(track)
+            else -> preferTimed(sp) { preferTimed(first) { lineFallbacks(track) } }
         }
     }
 
@@ -259,11 +259,17 @@ object LyricsApi {
         val shift = gaps.sorted()[gaps.size / 2]
         if (kotlin.math.abs(shift) < 60) return words
         Log.d("LyricsApi", "${words.provider}: moved by $shift ms to Spotify's timing (${gaps.size} lines)")
-        return words.copy(lines = words.lines.map { l ->
+        return words.copy(ttml = null, lines = words.lines.map { l ->
             l.copy(timeMs = (l.timeMs + shift).coerceAtLeast(0), words = l.words?.map { w ->
                 w.copy(startMs = (w.startMs + shift).coerceAtLeast(0), endMs = if (w.endMs > 0) (w.endMs + shift).coerceAtLeast(0) else 0)
             })
         })
+    }
+
+    internal inline fun preferTimed(first: Lyrics?, fallback: () -> Lyrics?): Lyrics? {
+        if (first?.synced == true) return first
+        val next = fallback()
+        return if (next?.synced == true) next else first ?: next
     }
 
     /** Nothing from Spotify: LRCLIB, then (opt-in) NetEase and Genius, then Kugou. */
@@ -275,8 +281,9 @@ object LyricsApi {
             val genius = if (extraSources) async { fromGenius(title, artist) } else null
             val exact = async { lrclibGet(title, artist, track.album, durationSec) }
             val fuzzy = async { lrclibSearch("$LRCLIB/search?track_name=${enc(title)}&artist_name=${enc(artist)}", title, artist, durationSec) }
-            val lrclib = exact.await() ?: fuzzy.await()
-                ?: lrclibSearch("$LRCLIB/search?track_name=${enc(title)}", title, artist, durationSec)
+            val lrclib = preferTimed(exact.await()) {
+                preferTimed(fuzzy.await()) { lrclibSearch("$LRCLIB/search?track_name=${enc(title)}", title, artist, durationSec) }
+            }
             val ne = netease?.await()
             // Synced beats plain.
             when {
@@ -447,7 +454,7 @@ object LyricsApi {
         val isrc = hit.optString("isrc").takeIf { it.isNotBlank() } ?: return null
         val ttml = httpGet("https://lrc.red/s/${enc(isrc)}.ttml", timeoutMs = 6000) ?: return null
         val lines = parseTtml(ttml) ?: return null
-        return Lyrics(lines, synced = true, provider = "Apple Music · lrc.red")
+        return Lyrics(lines, synced = true, provider = "Apple Music · lrc.red", ttml = ttml)
     }
 
     /** Apple Music's TTML: a <p> per line, a timed <span> per word (background voices left out). */
@@ -578,21 +585,37 @@ object LyricsApi {
 
     // LRC: each line is "[mm:ss.xx] text" (a line may carry multiple timestamps).
     private val lrcTag = Regex("""\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?]""")
+    private val enhancedTag = Regex("""<(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?>""")
+    private fun lrcTime(match: MatchResult): Long {
+        val fraction = match.groupValues[3]
+        val ms = when (fraction.length) {
+            0 -> 0L
+            1 -> fraction.toLong() * 100
+            2 -> fraction.toLong() * 10
+            else -> fraction.take(3).toLong()
+        }
+        return match.groupValues[1].toLong() * 60_000 + match.groupValues[2].toLong() * 1_000 + ms
+    }
+
     private fun parseLrc(lrc: String): List<LyricLine> {
         val out = ArrayList<LyricLine>()
         for (raw in lrc.split("\n")) {
             val tags = lrcTag.findAll(raw).toList()
             if (tags.isEmpty()) continue
-            val text = raw.substring(tags.last().range.last + 1).trim().ifEmpty { "♪" }
+            val body = raw.substring(tags.last().range.last + 1)
+            val stamps = enhancedTag.findAll(body).toList()
+            val text = enhancedTag.replace(body, "").trim().ifEmpty { "♪" }
+            // Timed segments are kept only when the source actually stamped them. Repeated
+            // line tags have ambiguous word timing, so those copies remain line-synced.
+            val words = if (tags.size == 1) stamps.mapIndexedNotNull { i, stamp ->
+                val end = stamps.getOrNull(i + 1)?.range?.first ?: body.length
+                val segment = body.substring(stamp.range.last + 1, end).trim()
+                if (segment.isBlank()) null else LyricWord(
+                    lrcTime(stamp), stamps.getOrNull(i + 1)?.let(::lrcTime) ?: 0L, segment,
+                )
+            }.takeIf { it.isNotEmpty() } else null
             for (m in tags) {
-                val frac = m.groupValues[3]
-                val ms = when (frac.length) {
-                    0 -> 0L
-                    1 -> frac.toLong() * 100
-                    2 -> frac.toLong() * 10
-                    else -> frac.take(3).toLong()
-                }
-                out.add(LyricLine(m.groupValues[1].toLong() * 60_000 + m.groupValues[2].toLong() * 1_000 + ms, text))
+                out.add(LyricLine(lrcTime(m), text, words))
             }
         }
         // Collapse runs of empty (instrumental) lines into one ♪.

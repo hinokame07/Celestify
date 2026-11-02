@@ -1,0 +1,33 @@
+<resources>
+    <string name="themes_title">Themes</string>
+    <string name="themes_intro">Discover GitHub themes and preview their native dark palette before applying.</string>
+    <string name="themes_error">Unable to load themes. Check your connection and try again.</string>
+    <string name="themes_loading">Loading theme…</string>
+    <string name="themes_saving">Saving theme…</string>
+    <string name="themes_no_supported_files">No color.ini, user.css or celestify.json found in this repository.</string>
+    <string name="themes_reset">Restore Adaptive Celestial</string>
+    <string name="themes_compatibility_detail">Desktop CSS, scripts, fonts and layouts are not applied. Colors are adapted for dark surfaces and readable contrast. Full compatibility requires the native Celestify v1 specification.</string>
+    <string name="themes_desktop_preview">Desktop screenshot · appearance differs on Android</string>
+    <string name="themes_install">Install selected palette</string>
+    <string name="themes_installed_message">Installed. Tap Apply when you are ready.</string>
+    <string name="themes_active">Active</string>
+    <string name="themes_apply">Apply</string>
+    <string name="themes_repository">GitHub repository</string>
+    <string name="themes_discover">Discover</string>
+    <string name="themes_installed">Installed</string>
+    <string name="themes_updates">Updates</string>
+    <string name="themes_browse">Browse / Retry</string>
+    <string name="themes_check_updates">Check for updates</string>
+    <string name="themes_checked">Update check complete.</string>
+    <string name="themes_empty">Your installed themes will appear here. They remain available offline.</string>
+    <string name="themes_inspect">Preview and check compatibility</string>
+    <string name="themes_remove">Remove theme</string>
+    <string name="themes_no_updates">No updates listed. Check to refresh installed repositories.</string>
+    <string name="themes_update_available">New repository revision available</string>
+    <string name="themes_preview_update">Preview update</string>
+    <string name="themes_full">Fully compatible · Native v1</string>
+    <string name="themes_partial">Partially compatible · Native palette</string>
+    <string name="themes_unsupported">Unsupported · No convertible palette</string>
+    <string name="themes_native_preview">Native preview</string>
+    <string name="themes_preview_caption">Your music, your atmosphere</string>
+</resources>

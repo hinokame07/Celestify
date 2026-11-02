@@ -399,7 +399,23 @@ private fun ContentDrawScope.glowGrown(
     peak: Float,
     growth: CharGrowth,
 ) {
-    if (!line.isGrowing(positionMs)) return
+    if (!line.isGrowing(positionMs)) {
+        val active = line.words.indexOfLast { it.startMs <= positionMs }
+        val word = line.words.getOrNull(active) ?: return
+        val end = if (word.endMs > word.startMs) word.endMs else line.words.getOrNull(active + 1)?.startMs ?: word.startMs
+        if (positionMs >= end) return
+        val span = line.wordSpans[active]
+        val last = minOf(span.last, layout.layoutInput.text.lastIndex)
+        if (span.first > last) return
+        for (row in layout.getLineForOffset(span.first)..layout.getLineForOffset(last)) {
+            val from = layout.xOn(maxOf(span.first, layout.getLineStart(row)), row, inset)
+            val to = layout.xOn(minOf(last + 1, layout.getLineEnd(row)), row, inset)
+            clipRect(minOf(from, to), layout.getLineTop(row) + inset, maxOf(from, to), layout.getLineBottom(row) + inset) {
+                this@glowGrown.drawContent()
+            }
+        }
+        return
+    }
     val em = layout.layoutInput.style.fontSize.toPx()
     val length = layout.layoutInput.text.length
     for (word in line.growingWords) {

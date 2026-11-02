@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var connecting by mutableStateOf(false)
     /** A pending wait for the session to prove itself after the login page came back. */
     private var loginWait: kotlinx.coroutines.Job? = null
+    private var loginReportButton: TextView? = null
     /** The one-time setup screen (permissions, battery) after signing in. */
     private var setupNeeded by mutableStateOf(false)
     /** In the picture-in-picture window: only the music video is drawn. */
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         // The user's rotation choice (portrait by default); changes are applied from the UI below.
         requestedOrientation = com.music.spotui.data.preferences.OrientationPref.requested()
         signedIn = prefs.getBoolean("LoggedIn", false)
@@ -215,11 +218,61 @@ class MainActivity : AppCompatActivity() {
         showingLogin = true
         MyspotiRuntime.host.attach(root, visible = true)
         MyspotiRuntime.host.openLogin()
+        showLoginReportButton()
     }
 
     private fun hideLogin() {
         showingLogin = false
+        loginReportButton?.let(root::removeView)
         MyspotiRuntime.host.attach(root, visible = false)
+    }
+
+    /** Keep a diagnostic action above the login WebView, which otherwise covers Compose. */
+    private fun showLoginReportButton() {
+        // host.attach posts the WebView insertion first; this post places the action above it.
+        root.post {
+            if (!showingLogin) return@post
+            val button = loginReportButton ?: TextView(this).apply {
+                text = getString(app.myspoti.engine.R.string.diagnostic_export_title)
+                contentDescription = text
+                setTextColor(android.graphics.Color.WHITE)
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                val horizontal = (14 * resources.displayMetrics.density).toInt()
+                val vertical = (9 * resources.displayMetrics.density).toInt()
+                setPadding(horizontal, vertical, horizontal, vertical)
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = 24 * resources.displayMetrics.density
+                    setColor(0xE61C1C22.toInt())
+                    setStroke((resources.displayMetrics.density).toInt().coerceAtLeast(1), 0x55FFFFFF)
+                }
+                elevation = 6 * resources.displayMetrics.density
+                setOnClickListener {
+                    lifecycleScope.launch {
+                        val report = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            runCatching { app.myspoti.host.android.Logbook.export(this@MainActivity) }.getOrNull()
+                        }
+                        if (report != null) com.music.spotui.ui.screens.shareDiagnosticReport(this@MainActivity, report)
+                        else android.widget.Toast.makeText(this@MainActivity,
+                            app.myspoti.engine.R.string.diagnostic_export_failed, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.also { loginReportButton = it }
+            (button.parent as? ViewGroup)?.removeView(button)
+            val margin = (10 * resources.displayMetrics.density).toInt()
+            val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.TOP or android.view.Gravity.END).apply {
+                topMargin = margin
+                marginEnd = margin
+            }
+            root.addView(button, params)
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(button) { _, insets ->
+                val top = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars()).top + margin
+                val lp = button.layoutParams as FrameLayout.LayoutParams
+                if (lp.topMargin != top) { lp.topMargin = top; button.layoutParams = lp }
+                insets
+            }
+            androidx.core.view.ViewCompat.requestApplyInsets(button)
+        }
     }
 
     /** Logout: leave the app's screens for Spotify's login page. */
@@ -230,6 +283,7 @@ class MainActivity : AppCompatActivity() {
                     signedIn = false
                     showingLogin = true
                     MyspotiRuntime.host.attach(root, visible = true)
+                    showLoginReportButton()
                 }
             }
         }

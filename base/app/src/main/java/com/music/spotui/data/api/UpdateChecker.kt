@@ -42,7 +42,7 @@ object UpdateChecker {
 
     /** When the last successful check ran (epoch ms), 0 if never. */
     fun lastChecked(context: Context): Long =
-        context.getSharedPreferences("updates", Context.MODE_PRIVATE).getLong("checked_at", 0L)
+        context.getSharedPreferences("celestify_updates", Context.MODE_PRIVATE).getLong("checked_at", 0L)
 
     /**
      * Automatic check (launch, resume, periodic). [manual]: a release dismissed with "Later" is
@@ -53,7 +53,7 @@ object UpdateChecker {
     suspend fun check(context: Context, manual: Boolean = false): Release? = withContext(Dispatchers.IO) {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isBlank()) return@withContext null
-        val prefs = context.getSharedPreferences("updates", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("celestify_updates", Context.MODE_PRIVATE)
         val now = System.currentTimeMillis()
         if (now - prefs.getLong("checked_at", 0L) < INTERVAL_MS || now - prefs.getLong("tried_at", 0L) < RETRY_MS) return@withContext pending(prefs, manual)
         store(prefs, fetch(repo, force = false), now)
@@ -67,7 +67,7 @@ object UpdateChecker {
     suspend fun refresh(context: Context): Outcome = withContext(Dispatchers.IO) {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isBlank()) return@withContext Outcome.UpToDate
-        val prefs = context.getSharedPreferences("updates", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("celestify_updates", Context.MODE_PRIVATE)
         val result = fetch(repo, force = true)
         store(prefs, result, System.currentTimeMillis())
         when (result) {
@@ -109,7 +109,7 @@ object UpdateChecker {
 
     /** The newer release last seen, dismissed or not (no request): what Settings > About shows. */
     fun known(context: Context): Release? =
-        pending(context.getSharedPreferences("updates", Context.MODE_PRIVATE), true)
+        pending(context.getSharedPreferences("celestify_updates", Context.MODE_PRIVATE), true)
 
     /** The latest release known, if newer than this build and (unless [manual]) not dismissed. */
     private fun pending(prefs: android.content.SharedPreferences, manual: Boolean = false): Release? {
@@ -125,14 +125,14 @@ object UpdateChecker {
         val all = (0 until assets.length()).map { assets.getJSONObject(it) }
         // This release's own APK first: a release carrying several APKs (both
         // channels) must not hand a phone the other channel's build.
-        val want = "myspoti-${release.optString("tag_name").removePrefix("v")}.apk"
+        val want = "Celestify-${release.optString("tag_name").removePrefix("v")}.apk"
         return (all.firstOrNull { it.optString("name") == want }
             ?: all.firstOrNull { it.optString("name").endsWith(".apk", ignoreCase = true) })
             ?.optString("browser_download_url").orEmpty()
     }
 
     fun dismiss(context: Context, release: Release) {
-        context.getSharedPreferences("updates", Context.MODE_PRIVATE).edit()
+        context.getSharedPreferences("celestify_updates", Context.MODE_PRIVATE).edit()
             .putString("dismissed", release.version).apply()
     }
 

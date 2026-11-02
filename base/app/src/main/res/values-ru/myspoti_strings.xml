@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Myspoti's own texts (English default, French, Italian). -->
+<!-- Celestify's own texts (English default, French, Italian). -->
 <resources>
     <string name="welcome_lead">Ваша музыка,</string>
     <string name="welcome_rotate_ads">без рекламы.</string>
@@ -7,7 +7,7 @@
     <string name="welcome_rotate_clips">с официальными клипами.</string>
     <string name="welcome_rotate_offline">офлайн, через расширения.</string>
     <string name="welcome_login">Войти через Spotify</string>
-    <string name="welcome_privacy">Вы входите на странице самого Spotify. Myspoti никогда не видит ваш пароль.</string>
+    <string name="welcome_privacy">Вы входите на странице самого Spotify. Celestify никогда не видит ваш пароль.</string>
     <string name="remove_from_liked">Убрать из «Любимых треков»</string>
     <string name="repeat_on">Повтор: вкл.</string>
     <string name="repeat_one">Повтор одного трека</string>
@@ -56,7 +56,7 @@
     <string name="local_files_none_subtitle">На этом устройстве не найдено подходящих аудиофайлов. Когда они появятся, вы увидите их здесь.</string>
     <string name="downloads_empty_title">Скачивайте, чтобы слушать офлайн</string>
     <string name="downloads_empty_subtitle">Нажмите «Скачать» в меню трека или кнопку загрузки у альбома или плейлиста.</string>
-    <string name="downloads_source">Lossless FLAC, сверенный с оригинальной записью. Хранится только внутри Myspoti.</string>
+    <string name="downloads_source">Lossless FLAC, сверенный с оригинальной записью. Хранится только внутри Celestify.</string>
     <string name="downloads_size">%1$s на этом телефоне</string>
     <string name="download_unavailable">Подходящая запись не найдена</string>
     <string name="download_retry">Повторить</string>
@@ -69,8 +69,8 @@
     <string name="playlist_not_found">Плейлист не найден</string>
     <string name="browse_new_releases">Новинки</string>
     <string name="language_auto">Автоматически</string>
-    <string name="language_auto_detail">Язык вашего телефона, если он есть в Myspoti (английский, греческий, испанский, итальянский, китайский, немецкий, польский, португальский, русский, французский), иначе английский</string>
-    <string name="language_partial_note">Остальные языки: переведены только надписи самого Spotify, тексты Myspoti остаются на английском.</string>
+    <string name="language_auto_detail">Язык вашего телефона, если он есть в Celestify (английский, греческий, испанский, итальянский, китайский, немецкий, польский, португальский, русский, французский), иначе английский</string>
+    <string name="language_partial_note">Остальные языки: переведены только надписи самого Spotify, тексты Celestify остаются на английском.</string>
     <string name="restart_player_title">Перезапустить плеер</string>
     <string name="restart_player_detail">Если музыка не отвечает: перезагружает плеер Spotify</string>
     <string name="ad_playing">Реклама</string>
@@ -88,34 +88,12 @@
     <string name="local_playlist_empty">Добавляйте треки из локальных файлов кнопкой +.</string>
     <string name="playlist_change_refused">Spotify отклонил изменение этого плейлиста</string>
     <string name="download_kept_by_list">Остаётся скачанным: его держит скачанный плейлист</string>
-    <string name="support_title">Поддержать Myspoti</string>
-    <string name="support_body">Myspoti бесплатен, без рекламы и создан в моё свободное время. Если он вам нравится, небольшое пожертвование поможет проекту жить дальше.</string>
-    <string name="support_action">Поддержать на Ko-fi</string>
-    <string name="support_decline">Нет, спасибо</string>
-    <string name="support_row_detail">Небольшое пожертвование на Ko-fi или GitHub Sponsors помогает развивать приложение</string>
-    <string name="supporter_perks_title">Бонусы для поддержавших</string>
-    <string name="supporter_perks_detail">Цвет акцента, значок приложения и бейдж в знак благодарности</string>
-    <string name="supporter_perks_locked">Открывается, если вы поддержали Myspoti. На честное слово: ничего не проверяется.</string>
-    <string name="supporter_i_supported">Я поддержал(а) Myspoti</string>
-    <string name="supporter_how">Как вы поддержали?</string>
-    <string name="supporter_once">Пожертвование</string>
-    <string name="supporter_monthly">Каждый месяц</string>
-    <string name="supporter_badge">Поддержка</string>
-    <string name="supporter_thanks_title">Спасибо за поддержку!</string>
-    <string name="supporter_thanks_body">Если Myspoti по-прежнему вам полезен, новое небольшое пожертвование поможет проекту жить дальше.</string>
-    <string name="support_again">Поддержать ещё раз</string>
-    <string name="supporter_accent">Цвет акцента</string>
-    <string name="supporter_icon">Значок приложения</string>
-    <string name="supporter_icon_note">При смене значка ярлык на главном экране может исчезнуть: приложение останется в списке приложений.</string>
-    <string name="supporter_monthly_switch">Я поддерживаю каждый месяц (без напоминаний)</string>
     <string name="color_green">Зелёный</string>
     <string name="color_blue">Синий</string>
     <string name="color_purple">Фиолетовый</string>
     <string name="color_pink">Розовый</string>
     <string name="color_orange">Оранжевый</string>
-    <string name="about_detail">Версия, сообщество в Discord, исходный код</string>
-    <string name="about_discord">Discord</string>
-    <string name="about_discord_detail">Новости, помощь и идеи: присоединяйтесь к сообществу</string>
+    <string name="about_detail">Версия, лицензии и исходный код</string>
     <string name="about_github">Исходный код</string>
     <string name="about_github_detail">Релизы, задачи и код на GitHub</string>
     <string name="about_free">Бесплатно, с открытым кодом и без рекламы. Не связано со Spotify.</string>
@@ -125,7 +103,7 @@
     <string name="song_radio_name">Радио: %1$s</string>
     <string name="local_files_find_hint">Найти в локальных файлах</string>
     <string name="data_saver_title">Экономия трафика</string>
-    <string name="data_saver_summary">В мобильной сети Myspoti не расходует трафик: играют только скачанные треки и локальные файлы</string>
+    <string name="data_saver_summary">В мобильной сети Celestify не расходует трафик: играют только скачанные треки и локальные файлы</string>
     <string name="data_saver_blocked">Экономия трафика: в мобильной сети играют только скачанные треки и локальные файлы</string>
     <string name="new_releases_followed">От исполнителей, на которых вы подписаны</string>
     <string name="new_releases_latest">Последние релизы</string>
@@ -157,7 +135,7 @@
     <string name="recap_top_tracks">Топ треков</string>
     <string name="recap_top_artists">Топ исполнителей</string>
     <string name="recap_top_albums">Топ альбомов</string>
-    <string name="recap_private_note">Учитывает всё, что воспроизведено в Myspoti (Spotify, загрузки, локальные файлы). Хранится только на этом телефоне и никогда не отправляется в Spotify.</string>
+    <string name="recap_private_note">Учитывает всё, что воспроизведено в Celestify (Spotify, загрузки, локальные файлы). Хранится только на этом телефоне и никогда не отправляется в Spotify.</string>
     <string name="recap_detail">Ваше прослушивание, включая загрузки и локальные файлы</string>
     <string name="track_credits">Авторы</string>
     <string name="exclude_taste">Исключить из музыкального профиля</string>
@@ -185,7 +163,7 @@
     <string name="track_sort_artist">Исполнитель</string>
     <string name="track_sort_album">Альбом</string>
     <string name="track_sort_duration">Длительность</string>
-    <string name="setup_title">Настройка Myspoti</string>
+    <string name="setup_title">Настройка Celestify</string>
     <string name="setup_subtitle">Разрешите что хотите; позже это можно изменить в настройках телефона.</string>
     <string name="setup_notifications_title">Уведомления</string>
     <string name="setup_notifications_detail">Управление на экране блокировки и в шторке уведомлений</string>
@@ -197,7 +175,7 @@
     <string name="setup_battery_detail">Музыка продолжает играть при выключенном экране</string>
     <string name="setup_enable">Разрешить</string>
     <string name="setup_continue">Продолжить</string>
-    <string name="setup_intro_title">Как работает Myspoti</string>
+    <string name="setup_intro_title">Как работает Celestify</string>
     <string name="setup_intro_subtitle">Три вещи, которые стоит знать.</string>
     <string name="setup_intro_spotify_title">Spotify без рекламы</string>
     <string name="setup_intro_spotify_detail">Ваш аккаунт, плейлисты и лайки — через собственный веб-плеер Spotify. Бесплатные аккаунты тоже работают.</string>
@@ -206,16 +184,16 @@
     <string name="setup_intro_ext_title">Расширения — по желанию</string>
     <string name="setup_intro_ext_detail">Дополнения от сообщества: другие источники звука, загрузки и многое другое. Подробнее — дальше.</string>
     <string name="setup_ext_title">Расширения</string>
-    <string name="setup_ext_subtitle">Myspoti работает и без них: он воспроизводит Spotify. Расширения — необязательные дополнения от сообщества, которые умеют больше.</string>
+    <string name="setup_ext_subtitle">Celestify работает и без них: он воспроизводит Spotify. Расширения — необязательные дополнения от сообщества, которые умеют больше.</string>
     <string name="setup_ext_audio_title">Другие источники звука</string>
     <string name="setup_ext_audio_detail">Расширение может воспроизводить ваши треки из другого источника, в том качестве, которое оно предлагает.</string>
     <string name="setup_ext_download_title">Загрузки</string>
-    <string name="setup_ext_download_detail">Чтобы слушать офлайн, установите расширение для загрузок. Треки хранятся в Myspoti в зашифрованном виде.</string>
+    <string name="setup_ext_download_detail">Чтобы слушать офлайн, установите расширение для загрузок. Треки хранятся в Celestify в зашифрованном виде.</string>
     <string name="setup_ext_more_title">И многое другое</string>
     <string name="setup_ext_more_detail">Разделы главной, страницы и инструменты от их авторов.</string>
     <string name="setup_ext_safe_title">Всё под вашим контролем</string>
     <string name="setup_ext_safe_detail">Перед установкой расширение показывает, что ему разрешено. За всё остальное оно спросит снова, а удалить его можно в любой момент.</string>
-    <string name="setup_ext_where">Ищите их в Настройки, Расширения — с GitHub, GitLab и Codeberg. Их пишут авторы, а не Myspoti.</string>
+    <string name="setup_ext_where">Ищите их в Настройки, Расширения — с GitHub, GitLab и Codeberg. Их пишут авторы, а не Celestify.</string>
     <string name="setup_ext_browse">Посмотреть расширения</string>
     <string name="setup_ext_later">Позже</string>
     <string name="local_folders_button">Папки</string>
@@ -249,7 +227,7 @@
     <string name="quality_download_hires">FLAC Hi-Res</string>
     <string name="quality_download_hires_detail">24 бит, если доступно; файлы примерно втрое больше</string>
     <string name="setup_quality_title">Качество звука</string>
-    <string name="setup_quality_subtitle">Выберите, как Myspoti воспроизводит и сохраняет вашу музыку. Позже это можно изменить в настройках.</string>
+    <string name="setup_quality_subtitle">Выберите, как Celestify воспроизводит и сохраняет вашу музыку. Позже это можно изменить в настройках.</string>
     <string name="downloads_off_toast">Загрузки отключены. Включите их в настройках.</string>
     <string name="quality_streaming_high_detail">160 кбит/с, лучший звук</string>
     <string name="quality_download_small">Наименьшее</string>
@@ -263,7 +241,7 @@
     <string name="quality_now_unknown">Пока неизвестно: запустите трек</string>
     <string name="update_downloading">Загрузка… %1$d%%</string>
     <string name="update_installing">Установка…</string>
-    <string name="update_needs_permission">Чтобы обновиться, разрешите Myspoti устанавливать приложения и вернитесь сюда.</string>
+    <string name="update_needs_permission">Чтобы обновиться, разрешите Celestify устанавливать приложения и вернитесь сюда.</string>
     <string name="update_allow">Разрешить</string>
     <string name="update_failed">Не удалось обновить: %1$s</string>
     <string name="update_retry">Повторить</string>
@@ -273,7 +251,7 @@
     <string name="settings_check_update_title">Проверить обновления сейчас</string>
     <string name="settings_check_update_detail">Ищет новую версию и предлагает её установить</string>
     <string name="settings_update_checking">Проверка…</string>
-    <string name="settings_update_check_latest">У вас последняя версия Myspoti</string>
+    <string name="settings_update_check_latest">У вас последняя версия Celestify</string>
     <!-- A25: stop the queue, keep the songs already downloaded. -->
     <string name="downloads_stop_all_title">Остановить все загрузки</string>
     <string name="downloads_stop_all_detail">Отменяет оставшееся; уже скачанные треки сохраняются</string>
@@ -359,7 +337,6 @@
     <string name="settings_rotation_portrait">Портретная</string>
     <string name="settings_rotation_auto">Автоматически</string>
     <string name="settings_rotation_landscape">Альбомная</string>
-    <string name="support_github_action">Поддержать на GitHub</string>
     <string name="download_on_mobile_data">Загрузка по мобильной сети: расходуется ваш трафик</string>
 
     <!-- Podcast show page, episode page and podcast player -->
@@ -423,7 +400,7 @@
     <string name="playlist_invite_join">Присоединиться</string>
     <string name="playlist_invite_joined">Теперь вы соавтор</string>
     <string name="settings_keep_playing_title">Продолжать играть после закрытия приложения</string>
-    <string name="settings_keep_playing_detail">Если выключено, закрытие Myspoti из списка недавних приложений останавливает музыку</string>
+    <string name="settings_keep_playing_detail">Если выключено, закрытие Celestify из списка недавних приложений останавливает музыку</string>
     <string name="recommended_songs_from_name">По названию этого плейлиста</string>
     <string name="recommended_songs_from_songs">По содержимому этого плейлиста</string>
     <string name="recommended_songs_refresh">Обновить</string>

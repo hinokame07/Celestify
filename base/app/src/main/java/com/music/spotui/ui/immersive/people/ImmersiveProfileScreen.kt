@@ -1,5 +1,6 @@
 package com.music.spotui.ui.immersive.people
 
+import com.music.spotui.ui.components.localProfilePhoto
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -98,7 +99,7 @@ fun ImmersiveProfileScreen(navController: NavController, userId: String, userNam
     val p = profile
     val displayName = p?.name?.takeIf { it.isNotBlank() } ?: userName
     val listState = rememberLazyListState()
-    val avatarUrl = p?.images?.best(300)?.url
+    val avatarUrl = (if (me) localProfilePhoto() else null) ?: p?.images?.best(300)?.url
 
     ImmersiveOverscrollHost {
         Box(Modifier.fillMaxSize().background(Immersive.Page)) {
@@ -228,7 +229,7 @@ fun ImmersiveProfileScreen(navController: NavController, userId: String, userNam
                             contentDescription = stringResource(R.string.profile_more_options),
                             onClick = { barMenu = true },
                         )
-                        DropdownMenu(expanded = barMenu, onDismissRequest = { barMenu = false }, containerColor = Immersive.Raised) {
+                        com.music.spotui.ui.components.CelestifyMenu(expanded = barMenu, onDismissRequest = { barMenu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(if (b) R.string.profile_unblock else R.string.profile_block), style = Immersive.Body) },
                                 onClick = {

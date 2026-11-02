@@ -96,6 +96,11 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ImmersiveExtensionsScreen(navController: NavController) {
+    var themesOpen by rememberSaveable { mutableStateOf(false) }
+    if (themesOpen) {
+        CelestialThemesScreen { themesOpen = false }
+        return
+    }
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val registry by Extensions.registry.collectAsState()
@@ -137,6 +142,9 @@ fun ImmersiveExtensionsScreen(navController: NavController) {
     val installedLabel = stringResource(R.string.extensions_installed)
 
     ImmersivePage(title = stringResource(R.string.extensions_title), onBack = { navController.popBackStack() }) {
+        immersiveGroup("themes") {
+            row { ImmersiveGroupRow(stringResource(R.string.themes_title), detail = stringResource(R.string.themes_intro), chevron = true, onClick = { themesOpen = true }) }
+        }
         item(key = "ext:tabs") {
             ImmersiveSegmentedControl(
                 options = listOf(stringResource(R.string.extensions_tab_store), if (updates.isNotEmpty()) "$installedLabel (${updates.size})" else installedLabel),
@@ -395,12 +403,13 @@ private fun LazyListScope.areaSection(
 @Composable
 private fun AreaActivity(area: Area, enable: (String, Boolean) -> Unit) {
     val activity by Extensions.activity.state.collectAsState()
+    val registry by Extensions.registry.collectAsState()
     val recent = remember(activity, area) { activity.filter { it.area == area }.takeLast(3).asReversed() }
     if (recent.isEmpty()) return
     Column(Modifier.fillMaxWidth().padding(start = Immersive.Gutter + 16.dp, end = Immersive.Gutter - 8.dp, top = 8.dp)) {
         Text(stringResource(R.string.area_activity).uppercase(), style = Immersive.Caption)
         recent.forEach { a ->
-            val on = Extensions.registry.value.find(a.extensionId)?.enabled == true
+            val on = registry.find(a.extensionId)?.enabled == true
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(a.text, style = Immersive.Caption, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Text(
