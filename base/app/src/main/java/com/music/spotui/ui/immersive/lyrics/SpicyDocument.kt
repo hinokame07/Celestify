@@ -32,18 +32,28 @@ internal fun Lyrics.spicyDocument(duration: Long): LyricsDocument {
 
 /** Files belong to a single recording, and an invalid replacement leaves the previous one intact. */
 internal object SpicyImports {
+    private val previews = android.util.LruCache<String, LyricsDocument>(12)
+    private fun index(context: Context) = context.getSharedPreferences("ttml_library", Context.MODE_PRIVATE)
+    fun library(context: Context): Map<String, String> = index(context).all.mapValues { it.value.toString() }
+
     private fun file(context: Context, track: String): AtomicFile {
         val name = MessageDigest.getInstance("SHA-256").digest(track.toByteArray()).joinToString("") { "%02x".format(it) }
         return AtomicFile(File(File(context.filesDir, "ttml"), name))
     }
 
-    fun read(context: Context, track: String) = file(context, track).let { target ->
+    fun read(context: Context, track: String) = previews.get(track) ?: file(context, track).let { target ->
         if (!target.baseFile.exists()) null else target.openRead().use { TtmlLyricsParser.parse(it) }
     }
 
-    fun remove(context: Context, track: String) = file(context, track).delete()
+    fun remove(context: Context, track: String) {
+        previews.remove(track)
+        file(context, track).delete()
+        index(context).edit().remove(track).apply()
+    }
 
-    fun load(context: Context, track: String, uri: Uri, persist: Boolean): LyricsDocument {
+    fun discardPreview(track: String) = previews.remove(track) != null
+
+    fun load(context: Context, track: String, uri: Uri, persist: Boolean, title: String): LyricsDocument {
         val bytes = (context.contentResolver.openInputStream(uri) ?: throw java.io.IOException("Unreadable document")).use { input ->
             val out = java.io.ByteArrayOutputStream()
             val buffer = ByteArray(8192)
@@ -64,7 +74,9 @@ internal object SpicyImports {
             val stream = target.startWrite()
             try { stream.write(bytes); target.finishWrite(stream) }
             catch (e: Exception) { target.failWrite(stream); throw e }
-        }
+            previews.remove(track)
+            index(context).edit().putString(track, title).apply()
+        } else previews.put(track, document)
         return document
     }
 }

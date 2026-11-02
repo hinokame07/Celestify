@@ -17,4 +17,10 @@
     <string name="spicy_credits">Align credits with final singer</string>
     <string name="spicy_motion_bg">Animated cinema background</string>
     <string name="spicy_floating">Floating lyrics</string>
+    <string name="spicy_system_font">Use system font</string>
+    <string name="spicy_limit_frames">Limit lyrics to 30 fps</string>
+    <string name="spicy_hide_notice">Hide the missing lyrics notice</string>
+    <string name="spicy_library">Saved lyrics</string>
+    <string name="spicy_library_empty">Import a TTML from the lyrics menu to begin.</string>
+    <string name="spicy_remove_file">Remove the saved lyrics for %1$s?</string>
 </resources>

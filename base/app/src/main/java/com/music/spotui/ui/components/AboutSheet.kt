@@ -62,6 +62,7 @@ fun AboutSheet(onDismiss: () -> Unit) {
             Text(stringResource(R.string.celestify_credits_projects), color = Immersive.TextSecondary,
                 fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp))
             AboutRow("Spicy Lyrics", "Spikerko · AGPL-3.0") { openUrl(context, "https://github.com/Spikerko/spicy-lyrics") }
+            AboutRow("Spicy Lyrics Mobile", "TX24 · AGPL-3.0") { openUrl(context, "https://github.com/spicylyrics/mobile") }
             AboutRow("Celestify", stringResource(R.string.celestify_github_versions)) {
                 openUrl(context, "https://github.com/hinokame07/Celestify/releases")
             }

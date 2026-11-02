@@ -362,6 +362,32 @@ internal fun LyricsTimingPage(back: () -> Unit) {
                 ImmersiveChoiceRow(style.name, selected = pref.style == style, onClick = { pref.select(style) })
             }
         }
+        immersiveGroup("spicy-library", headerRes = R.string.spicy_library) {
+            row {
+                var library by remember { mutableStateOf<Map<String, String>?>(null) }
+                ImmersiveGroupRow(stringResource(R.string.spicy_library), icon = Icons.Rounded.GraphicEq, chevron = true,
+                    onClick = { library = com.music.spotui.ui.immersive.lyrics.SpicyImports.library(context) })
+                library?.let { entries ->
+                    AlertDialog(onDismissRequest = { library = null }, title = { Text(stringResource(R.string.spicy_library)) },
+                        text = {
+                            androidx.compose.foundation.lazy.LazyColumn {
+                                if (entries.isEmpty()) item { Text(stringResource(R.string.spicy_library_empty)) }
+                                entries.toList().sortedBy { it.second }.forEach { (key, title) -> item(key) {
+                                    var confirm by remember { mutableStateOf(false) }
+                                    TextButton(onClick = { confirm = true }) { Text(title, style = Immersive.Body) }
+                                    if (confirm) AlertDialog(onDismissRequest = { confirm = false },
+                                        text = { Text(stringResource(R.string.spicy_remove_file, title)) },
+                                        confirmButton = { TextButton(onClick = {
+                                            com.music.spotui.ui.immersive.lyrics.SpicyImports.remove(context, key)
+                                            library = com.music.spotui.ui.immersive.lyrics.SpicyImports.library(context)
+                                        }) { Text(stringResource(android.R.string.ok)) } },
+                                        dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(android.R.string.cancel)) } })
+                                } }
+                            }
+                        }, confirmButton = { TextButton(onClick = { library = null }) { Text(stringResource(android.R.string.ok)) } })
+                }
+            }
+        }
         immersiveGroup("spicy-effects", headerRes = R.string.settings_atmosphere_title) {
             for (option in com.music.spotui.ui.immersive.lyrics.StageOption.entries) row {
                 val pref = com.music.spotui.ui.immersive.lyrics.StagePreference

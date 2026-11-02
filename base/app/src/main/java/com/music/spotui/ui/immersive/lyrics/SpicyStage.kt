@@ -44,7 +44,9 @@ internal enum class StageStyle { Spicy, Simple, Refreshed, Minimal, Apple, Celes
 internal enum class StageOption(val label: Int, val initial: Boolean) {
     Smooth(R.string.spicy_smooth, true), Lead(R.string.spicy_lead, false), SeekFade(R.string.spicy_seek_fade, false),
     Duets(R.string.spicy_duets, true), BackgroundVocals(R.string.spicy_backing, true),
-    JoinWords(R.string.spicy_join, false), Credits(R.string.spicy_credits, true), MotionBackground(R.string.spicy_motion_bg, true)
+    JoinWords(R.string.spicy_join, false), Credits(R.string.spicy_credits, true), MotionBackground(R.string.spicy_motion_bg, true),
+    SystemFont(R.string.spicy_system_font, false), LimitFrames(R.string.spicy_limit_frames, false),
+    HideNotice(R.string.spicy_hide_notice, false)
 }
 
 internal object StagePreference {
@@ -64,6 +66,7 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("spicy_stage", Context.MODE_PRIVATE) }
+    val trackTitle = com.music.spotui.di.Graph.currentSongState.title.value + " · " + com.music.spotui.di.Graph.currentSongState.singer.value
     val source = (state as? LyricsViewModel.State.Loaded)?.lyrics
     val duration = SongPlayer.getDuration()
     val online by produceState<LyricsDocument?>(null, source, duration) {
@@ -79,7 +82,7 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null && importTrack == track) scope.launch {
             try {
-                val doc = withContext(Dispatchers.IO) { SpicyImports.load(context, track, uri, persist) }
+                val doc = withContext(Dispatchers.IO) { SpicyImports.load(context, track, uri, persist, trackTitle) }
                 revision++
                 local = doc
             } catch (_: java.io.IOException) { Toast.makeText(context,R.string.spicy_import_error,Toast.LENGTH_LONG).show() }
@@ -94,6 +97,11 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
         value = withContext(Dispatchers.IO) { runCatching { SpicyCatalogue.lookup(track, catalogueKey, reload > 0) }.getOrNull() }
     }
     val doc = local ?: hosted ?: online
+    val systemFont = StagePreference[StageOption.SystemFont]
+    LaunchedEffect(systemFont) {
+        com.tx24.spicyplayer.lyrics.spicy.canvas.LyricsLayoutCalculator.setFont(
+            if (systemFont) androidx.compose.ui.text.font.FontFamily.SansSerif else null, if (systemFont) "system" else "")
+    }
     val floating = LocalFloatingLyrics.current
     var romanize by remember { mutableStateOf(prefs.getBoolean("romanize", false)) }
     var scale by remember { mutableFloatStateOf(prefs.getFloat("size", 1f)) }
@@ -110,9 +118,12 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
         syllableMerge = if (StagePreference[StageOption.JoinWords]) com.tx24.spicyplayer.lyrics.spicy.SyllableMerge.Steady else com.tx24.spicyplayer.lyrics.spicy.SyllableMerge.Off,
         scroll = ScrollConfig(smooth = !reduced && StagePreference[StageOption.Smooth],
             leadMs = if (StagePreference[StageOption.Lead]) 250 else 0, seekFadeCompensation = StagePreference[StageOption.SeekFade]))
-    val lines by produceState<List<Line>>(emptyList(), doc, romanize, config.minimalLyricsMode) {
+    val translations = (state as? LyricsViewModel.State.Loaded)?.takeIf { it.showTranslation && local == null && hosted == null }?.translations
+    val lines by produceState<List<Line>>(emptyList(), doc, romanize, config.minimalLyricsMode, translations) {
         value = withContext(Dispatchers.Default) {
-            val original = doc?.lines.orEmpty()
+            val original = doc?.lines.orEmpty().mapIndexed { i, line ->
+                line.copy(translation = line.translation ?: translations?.getOrNull(i))
+            }
             val converted = if (!romanize) original else {
                 val transliterator = android.icu.text.Transliterator.getInstance("Any-Latin")
                 original.map { line -> line.copy(words = line.words.map { word ->
@@ -122,11 +133,8 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
             if (doc?.type == LyricsType.Static || converted.any { it.isInterlude }) converted else buildDisplayTimeline(converted, config.minimalLyricsMode)
         }
     }
-    val translations = (state as? LyricsViewModel.State.Loaded)?.takeIf { it.showTranslation && local == null && hosted == null }?.translations
-    val presentation = remember(lines, translations, doc) {
-        val supplied = doc?.lines.orEmpty()
-        val translated = supplied.mapIndexed { i, line -> line.startMs to (line.translation ?: translations?.getOrNull(i)) }.toMap()
-        val texts = lines.map { if (it.isInterlude) null else it.translation ?: translated[it.startMs] }
+    val presentation = remember(lines) {
+        val texts = lines.map { it.translation }
         if (texts.any { !it.isNullOrBlank() }) TranslationPresentation(texts, TranslationMode.UnderLine) else null
     }
     val view = remember(track, doc) { LyricsViewState() }
@@ -160,7 +168,10 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
                         action(stringResource(R.string.spicy_import)) { persist = true; importTrack = track; picker.launch(arrayOf("*/*")) }
                         action(stringResource(R.string.spicy_preview)) { persist = false; importTrack = track; picker.launch(arrayOf("*/*")) }
                         if (local != null) action(stringResource(R.string.spicy_restore)) {
-                            scope.launch { withContext(Dispatchers.IO) { SpicyImports.remove(context, track) }; revision++; local = null }
+                            scope.launch { val restored = withContext(Dispatchers.IO) {
+                                if (!SpicyImports.discardPreview(track)) SpicyImports.remove(context, track)
+                                SpicyImports.read(context, track)
+                            }; revision++; local = restored }
                         }
                         if (track.isNotBlank()) action(stringResource(R.string.lyrics_reload)) { reload++; SongPlayer.currentLyricsTrack()?.let { vm.load(it, force = true) } }
                     }
@@ -173,8 +184,8 @@ internal fun SpicyStage(track: String, state: LyricsViewModel.State, vm: LyricsV
                     }, onSeekWord = { SongPlayer.seekTo(LyricTiming.seekPosition(it, AtmospherePref.lyricsOffsetMs)); SongPlayer.play() },
                     modifier = Modifier.fillMaxSize(), config = config, fontSizeScale = if (floating) scale * 0.65f else scale, lyricsType = doc.type,
                     romanize = romanize, romanizationMode = RomanizationMode.UnderLine, translation = presentation,
-                    isPlaying = playing, viewState = view)
-                else if (state is LyricsViewModel.State.NotFound && doc == null) Text(stringResource(R.string.immersive_lyrics_none), Modifier.align(Alignment.Center), style = Immersive.Subhead)
+                    isPlaying = playing, viewState = view, frameCap = if (StagePreference[StageOption.LimitFrames] || reduced) 30 else 0)
+                else if (state is LyricsViewModel.State.NotFound && doc == null) { if (!StagePreference[StageOption.HideNotice]) Text(stringResource(R.string.immersive_lyrics_none), Modifier.align(Alignment.Center), style = Immersive.Subhead) }
                 else CircularProgressIndicator(Modifier.align(Alignment.Center))
                 if (!floating && view.activeLineDirection != null) com.music.spotui.ui.components.FollowLyricsButton(Modifier.align(Alignment.BottomCenter)) { view.scrollToActive() }
             }

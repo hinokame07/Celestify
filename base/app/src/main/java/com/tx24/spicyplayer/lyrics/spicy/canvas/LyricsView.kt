@@ -109,6 +109,7 @@ fun LyricsView(
     onFrameTick: ((Long) -> Unit)? = null,
     // Paused, the frame loop rests once nothing moves, looking in a few times a second for a seek.
     isPlaying: Boolean = true,
+    frameCap: Int = 0,
     /** False while none of the view shows (covered, or faded out): the frame loop rests until it does. */
     visible: () -> Boolean = { true },
     /** Shared with the screen: the scroll-to-active button and the pinned credits. */
@@ -165,6 +166,7 @@ fun LyricsView(
     // Keep the latest time provider without recomposing on every position tick: the frame loop
     // invokes it off-composition (inside withFrameNanos), so the changing clock never re-runs this
     // composable's body — only the Canvas redraws when the derived anim state actually changes.
+    val cap by rememberUpdatedState(frameCap)
     val currentTimeProvider by rememberUpdatedState(currentTimeMs)
     val linesUpdated by rememberUpdatedState(shown?.lines.orEmpty())
     val romanizationLinesUpdated by rememberUpdatedState(shown?.romanizationLines)
@@ -346,6 +348,7 @@ fun LyricsView(
                     resumed = true
                     frameIntervalS = nominalFrameIntervalS(hostView.display?.refreshRate)
                 }
+                if (cap > 0 && !resumed) kotlinx.coroutines.delay((1000L / cap - 6L).coerceAtLeast(1L))
                 withFrameNanos { frameTimeNanos ->
                     val previousStates = animStates
                     val previousOffsets = dynamicYOffsets

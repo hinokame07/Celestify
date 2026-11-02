@@ -17,4 +17,10 @@
     <string name="spicy_credits">Alinhar créditos à última voz</string>
     <string name="spicy_motion_bg">Fundo animado no modo cinema</string>
     <string name="spicy_floating">Letras em janela flutuante</string>
+    <string name="spicy_system_font">Usar fonte do sistema</string>
+    <string name="spicy_limit_frames">Limitar letras a 30 fps</string>
+    <string name="spicy_hide_notice">Ocultar aviso de letra indisponível</string>
+    <string name="spicy_library">Letras salvas</string>
+    <string name="spicy_library_empty">Importe um TTML pelo menu da letra para começar.</string>
+    <string name="spicy_remove_file">Remover a letra salva de %1$s?</string>
 </resources>
