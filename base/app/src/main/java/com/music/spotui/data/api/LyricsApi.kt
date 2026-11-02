@@ -98,7 +98,12 @@ object LyricsApi {
         val job = synchronized(inFlight) {
             inFlight[track.key] ?: scope.async(start = kotlinx.coroutines.CoroutineStart.LAZY) {
                 // Read on an earlier run: from storage, not asked for again.
-                LyricsDisk.read(track.key)?.also { cache[track.key] = it } ?: resolve(track)
+                val stored = LyricsDisk.read(track.key)
+                if (stored != null && !stored.refreshVoices) stored.lyrics.also { cache[track.key] = it }
+                else {
+                    stored?.let { early.value = track.key to it.lyrics }
+                    resolve(track, stored?.lyrics)
+                }
             }.also { created ->
                 inFlight[track.key] = created
                 created.invokeOnCompletion { inFlight.remove(track.key, created) }
@@ -109,7 +114,7 @@ object LyricsApi {
         return job.await()
     }
 
-    private suspend fun resolve(track: Track): Lyrics? = coroutineScope {
+    private suspend fun resolve(track: Track, previous: Lyrics?): Lyrics? = coroutineScope {
         // Extensions that provide lyrics are asked at the same time as the app's own sources
         // (each within its time limit); the better answer is kept (LyricsMerge), Spotify's own
         // complete lyrics first at the same level, and then the extensions are not waited for.
@@ -124,9 +129,11 @@ object LyricsApi {
             own != null && com.music.spotui.extensions.LyricsMerge.rank(own) == 3 && com.music.spotui.extensions.LyricsMerge.isSpotifyComplete(own) -> { ext.cancel(); null }
             else -> ext.await()
         }
-        val result = com.music.spotui.extensions.LyricsMerge.choose(own, fromExt)
+        val fresh = com.music.spotui.extensions.LyricsMerge.choose(own, fromExt)
+        val result = if(previous != null && (fresh == null || (previous.wordSynced && !fresh.wordSynced)
+            || (previous.synced && !fresh.synced))) previous else fresh
         cache[track.key] = result ?: Miss()
-        result?.let { LyricsDisk.write(track.key, it) }
+        if(result != null && result !== previous) LyricsDisk.write(track.key, result)
         Log.d("LyricsApi", "${track.title}: ${result?.let { "${it.lines.size} lines from ${it.provider}, synced=${it.synced}, words=${it.wordSynced}" } ?: "none"}")
         result
     }
@@ -137,7 +144,7 @@ object LyricsApi {
      * plain text or a Free-cap preview may just be a fallback of the moment), for [MAX_AGE_MS].
      * The oldest file by last use goes first. Every call copes with there being no app (unit tests).
      */
-    private object LyricsDisk {
+    internal object LyricsDisk {
         private const val MAX_FILES = 300
         private const val MAX_AGE_MS = 14 * 24 * 3_600_000L
         private val dir: java.io.File? by lazy {
@@ -150,13 +157,18 @@ object LyricsApi {
             return dir?.let { java.io.File(it, sha.joinToString("") { b -> "%02x".format(b) } + ".json") }
         }
 
-        fun read(key: String): Lyrics? = runCatching {
+        data class Stored(val lyrics: Lyrics, val refreshVoices: Boolean)
+
+        fun read(key: String): Stored? = runCatching {
             val f = file(key)?.takeIf { it.exists() } ?: return null
             val o = JSONObject(f.readText())
             if (o.getString("key") != key) return null
             if (System.currentTimeMillis() - o.getLong("at") > MAX_AGE_MS) { f.delete(); return null }
             f.setLastModified(System.currentTimeMillis()) // used just now: it stays
-            decode(o)
+            val lyrics = decode(o)
+            val lostVoices = lyrics.provider?.contains("LyricsPlus") == true ||
+                (lyrics.provider?.contains("lrc.red") == true && lyrics.ttml == null)
+            Stored(lyrics, o.optInt("voicesVersion") == 0 && lostVoices)
         }.onFailure { Log.w("LyricsApi", "unreadable lyrics file: ${it.javaClass.simpleName}") }.getOrNull()
 
         fun write(key: String, lyrics: Lyrics) {
@@ -180,12 +192,14 @@ object LyricsApi {
                 ?.sortedByDescending { it.lastModified() }?.drop(MAX_FILES)?.forEach { it.delete() }
         }
 
-        private fun encode(l: Lyrics) = JSONObject()
+        private fun encode(l: Lyrics) = JSONObject().put("voicesVersion", 1).put("ttmlOffset", l.ttmlOffsetMs)
             .put("ttml", l.ttml).put("synced", l.synced).put("language", l.language).put("provider", l.provider)
             .put("colors", l.colors?.let { JSONArray(listOf(it.background, it.text, it.highlight)) })
             .put("lines", JSONArray().also { arr ->
                 l.lines.forEach { line ->
                     arr.put(JSONObject().put("t", line.timeMs).put("x", line.text).also { lo ->
+                        lo.put("singer",line.singer).put("end",line.endMs)
+                        if(line.oppositeAligned) lo.put("opposite",true)
                         line.words?.let { ws -> lo.put("w", JSONArray().also { wa -> ws.forEach { w -> wa.put(JSONArray(listOf(w.startMs, w.endMs, w.text))) } }) }
                     })
                 }
@@ -197,11 +211,14 @@ object LyricsApi {
                 List(arr.length()) { i ->
                     val lo = arr.getJSONObject(i)
                     val words = lo.optJSONArray("w")?.let { wa -> List(wa.length()) { j -> wa.getJSONArray(j).let { LyricWord(it.getLong(0), it.getLong(1), it.getString(2)) } } }
-                    LyricLine(lo.getLong("t"), lo.getString("x"), words)
+                    LyricLine(lo.getLong("t"), lo.getString("x"), words,
+                        lo.optString("singer").takeIf(String::isNotBlank), lo.optBoolean("opposite"),
+                        if(lo.has("end")) lo.getLong("end") else null)
                 }
             }
             return Lyrics(lines, o.getBoolean("synced"), o.optString("language").takeIf { it.isNotEmpty() && it != "null" },
-                o.optString("provider").takeIf { it.isNotEmpty() && it != "null" }, colors, ttml = o.optString("ttml").takeIf { it.isNotEmpty() })
+                o.optString("provider").takeIf { it.isNotEmpty() && it != "null" }, colors,
+                ttml = o.optString("ttml").takeIf { it.isNotEmpty() }, ttmlOffsetMs=o.optLong("ttmlOffset"))
         }
     }
 
@@ -233,6 +250,7 @@ object LyricsApi {
         val words = first?.takeIf { it.wordSynced } ?: red.await()?.takeIf { it.wordSynced } ?: kugou.await()?.takeIf { it.wordSynced }
         when {
             words != null -> alignTo(words, sp).copy(colors = sp?.colors)
+            first?.synced == true && first.lines.any { it.oppositeAligned } -> alignTo(first, sp).copy(colors=sp?.colors)
             else -> preferTimed(sp) { preferTimed(first) { lineFallbacks(track) } }
         }
     }
@@ -243,7 +261,7 @@ object LyricsApi {
      * same lines, the words are moved by the usual gap between the two (the median of the lines
      * found in both, in order), so they follow Spotify's own audio.
      */
-    private fun alignTo(words: Lyrics, spotify: Lyrics?): Lyrics {
+    internal fun alignTo(words: Lyrics, spotify: Lyrics?): Lyrics {
         if (spotify == null || !spotify.synced) return words
         val theirs = spotify.lines.filter { it.timeMs > 0 && matchKey(it.text).length >= 6 }
         val gaps = ArrayList<Long>()
@@ -259,8 +277,8 @@ object LyricsApi {
         val shift = gaps.sorted()[gaps.size / 2]
         if (kotlin.math.abs(shift) < 60) return words
         Log.d("LyricsApi", "${words.provider}: moved by $shift ms to Spotify's timing (${gaps.size} lines)")
-        return words.copy(ttml = null, lines = words.lines.map { l ->
-            l.copy(timeMs = (l.timeMs + shift).coerceAtLeast(0), words = l.words?.map { w ->
+        return words.copy(ttmlOffsetMs = if(words.ttml == null) 0 else words.ttmlOffsetMs + shift, lines = words.lines.map { l ->
+            l.copy(timeMs = (l.timeMs + shift).coerceAtLeast(0), endMs=l.endMs?.let{(it+shift).coerceAtLeast(0)}, words = l.words?.map { w ->
                 w.copy(startMs = (w.startMs + shift).coerceAtLeast(0), endMs = if (w.endMs > 0) (w.endMs + shift).coerceAtLeast(0) else 0)
             })
         })
@@ -428,25 +446,37 @@ object LyricsApi {
             val o = runCatching { JSONObject(body) }.getOrNull() ?: continue
             val meta = o.optJSONObject("metadata")
             if (meta != null && !sameSong(meta.optString("title"), meta.optString("artist"), parseClock(meta.optString("totalDuration")), title, artist, durationMs)) return null
-            val arr = o.optJSONArray("lyrics") ?: continue
-            val lines = ArrayList<LyricLine>()
-            for (i in 0 until arr.length()) {
-                val l = arr.optJSONObject(i) ?: continue
-                val syl = l.optJSONArray("syllabus")
-                val words = syl?.let { s ->
-                    (0 until s.length()).mapNotNull { j -> s.optJSONObject(j) }
-                        .filterNot { it.optBoolean("isBackground") }
-                        .map { w -> val t = w.optLong("time"); LyricWord(t, t + w.optLong("duration"), w.optString("text")) }
-                }?.takeIf { it.isNotEmpty() }
-                val text = words?.joinToString("") { it.text }?.trim() ?: l.optString("text").trim()
-                if (text.isNotEmpty()) lines += LyricLine(l.optLong("time"), text, words)
-            }
-            if (lines.isEmpty()) continue
-            val source = meta?.optString("source").orEmpty()
-            return Lyrics(lines, synced = true, language = meta?.optString("language")?.takeIf { it.isNotBlank() },
-                provider = if (source.contains("apple", true)) "Apple Music · LyricsPlus" else "LyricsPlus")
+            parseLyricsPlus(o)?.let { return it }
         }
         return null
+    }
+
+    internal fun parseLyricsPlus(o: JSONObject): Lyrics? {
+        val arr = o.optJSONArray("lyrics") ?: return null
+        val meta = o.optJSONObject("metadata")
+        val timed = !o.optString("type").equals("None", ignoreCase = true)
+        val rows = (0 until arr.length()).mapNotNull { i ->
+            val row = arr.optJSONObject(i) ?: return@mapNotNull null
+            val syl = row.optJSONArray("syllabus")
+            val words = syl?.let { parts -> (0 until parts.length()).mapNotNull(parts::optJSONObject)
+                .filterNot { it.optBoolean("isBackground") }
+                .map { w ->
+                    val start = w.optLong("time")
+                    LyricWord(start, start + w.optLong("duration"), w.optString("text"))
+                }.takeIf { timed && it.isNotEmpty() }
+            }
+            val text = words?.joinToString("") { it.text }?.trim() ?: row.optString("text").trim()
+            if(text.isEmpty()) return@mapNotNull null
+            val start = row.optLong("time")
+            val singer = row.optJSONObject("element")?.optString("singer")?.trim()?.takeIf { it.isNotEmpty() && it != "null" }
+            LyricLine(start, text, words, singer=singer,
+                endMs=row.optLong("duration").takeIf { timed && it>0 }?.let { start+it })
+        }
+        if(rows.isEmpty()) return null
+        val guest = com.tx24.spicyplayer.lyrics.spicy.models.duetGuests(rows.map { it.singer })
+        return Lyrics(rows.map { it.copy(oppositeAligned=it.singer in guest) }, synced=timed,
+            language=meta?.optString("language")?.takeIf { it.isNotBlank() },
+            provider=if(meta?.optString("source")?.contains("apple",true)==true) "Apple Music · LyricsPlus" else "LyricsPlus")
     }
 
     // ── Word by word: lrc.red (Apple Music TTML, found by ISRC) ──
@@ -458,8 +488,20 @@ object LyricsApi {
         } ?: return null
         val isrc = hit.optString("isrc").takeIf { it.isNotBlank() } ?: return null
         val ttml = httpGet("https://lrc.red/s/${enc(isrc)}.ttml", timeoutMs = 6000) ?: return null
-        val lines = parseTtml(ttml) ?: return null
-        return Lyrics(lines, synced = true, provider = "Apple Music · lrc.red", ttml = ttml)
+        val parsed = com.tx24.spicyplayer.lyrics.spicy.parser.TtmlLyricsParser.parse(ttml.byteInputStream())
+        val lines = parsed.lines.filter { it.role == com.tx24.spicyplayer.lyrics.spicy.models.LineRole.LEAD }.map { line ->
+            val text = buildString {
+                line.words.forEachIndexed { i, word ->
+                    if(i>0 && !word.isPartOfWord) append(' ')
+                    append(word.text)
+                }
+            }
+            val words = if(parsed.type == com.tx24.spicyplayer.lyrics.spicy.models.LyricsType.Syllable && !line.lineTimed)
+                line.words.map { LyricWord(it.startMs,it.endMs,it.text) } else null
+            LyricLine(line.startMs,text,words,line.agent,line.oppositeAligned,line.endMs)
+        }.takeIf { it.isNotEmpty() } ?: parseTtml(ttml) ?: return null
+        return Lyrics(lines, synced = parsed.lines.isEmpty() || parsed.type != com.tx24.spicyplayer.lyrics.spicy.models.LyricsType.Static,
+            provider = "Apple Music · lrc.red", ttml = ttml)
     }
 
     /** Apple Music's TTML: a <p> per line, a timed <span> per word (background voices left out). */

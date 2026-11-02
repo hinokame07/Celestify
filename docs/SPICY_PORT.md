@@ -1,5 +1,13 @@
 # Celestify · player, letras e Cinema nativos
 
+## Duetos na versão 2.4.2
+
+O player e o Cinema mantêm um lado por cantor quando a fonte identifica as vozes, inclusive quando a resposta começa antes do fim do verso principal. O recuo se adapta à largura do painel de letras. Uma segunda voz identificada dentro de um vocal de apoio também pode aparecer do outro lado. A escolha é automática.
+
+O adaptador preserva `element.singer` e a duração de cada verso do [formato LyricsPlus v2](https://github.com/ibratabian17/LyricsPlus/blob/1c6cf6e66e7190e1c984567c6c88557f107f54b0/internal/domain/v2.go). O cache guarda os lados. Registros antigos de fontes afetadas são reconsultados, com a letra anterior disponível caso a rede não traga uma substituição equivalente. Ao compensar diferenças de tempo com o Spotify, o app aplica o deslocamento ao documento TTML rico e mantém a associação entre voz principal e vocais de apoio.
+
+O teste de layout mediu a posição horizontal dos versos usando o medidor de texto e o cálculo de posição do renderer Android, em painéis de 320 e 760 px. O caso inclui dois cantores, tempos sobrepostos, dois versos consecutivos da segunda voz e leitura do cache em disco. Outro teste verificou um vocal de apoio identificado depois de compensar um deslocamento de 380 ms. As cinco suítes registraram 716 aprovações, 32 testes ignorados e zero falhas. A reprodução audiovisual em aparelho físico não foi testada nesta versão.
+
 ## Cinema na versão 2.4.1
 
 Em **Cinema → ⋯ → Mostrar somente a capa**, o app troca o vídeo ou Canvas pela capa da faixa e guarda a escolha. Desative a opção para voltar ao vídeo disponível. A seleção controla a imagem da tela e preserva a reprodução de áudio.

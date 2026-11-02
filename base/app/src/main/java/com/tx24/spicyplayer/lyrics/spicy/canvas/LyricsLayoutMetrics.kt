@@ -33,14 +33,14 @@ internal data class LyricsLayoutMetrics(
     fun lineHeightPx(fontSizeSp: Float): Float = fontSizeSp * density * lineHeightMultiplier
 
     /**
-     * Duet lines are inset on the side they lean away from: 15cqw with Duet Line Padding, so the
-     * two voices read as columns, else the 5cqw every other line gets.
+     * Reserve more of the opposite singer's side as the lyrics viewport grows. Use the actual
+     * lyric panel width (which may only be part of a landscape screen).
      */
     fun contentSlot(hasDuet: Boolean, isRtl: Boolean, oppositeAligned: Boolean, wideDuet: Boolean = true): ContentSlot {
         if (!hasDuet) {
             return ContentSlot(viewportWidthPx * 0.05f, viewportWidthPx * 0.90f)
         }
-        val inset = if (wideDuet) 0.15f else 0.05f
+        val inset = if (wideDuet) 0.15f + 0.1f * ((viewportWidthDp - 320f) / 320f).coerceIn(0f,1f) else 0.05f
         val startsAtInset = if (isRtl) !oppositeAligned else oppositeAligned
         return ContentSlot(
             viewportWidthPx * (if (startsAtInset) inset else 0.05f),

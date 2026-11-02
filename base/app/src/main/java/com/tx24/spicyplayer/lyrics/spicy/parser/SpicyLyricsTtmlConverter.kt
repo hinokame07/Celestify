@@ -81,7 +81,7 @@ object SpicyLyricsTtmlConverter {
         val leadSpans = spans(lead.getAsJsonArray("Syllables"))
         val bgGroups = backgrounds?.mapNotNull { element ->
             val group = element.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
-            spans(group.getAsJsonArray("Syllables")).takeIf(List<TimedText>::isNotEmpty)?.let { it to translationSpan(group) }
+            spans(group.getAsJsonArray("Syllables")).takeIf(List<TimedText>::isNotEmpty)?.let { it to group }
         }.orEmpty()
         // A line is dropped only when its lead and every background group
         // are empty: a line can be background vocals alone (Industry Baby opens with one).
@@ -89,8 +89,11 @@ object SpicyLyricsTtmlConverter {
         val all = leadSpans + bgGroups.flatMap { it.first }
         val start = lead.number("StartTime") ?: all.minOf { it.start }
         val end = lead.number("EndTime") ?: all.maxOf { it.end }
-        val bg = bgGroups.joinToString("") { (group, translation) ->
-            "<span ttm:role=\"x-bg\">${group.joinToString("") { it.xmlSpan() }}$translation</span>"
+        val bg = bgGroups.joinToString("") { (syllables, group) ->
+            val singer = group.string("Agent")?.let { " ttm:agent=\"${xml(it)}\"" }.orEmpty()
+            val side = group.get("OppositeAligned")?.takeIf { it.isJsonPrimitive }?.asBoolean
+                ?.let { " spicy:oppositeAligned=\"$it\"" }.orEmpty()
+            "<span ttm:role=\"x-bg\"$singer$side>${syllables.joinToString("") { it.xmlSpan() }}${translationSpan(group)}</span>"
         }
         val agentAttribute = agent?.let { " ttm:agent=\"${xml(it)}\"" }.orEmpty()
         return "<p begin=\"${seconds(start)}\" end=\"${seconds(end)}\" itunes:key=\"$key\"$agentAttribute spicy:oppositeAligned=\"$opposite\">${leadSpans.joinToString("") { it.xmlSpan() }}$bg${translationSpan(lead, item)}</p>"

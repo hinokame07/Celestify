@@ -2,6 +2,7 @@ package com.tx24.spicyplayer.lyrics.spicy.parser
 
 import com.tx24.spicyplayer.lyrics.spicy.models.Line
 import com.tx24.spicyplayer.lyrics.spicy.models.LineRole
+import com.tx24.spicyplayer.lyrics.spicy.models.duetGuests
 import com.tx24.spicyplayer.lyrics.spicy.models.LyricsFooter
 import com.tx24.spicyplayer.lyrics.spicy.models.LyricsType
 import com.tx24.spicyplayer.lyrics.spicy.models.ParsedLyrics
@@ -125,14 +126,14 @@ object TtmlLyricsParser {
         val songwriters = getSongwriters(metadata)
         val transliterations = getTransliterations(metadata)
         val translated = TranslationLookup(getTranslations(metadata))
-        val voices = divs.flatMap { div -> div.elements("p").mapNotNull { p ->
-            p["ttm:agent"] ?: div["ttm:agent"] ?: body["ttm:agent"]
-        } }.distinct()
-        val conventional = (voices + metadata?.elements("ttm:agent").orEmpty().mapNotNull { it["xml:id"] })
-            .filter { it == "v2" || it == "v2000" }.toSet()
-        val oppositeAgents = if (conventional.isEmpty() && voices.size == 2)
-            setOf(if ("v1" in voices) voices.first { it != "v1" } else voices.last())
-            else conventional
+        val voices = buildList<String?> {
+            for (div in divs) for (p in div.elements("p")) {
+                add(p["ttm:agent"] ?: div["ttm:agent"] ?: body["ttm:agent"])
+                p.elements("span").filter { it["ttm:role"] == "x-bg" }
+                    .mapNotNullTo(this) { it["ttm:agent"] }
+            }
+        }
+        val oppositeAgents = duetGuests(voices)
 
         val lines = when (type) {
             LyricsType.Static -> staticLines(divs, translated, body["ttm:agent"], oppositeAgents)
@@ -258,7 +259,10 @@ object TtmlLyricsParser {
                     // window covers them (so an early "(ooh)" makes its line active).
                     if (end != null && (leadEnd == null || end > leadEnd!!)) leadEnd = end
                     if (start != null && (leadStart == null || start < leadStart!!)) leadStart = start
-                    Background(syllables, start, end, translated.background(p, bgSpan, bgIndex))
+                    val singer = bgSpan["ttm:agent"] ?: agent
+                    val side = bgSpan["spicy:oppositeAligned"]?.toBooleanStrictOrNull()
+                        ?: if (singer == agent) opposite else isOppositeAgent(singer)
+                    Background(syllables, start, end, translated.background(p, bgSpan, bgIndex), singer, side)
                 }
 
                 val empty = lead.none { hasLyricsText(it.text) || hasLyricsText(it.roman) } && backgrounds.isEmpty()
@@ -271,11 +275,11 @@ object TtmlLyricsParser {
                 lines += Line(leadWords, leadStartMs, (ms(leadEnd) ?: leadStartMs).coerceAtLeast(leadStartMs),
                     agent = agent, role = LineRole.LEAD, groupId = id, oppositeAligned = opposite, translation = translated.lead(p),
                     untimed = untimed)
-                backgrounds.forEach { (syllables, start, end, translation) ->
+                backgrounds.forEach { (syllables, start, end, translation, singer, side) ->
                     val startMs = ms(start) ?: leadStartMs
                     val endMs = (ms(end) ?: startMs).coerceAtLeast(startMs)
                     lines += Line(toWords(syllables, startMs, endMs), startMs, endMs,
-                        agent = agent, role = LineRole.BACKGROUND, groupId = id, oppositeAligned = opposite, translation = translation,
+                        agent = singer, role = LineRole.BACKGROUND, groupId = id, oppositeAligned = side, translation = translation,
                         untimed = untimed)
                 }
             }
@@ -404,7 +408,8 @@ object TtmlLyricsParser {
         return p.ownText.takeIf { p.children.any { it is Text } }
     }
 
-    private data class Background(val syllables: List<Syllable>, val start: Double?, val end: Double?, val translation: String?)
+    private data class Background(val syllables: List<Syllable>, val start: Double?, val end: Double?, val translation: String?,
+        val agent: String?, val opposite: Boolean)
 
     private fun inlineRoleTexts(p: Element): RoleTexts {
         fun role(name: String) = p.elements("span").firstOrNull { isSpanObject(it) && it["ttm:role"] == name }

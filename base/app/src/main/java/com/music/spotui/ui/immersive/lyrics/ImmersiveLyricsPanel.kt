@@ -188,6 +188,7 @@ private class PanelLine(
     /** Where a break ends; unused for a sung line. */
     val untilMs: Long,
     val swept: SweptLine,
+    val oppositeAligned: Boolean = false,
 ) {
     val isWordSynced: Boolean
         get() = !isGap && swept.isWordSynced
@@ -229,7 +230,7 @@ private fun panelLines(lyrics: Lyrics, synced: Boolean): List<PanelLine> {
                     SweptLine(line.timeMs, ""),
                 )
         } else {
-            out += PanelLine(line.timeMs, line.text, false, 0L, line.toSwept(next))
+            out += PanelLine(line.timeMs, line.text, false, 0L, line.toSwept(line.endMs ?: next), line.oppositeAligned)
         }
     }
     return out
@@ -652,7 +653,7 @@ private fun PanelRow(
                 scaleX = scale
                 scaleY = scale
                 // Anchored to the left edge, so the words don't slide sideways under the highlight.
-                transformOrigin = TransformOrigin(0f, 0.5f)
+                transformOrigin = TransformOrigin(if (row.oppositeAligned) 1f else 0f, 0.5f)
                 alpha = lineAlpha
                 // Held back against the list's own movement: the list has already taken this row
                 // part of the way, so giving back what it has not earned yet is what leaves it
@@ -701,7 +702,7 @@ private fun PanelRow(
             PanelVoice(
                 row = row,
                 clock = clock,
-                style = voiceStyle(style, row.text),
+                style = voiceStyle(style, row.text, row.oppositeAligned),
                 isActive = isActive,
                 sung = sung,
                 synced = synced,
@@ -729,10 +730,10 @@ private fun isRtl(text: String): Boolean {
 }
 
 /** The style with an absolute alignment taken from the line's own text direction. */
-private fun voiceStyle(base: TextStyle, text: String): TextStyle {
+private fun voiceStyle(base: TextStyle, text: String, opposite: Boolean): TextStyle {
     val rtl = isRtl(text)
     return base.copy(
-        textAlign = if (rtl) TextAlign.Right else TextAlign.Left,
+        textAlign = if (rtl != opposite) TextAlign.Right else TextAlign.Left,
         textDirection = if (rtl) TextDirection.Rtl else TextDirection.Ltr,
     )
 }
@@ -772,6 +773,8 @@ private fun PanelVoice(
             dimAlpha = tail,
             modifier = modifier,
             // Browsing keeps the sweep but skips the bloom: a playback flourish, not a reading aid.
+            alignEnd = style.textAlign == TextAlign.Right,
+            laneLocked = row.oppositeAligned,
             glowAlpha = if (browsing) 0f else glowAlpha,
             glowRoom = room,
             feather = isActive,

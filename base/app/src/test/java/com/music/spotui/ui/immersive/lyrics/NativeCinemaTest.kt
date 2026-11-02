@@ -51,6 +51,77 @@ class NativeCinemaTest {
     }
 
     @Test
+    fun duetProviderCacheAndNativeGlyphsKeepEachSingersSide() {
+        val response =
+            org.json.JSONObject(
+                """{"type":"Word","lyrics":[
+            {"time":1000,"duration":3000,"syllabus":[{"time":1000,"duration":3000,"text":"Lead"}],"element":{"singer":"v1"}},
+            {"time":1600,"duration":1100,"syllabus":[{"time":1600,"duration":1100,"text":"Echo"}],"element":{"singer":"v2"}},
+            {"time":4300,"duration":400,"text":"Again","element":{"singer":"v2"}}]}"""
+            )
+        val api = com.music.spotui.data.api.LyricsApi
+        val song = requireNotNull(api.parseLyricsPlus(response))
+        com.music.spotui.data.api.LyricsApi.LyricsDisk.write("duet-layout", song)
+        val saved =
+            requireNotNull(com.music.spotui.data.api.LyricsApi.LyricsDisk.read("duet-layout"))
+        val doc = saved.lyrics.spicyDocument(6000)
+        assertEquals(listOf(false, true, true), doc.lines.map { it.oppositeAligned })
+        assertEquals(listOf("v1", "v2", "v2"), doc.lines.map { it.agent })
+        assertEquals(4000L, doc.lines[0].endMs)
+        val solo =
+            requireNotNull(
+                api.parseLyricsPlus(
+                    org.json.JSONObject(
+                        """{"type":"Line","lyrics":[{"time":0,"text":"Solo"},{"time":2000,"text":"Still solo"}]}"""
+                    )
+                )
+            )
+        assertTrue(solo.lines.none { it.oppositeAligned })
+        val measured = mutableMapOf<Int, List<Float>>()
+        ui.setContent {
+            val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+            for (width in listOf(320, 760)) {
+                val layouts =
+                    com.tx24.spicyplayer.lyrics.spicy.canvas.LyricsLayoutCalculator
+                        .calculateLineLayouts(doc.lines, width.toFloat(), measurer, 1f, doc.type)
+                SideEffect {
+                    measured[width] =
+                        layouts.map { com.tx24.spicyplayer.lyrics.spicy.canvas.getLineStartX(it) }
+                }
+            }
+        }
+        ui.runOnIdle {
+            for ((width, x) in measured) {
+                assertTrue(x.first() < width * .1)
+                assertTrue(x.drop(1).all { it > width * .5 })
+            }
+            assertEquals(2, measured.size)
+        }
+    }
+
+    @Test
+    fun spotifyTimingCorrectionKeepsTheRichDuetAndBackingVocal() {
+        val lines =
+            listOf("First verse", "Second verse", "Final verse").mapIndexed { i, t ->
+                com.music.spotui.data.entity.LyricLine(1000L * (i + 1), t)
+            }
+        val raw =
+            """<tt xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:itunes="http://music.apple.com/lyric-ttml-internal" itunes:timing="Word"><body><div>
+            <p begin="1" end="3" ttm:agent="v1"><span begin="1" end="3">First verse</span><span ttm:role="x-bg" ttm:agent="v2"><span begin="1.3" end="2.2">(Echo)</span></span></p>
+            <p begin="2" end="3" ttm:agent="v2"><span begin="2" end="3">Second verse</span></p>
+            <p begin="3" end="4" ttm:agent="v1"><span begin="3" end="4">Final verse</span></p></div></body></tt>"""
+        val original = com.music.spotui.data.entity.Lyrics(lines, true, ttml = raw)
+        val spotify =
+            original.copy(ttml = null, lines = lines.map { it.copy(timeMs = it.timeMs + 380) })
+        val aligned = com.music.spotui.data.api.LyricsApi.alignTo(original, spotify)
+        val doc = aligned.spicyDocument(6000)
+        assertEquals(listOf(false, true, true, false), doc.lines.map { it.oppositeAligned })
+        assertEquals(1680L, doc.lines[1].words.single().startMs)
+        assertEquals(2580L, doc.lines[1].endMs)
+        assertEquals(doc.lines.first().groupId, doc.lines[1].groupId)
+    }
+
+    @Test
     fun videoColorsFollowTheFrameAndIgnoreTransparentPixels() {
         val frame =
             android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)

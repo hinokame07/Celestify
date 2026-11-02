@@ -15,6 +15,9 @@ data class LyricLine(
     val timeMs: Long,
     val text: String,
     val words: List<LyricWord>? = null,
+    val singer: String? = null,
+    val oppositeAligned: Boolean = false,
+    val endMs: Long? = null,
 )
 
 /** Spotify's per-track lyrics colours (color-lyrics `colors`), ARGB ints. */
@@ -39,6 +42,7 @@ data class Lyrics(
     /** False when Spotify only gives a preview (Free cap): the card says "Aperçu des paroles". */
     val uncapped: Boolean = true,
     val ttml: String? = null,
+    val ttmlOffsetMs: Long = 0L,
 ) {
     val isEmpty: Boolean get() = lines.isEmpty()
     val wordSynced: Boolean get() = lines.any { !it.words.isNullOrEmpty() }

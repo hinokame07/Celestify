@@ -11,7 +11,35 @@ import java.security.MessageDigest
 
 internal fun Lyrics.spicyDocument(duration: Long): LyricsDocument {
     val rich = ttml?.let { TtmlLyricsParser.parse(it.byteInputStream()) }
-    if (rich != null && rich.lines.isNotEmpty()) return rich
+    if (rich != null && rich.lines.isNotEmpty()) {
+        if (ttmlOffsetMs == 0L) return rich
+        fun shift(t: Long) = (t + ttmlOffsetMs).coerceAtLeast(0L)
+        return rich.copy(
+            lines =
+                rich.lines.map { line ->
+                    if (line.untimed || rich.type == LyricsType.Static) line
+                    else
+                        line.copy(
+                            startMs = shift(line.startMs),
+                            endMs = shift(line.endMs),
+                            words =
+                                line.words.map { word ->
+                                    word.copy(
+                                        startMs = shift(word.startMs),
+                                        endMs = shift(word.endMs),
+                                        letters =
+                                            word.letters.map {
+                                                it.copy(
+                                                    startMs = shift(it.startMs),
+                                                    endMs = shift(it.endMs),
+                                                )
+                                            },
+                                    )
+                                },
+                        )
+                }
+        )
+    }
     val type =
         when {
             !synced -> LyricsType.Static
@@ -20,15 +48,22 @@ internal fun Lyrics.spicyDocument(duration: Long): LyricsDocument {
         }
     val rows =
         lines.mapIndexed { index, line ->
-            val end = (lines.getOrNull(index + 1)?.timeMs ?: duration).coerceAtLeast(line.timeMs)
+            val end =
+                maxOf(
+                    line.timeMs,
+                    line.endMs ?: lines.getOrNull(index + 1)?.timeMs ?: duration,
+                    line.words.orEmpty().maxOfOrNull { it.endMs } ?: line.timeMs,
+                )
             var offset = 0
             val words =
                 line.words.orEmpty().mapIndexedNotNull { i, w ->
-                    val text = w.text.trim().takeIf { it.isNotEmpty() } ?: return@mapIndexedNotNull null
+                    val text =
+                        w.text.trim().takeIf { it.isNotEmpty() } ?: return@mapIndexedNotNull null
                     val start = line.text.indexOf(text, offset).takeIf { it >= 0 } ?: offset
                     val joined = offset > 0 && start == offset
                     offset = start + text.length
-                    val until = if (w.endMs > w.startMs) w.endMs
+                    val until =
+                        if (w.endMs > w.startMs) w.endMs
                         else line.words?.getOrNull(i + 1)?.startMs ?: w.startMs
                     Word(text, w.startMs, maxOf(w.startMs, until), isPartOfWord = joined)
                 }
@@ -40,6 +75,8 @@ internal fun Lyrics.spicyDocument(duration: Long): LyricsDocument {
                 end,
                 role = if (gap) LineRole.INTERLUDE else LineRole.LEAD,
                 lineTimed = words.isEmpty(),
+                agent = line.singer,
+                oppositeAligned = line.oppositeAligned,
             )
         }
     return LyricsDocument(

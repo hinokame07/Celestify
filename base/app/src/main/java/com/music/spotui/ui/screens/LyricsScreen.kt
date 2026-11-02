@@ -254,7 +254,8 @@ private fun LyricLineText(
                 androidx.compose.ui.geometry.Offset(t.getLineRight(r), y), strokeWidth = dot, cap = androidx.compose.ui.graphics.StrokeCap.Round, pathEffect = effect)
         }
     }
-    Column(lineModifier) {
+    val guestAlign = if (line.oppositeAligned) androidx.compose.ui.text.style.TextAlign.End else null
+    Column(lineModifier.fillMaxWidth(), horizontalAlignment = if(line.oppositeAligned) Alignment.End else Alignment.Start) {
         val words = line.words
         if (state == 0 && !words.isNullOrEmpty()) {
             // Karaoke: each word goes straight from the upcoming colour to white as it is sung (drawn
@@ -272,6 +273,7 @@ private fun LyricLineText(
             Box {
                 Text(
                     text = shown,
+                    textAlign = guestAlign,
                     // The words to come keep the colour of the lines to come; sung, they turn white.
                     color = palette.text,
                     fontSize = fontSize,
@@ -284,6 +286,7 @@ private fun LyricLineText(
                 Text(
                     text = shown,
                     color = palette.highlight,
+                    textAlign = guestAlign,
                     style = androidx.compose.ui.text.TextStyle(shadow = whiteGlow),
                     fontSize = fontSize,
                     lineHeight = fontSize * 1.25f,
@@ -310,6 +313,7 @@ private fun LyricLineText(
         } else {
             Text(
                 text = line.text,
+                textAlign = guestAlign,
                 color = color,
                 fontSize = fontSize,
                 lineHeight = fontSize * 1.25f,
@@ -334,6 +338,7 @@ private fun LyricLineText(
         ) {
             Text(
                 text = translation.orEmpty(),
+                textAlign = guestAlign,
                 color = color.copy(alpha = color.alpha * 0.7f),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,

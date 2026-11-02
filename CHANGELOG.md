@@ -2,6 +2,12 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.4.2
+
+- LyricsPlus duets retain singer identities and overlapping line durations in the player, Cinema and local cache.
+- Aligning a TTML recording to Spotify now preserves the original duet, word timings and backing voices. An explicitly labelled backing singer can appear opposite the lead.
+- Duet spacing adapts to the width of the lyric panel. Unlabelled lyrics keep their normal layout.
+
 ## 2.4.1
 
 - Cinema offers **Show album cover only** in its overflow menu. The choice persists across tracks.

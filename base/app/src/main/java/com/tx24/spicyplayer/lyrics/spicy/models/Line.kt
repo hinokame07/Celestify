@@ -2,6 +2,18 @@ package com.tx24.spicyplayer.lyrics.spicy.models
 
 enum class LineRole { LEAD, BACKGROUND, INTERLUDE }
 
+/** Assign a second lane only from vocal identities present in the lyrics. An unlabelled lead
+ * may still have a labelled v2 response. Keep conventional multi-singer TTML assignments. */
+internal fun duetGuests(voices: List<String?>): Set<String> {
+    val distinct = voices.distinct()
+    if (distinct.size < 2) return emptySet()
+    val named = distinct.filterNotNull()
+    val standard = named.filter { it == "v2" || it == "v2000" }.toSet()
+    if (standard.isNotEmpty()) return standard
+    if (named.size != 2) return emptySet()
+    return setOf(if ("v1" in named) named.first { it != "v1" } else named.last())
+}
+
 /**
  * Represents a full line of lyrics composed of multiple [Word]s.
  */

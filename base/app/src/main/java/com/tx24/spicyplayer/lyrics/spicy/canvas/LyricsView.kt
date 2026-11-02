@@ -856,7 +856,7 @@ private const val REFERENCE_LYRIC_SIZE_PX = 56f
 /**
  * Calculates the horizontal starting position of a line based on its alignment and the presence of duets.
  */
-private fun getLineStartX(
+internal fun getLineStartX(
     layout: LineLayout,
 ): Float {
     return if (layout.isRightAligned) {
