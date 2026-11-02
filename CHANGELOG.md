@@ -2,6 +2,12 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.4.3
+
+- Bottom navigation keeps its glass lens raised from the first touch through a hold or drag. A light reflection follows the finger, including on the separate Search button.
+- Cinema preserves distinct colors from six areas of the playing video, with gently moving light and a longer feather along the video edge. The dynamic cover backdrop also picks up regional color.
+- Automatic updates use public GitHub releases, with in-app prompts and optional Android background notifications.
+
 ## 2.4.2
 
 - LyricsPlus duets retain singer identities and overlapping line durations in the player, Cinema and local cache.

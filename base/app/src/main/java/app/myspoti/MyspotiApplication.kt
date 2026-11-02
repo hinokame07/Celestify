@@ -23,6 +23,7 @@ class MyspotiApplication : Application() {
         app.myspoti.power.EnergySettings.init(this)
         // Spotify session (hidden Web Player + API), caches, downloads, data saver.
         Graph.init(this)
+        com.music.spotui.data.api.ReleaseNotifications.schedule(this, com.music.spotui.data.preferences.AutoUpdateCheckPref.on)
         SongPlayer.attachEngine(Graph.currentSongState)
         // Headphones or Bluetooth gone: pause rather than play on the speaker.
         com.music.spotui.di.NoisyAudio.register(this)

@@ -271,7 +271,7 @@
     <string name="update_retry">Try again</string>
     <!-- A18: the automatic update check can be turned off; the manual check stays. -->
     <string name="settings_auto_update_title">Check for updates at launch</string>
-    <string name="settings_auto_update_detail">Off: no check when the app starts. The manual check below still works.</string>
+    <string name="settings_auto_update_detail">Check GitHub automatically and notify when an update is available.</string>
     <string name="settings_check_update_title">Check for updates now</string>
     <string name="settings_check_update_detail">Looks for a newer version and offers to install it</string>
     <string name="settings_update_checking">Checking…</string>
@@ -529,4 +529,7 @@
     <string name="settings_connect_mirror_detail">Plays the Spotify song muted in the background, so it counts and your devices can control it. Uses a little more data and battery: turn it off if you don\'t need it.</string>
     <string name="explicit_badge">E</string>
     <string name="spotify_plan">Spotify %1$s</string>
+    <string name="release_channel">App updates</string>
+    <string name="release_notice_title">Celestify %1$s is available</string>
+    <string name="release_notice_detail">Tap to review and install the update.</string>
 </resources>

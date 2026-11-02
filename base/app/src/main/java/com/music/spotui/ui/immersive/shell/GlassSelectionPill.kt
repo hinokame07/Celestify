@@ -214,7 +214,10 @@ internal class GlassPillMotion(
 
     /** The finger is over [position] tab steps. */
     fun dragTo(position: Float) {
-        if (dragging) dragTarget = position.toDouble()
+        if (dragging && dragTarget != position.toDouble()) {
+            dragTarget = position.toDouble()
+            start()
+        }
     }
 
     /**
@@ -335,7 +338,11 @@ internal class GlassPillMotion(
         }
         publish()
         isFlat = settled
-        return !settled
+        // A held lens keeps its last rendered material. Only a move or release needs more frames.
+        val heldStill = dragging && abs(dragFollow - dragTarget) < .0005 &&
+            abs(liftXPos - liftTarget) < .0005 && abs(liftYPos - liftTarget) < .0005 &&
+            abs(liftPos - liftTarget) < .0005 && abs(squash) < .0005 && handover == handoverTarget
+        return !settled && !heldStill
     }
 
     private fun publish() {
@@ -578,7 +585,7 @@ internal fun GlassSelectionPill(
     val shape = remember { RoundedCornerShape(percent = 50) }
     val backdrop = remember(page, barGlass, tabRow, fillColor) {
         SelectionPillBackdrop(PageBackdrop(page), barGlass, tabRow) {
-            fillColor.copy(alpha = fillColor.alpha * (1f - motion.material))
+            fillColor.copy(alpha = fillColor.alpha * (1f - .5f * motion.material))
         }
     }
     Box(

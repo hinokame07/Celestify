@@ -54,7 +54,9 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,7 +106,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
 /** Hoisted so the default is one stable lambda rather than a new one per call. */
-private val DefaultTabBarContentModifier: @Composable () -> Modifier = { Modifier }
+private val DefaultTabBarContentModifier: @Composable (MutableInteractionSource) -> Modifier = { Modifier }
 
 /**
  * The spring the selection glyphs travel on.
@@ -132,7 +134,7 @@ private val GlassSpring = com.music.spotui.ui.immersive.motion.ImmersiveMotion.g
 internal fun FloatingTabBar(
     selectedTabKey: Any?,
     modifier: Modifier = Modifier,
-    tabBarContentModifier: @Composable () -> Modifier = DefaultTabBarContentModifier,
+    tabBarContentModifier: @Composable (MutableInteractionSource) -> Modifier = DefaultTabBarContentModifier,
     colors: FloatingTabBarColors = FloatingTabBarDefaults.colors(),
     shapes: FloatingTabBarShapes = FloatingTabBarDefaults.shapes(),
     sizes: FloatingTabBarSizes = FloatingTabBarDefaults.sizes(),
@@ -168,6 +170,7 @@ internal fun FloatingTabBar(
         if (standaloneTab != null) {
             ExpandedStandaloneTab(
                 standaloneTab = standaloneTab,
+                reduceMotion = reduceMotion,
                 shapes = shapes,
                 colors = colors,
                 tabBarContentModifier = tabBarContentModifier,
@@ -220,8 +223,9 @@ private fun ExpandedTabs(
     colors: FloatingTabBarColors,
     reduceMotion: Boolean,
     modifier: Modifier,
-    tabBarContentModifier: @Composable () -> Modifier,
+    tabBarContentModifier: @Composable (MutableInteractionSource) -> Modifier,
 ) {
+    val contact = remember { MutableInteractionSource() }
     val selectedTabIndex = scope.tabs.indexOfFirst { it.key == selectedTabKey }
     val currentSelectedTabIndex by rememberUpdatedState(selectedTabIndex)
     // The drag handler outlives the scope it was started with (a tab change builds a new one).
@@ -296,7 +300,7 @@ private fun ExpandedTabs(
 
     // Unclipped: the lifted pill stands past the bar's edges, so it is drawn
     // here, over the bar, rather than inside the bar's clip.
-    Box(modifier = modifier) {
+    Box(modifier = modifier.tabGlassTouch(contact, reduceMotion)) {
         // The bar's glass is exported for the lens to refract.
         CompositionLocalProvider(LocalGlassExport provides if (glassPill) barGlass else null) {
         Box(
@@ -305,7 +309,7 @@ private fun ExpandedTabs(
                 // No clip() ahead of the glass: it clips itself (as the mini player's does), and a
                 // clipping layer around the glass's own offscreen effect layer is what differs
                 // from the surface that renders correctly.
-                .then(tabBarContentModifier())
+                .then(tabBarContentModifier(contact))
                 .padding(contentPadding),
         ) {
             if (showPill && (!glassPill || pill.isFlat)) {
@@ -332,39 +336,48 @@ private fun ExpandedTabs(
                     .pointerInput(tabStepPx, isRtl, selectedTabIndex >= 0) {
                         if (currentSelectedTabIndex < 0 || tabStepPx <= 0f) return@pointerInput
 
-                        // In tab order, whichever way the row runs.
-                        val direction = if (isRtl) -1f else 1f
-                        var totalDrag = 0f
-                        var dragStartIndex = currentSelectedTabIndex
-                        detectHorizontalDragGestures(
-                            onDragStart = {
-                                totalDrag = 0f
-                                dragStartIndex = currentSelectedTabIndex
-                                pill.startDrag()
-                            },
-                            onDragCancel = { pill.release(currentSelectedTabIndex) },
-                            onDragEnd = {
-                                val absoluteIndexFloat = (dragStartIndex + totalDrag / tabStepPx)
-                                    .coerceIn(0f, currentScope.tabs.lastIndex.toFloat())
-                                val newIndex = absoluteIndexFloat.roundToInt()
-                                pill.release(newIndex)
-                                if (newIndex != currentSelectedTabIndex) {
-                                    currentScope.tabs[newIndex].onClick()
+                        fun positionAt(x: Float): Float {
+                            val logicalX = if (isRtl) size.width - x else x
+                            return ((logicalX - tabWidthPx / 2f) / tabStepPx)
+                                .coerceIn(0f, currentScope.tabs.lastIndex.toFloat())
+                        }
+                        awaitEachGesture {
+                            val first=awaitFirstDown(requireUnconsumed=false, pass=PointerEventPass.Initial)
+                            var target=currentSelectedTabIndex
+                            var dragged=false
+                            var commit=false
+                            pill.startDrag()
+                            pill.dragTo(positionAt(first.position.x))
+                            try {
+                                while(true) {
+                                    val event=awaitPointerEvent(PointerEventPass.Initial)
+                                    val pointer=event.changes.firstOrNull { it.id==first.id } ?: break
+                                    if(event.changes.any { it.id!=first.id && it.pressed }) break
+                                    val delta=pointer.position-first.position
+                                    if(!dragged && kotlin.math.abs(delta.y)>viewConfiguration.touchSlop &&
+                                        kotlin.math.abs(delta.y)>kotlin.math.abs(delta.x)) break
+                                    if(kotlin.math.abs(delta.x)>viewConfiguration.touchSlop) dragged=true
+                                    val pos=positionAt(pointer.position.x)
+                                    pill.dragTo(pos)
+                                    if(dragged) {
+                                        pointer.consume()
+                                        if(pos.roundToInt()!=lastHapticTab) {
+                                            lastHapticTab=pos.roundToInt()
+                                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                        }
+                                    }
+                                    if(!pointer.pressed) {
+                                        // Ordinary taps still go to the child's accessible clickable.
+                                        commit=dragged && pointer.position.y in 0f..size.height.toFloat()
+                                        if(commit) target=pos.roundToInt()
+                                        break
+                                    }
                                 }
-                            },
-                            onHorizontalDrag = { _, delta ->
-                                totalDrag += delta * direction
-                                val absoluteIndexFloat = (dragStartIndex + totalDrag / tabStepPx)
-                                    .coerceIn(0f, currentScope.tabs.lastIndex.toFloat())
-                                pill.dragTo(absoluteIndexFloat)
-
-                                val approximateTab = absoluteIndexFloat.roundToInt()
-                                if (approximateTab != lastHapticTab) {
-                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                                    lastHapticTab = approximateTab
-                                }
-                            },
-                        )
+                            } finally {
+                                pill.release(target)
+                            }
+                            if(commit && target!=currentSelectedTabIndex) currentScope.tabs[target].onClick()
+                        }
                     },
             ) {
                 scope.tabs.forEach { tab ->
@@ -433,19 +446,21 @@ private fun ExpandedTabs(
 
 @Composable
 private fun ExpandedStandaloneTab(
+    reduceMotion: Boolean,
     standaloneTab: FloatingTabBarTab,
     shapes: FloatingTabBarShapes,
     colors: FloatingTabBarColors,
     modifier: Modifier,
-    tabBarContentModifier: @Composable () -> Modifier,
+    tabBarContentModifier: @Composable (MutableInteractionSource) -> Modifier,
 ) {
+    val contact = remember { MutableInteractionSource() }
     Tab(
         icon = standaloneTab.icon,
         title = standaloneTab.title,
         isStandalone = true,
-        modifier = modifier
+        modifier = modifier.tabGlassTouch(contact, reduceMotion)
             .background(colors.backgroundColor, shapes.standaloneTabShape)
-            .then(tabBarContentModifier())
+            .then(tabBarContentModifier(contact))
             .clickable(
                 onClick = standaloneTab.onClick,
                 indication = null,

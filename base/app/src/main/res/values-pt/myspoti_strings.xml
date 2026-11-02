@@ -338,7 +338,7 @@
     <string name="recents_expand">Mostrar as músicas</string>
     <string name="recents_collapse">Ocultar as músicas</string>
     <string name="settings_auto_update_title">Procurar atualizações ao arrancar</string>
-    <string name="settings_auto_update_detail">Desligado: não procura ao iniciar a app. A procura manual abaixo continua a funcionar.</string>
+    <string name="settings_auto_update_detail">Consultar o GitHub automaticamente e avisar quando houver uma atualização.</string>
     <string name="settings_check_update_title">Procurar atualizações agora</string>
     <string name="settings_check_update_detail">Procura uma versão mais recente e oferece instalá-la</string>
     <string name="settings_update_checking">A verificar…</string>
@@ -523,4 +523,7 @@
     <string name="settings_connect_mirror_detail">Reproduz a música do Spotify sem som em segundo plano, para que conte e os seus dispositivos a possam controlar. Usa um pouco mais de dados e bateria: desative se não precisar.</string>
     <string name="explicit_badge">E</string>
     <string name="spotify_plan">Spotify %1$s</string>
+    <string name="release_channel">Atualizações do app</string>
+    <string name="release_notice_title">Celestify %1$s disponível</string>
+    <string name="release_notice_detail">Toque para ver e instalar a atualização.</string>
 </resources>

@@ -7,6 +7,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -122,6 +124,33 @@ class NativeCinemaTest {
     }
 
     @Test
+    fun cinemaLightMovesAcrossAnUnchangingSceneAndStopsOnPause() {
+        val palette=CinemaLight(listOf(Color.Red,Color.Cyan,Color.Magenta,Color.Blue,Color.Yellow,Color.Green))
+        var playing by mutableStateOf(true)
+        ui.mainClock.autoAdvance=false
+        ui.setContent {
+            Box(Modifier.requiredSize(240.dp,160.dp).testTag("light-field")) {
+                CinemaVideoBackground(palette,reduced=false,playing=playing)
+            }
+        }
+        fun pixels():IntArray {
+            val source=ui.onNodeWithTag("light-field").captureToImage().asAndroidBitmap()
+            val swatch=android.graphics.Bitmap.createScaledBitmap(source,16,12,true)
+            return IntArray(16*12).also { swatch.getPixels(it,0,16,0,0,16,12) }
+        }
+        frames()
+        val first=pixels()
+        assertTrue(first.distinct().size>12)
+        frames(3200)
+        assertFalse(first.contentEquals(pixels()))
+        ui.runOnIdle { playing=false }
+        frames()
+        val paused=pixels()
+        frames(1600)
+        assertArrayEquals(paused,pixels())
+    }
+
+    @Test
     fun videoColorsFollowTheFrameAndIgnoreTransparentPixels() {
         val frame =
             android.graphics.Bitmap.createBitmap(12, 12, android.graphics.Bitmap.Config.ARGB_8888)
@@ -134,6 +163,14 @@ class NativeCinemaTest {
         for (y in 0..3) for (x in 0 until 12) frame.setPixel(x, y, android.graphics.Color.GREEN)
         val bands = CinemaLight.from(frame)!!
         assertTrue(bands.upper.green > bands.upper.blue && bands.lower.blue > bands.lower.green)
+        for(y in 0 until 12) for(x in 0 until 12)
+            frame.setPixel(x,y,if(x<6) android.graphics.Color.RED else android.graphics.Color.CYAN)
+        val split=CinemaLight.from(frame)!!
+        assertEquals(6,split.patches.size)
+        for(i in listOf(0,2,4)) {
+            assertTrue(split.patches[i].red > .9f && split.patches[i].green < .1f)
+            assertTrue(split.patches[i+1].green > .9f && split.patches[i+1].blue > .9f)
+        }
     }
 
     @Test

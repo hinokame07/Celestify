@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission
@@ -65,6 +66,9 @@
 
         <!-- Debug and beta builds only (cliEnabled, build.gradle.kts): tools/myspoti-cli drives the app over adb.
              DUMP is held by the adb shell, not by other apps. -->
+        <service android:name="com.music.spotui.data.api.ReleaseCheckJob"
+            android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" />
+
         <receiver
             android:name="com.music.spotui.cli.CliReceiver"
             android:enabled="${cliEnabled}"

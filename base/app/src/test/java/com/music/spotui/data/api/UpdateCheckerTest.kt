@@ -6,6 +6,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UpdateCheckerTest {
+    @Test fun stableNoticesReachOlderVersionsAndBetaCanMoveToStable() {
+        fun entry(tag:String, beta:Boolean=false,draft:Boolean=false)=org.json.JSONObject()
+            .put("tag_name",tag).put("html_url","https://github.com/hinokame07/Celestify/releases/tag/$tag")
+            .put("prerelease",beta).put("draft",draft)
+        val entries=listOf(entry("v3.0.0",draft=true),entry("v2.4.4-beta.1",true),entry("v2.4.3"))
+        val stable=UpdateChecker.selectRelease(entries,false)!!.version
+        assertEquals("2.4.3",stable)
+        for(old in listOf("2.2.0","2.3.0","2.3.1","2.4.0","2.4.1","2.4.2","2.4.3-beta.1"))
+            assertTrue(UpdateChecker.isNewer(stable,old))
+        assertEquals("2.4.4-beta.1",UpdateChecker.selectRelease(entries,true)?.version)
+        assertEquals("2.4.3",UpdateChecker.selectRelease(listOf(entry("v2.4.3-beta.2",true),entry("v2.4.3")),true)?.version)
+    }
     @Test fun comparesNumericallyNotAsText() {
         assertTrue(UpdateChecker.isNewer("1.10.0", "1.9.2"))
         assertTrue(UpdateChecker.isNewer("0.9.1", "0.9.0"))

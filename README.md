@@ -16,7 +16,7 @@ Celestify retains the [GPL-3.0 license](LICENSE) and credits the original Myspot
 
 ## Versions and updates
 
-Open **Settings → App → Versions on GitHub** and sign in to the private repository. Install the APK from the latest release. The first upgrade from the earlier 2.1.0 builds is manual. The optional in-app checker requires a feed accessible without GitHub credentials. See [release instructions](docs/CELESTIFY_RELEASES.md). The Spicy Lyrics native renderer component is under [AGPL-3.0](base/licenses/Spicy-Lyrics-AGPL-3.0.txt), alongside the Myspoti GPL-3.0 code.
+Stable releases and signed APKs are [public on GitHub](https://github.com/hinokame07/Celestify/releases/latest). Starting with 2.4.3, automatic checks default to on. Celestify offers an update in the app and can notify in the background when Android permits it. Existing explicit choices are respected. On builds 2.2.0 through 2.4.2, enable the automatic check or install the current APK once. Earlier builds require a manual first upgrade. See the [release instructions](docs/CELESTIFY_RELEASES.md). The Spicy Lyrics native renderer component is under [AGPL-3.0](base/licenses/Spicy-Lyrics-AGPL-3.0.txt), alongside the Myspoti GPL-3.0 code.
 
 ## Spicy Lyrics on Android
 

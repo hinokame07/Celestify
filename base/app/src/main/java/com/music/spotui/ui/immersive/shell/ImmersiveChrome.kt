@@ -251,9 +251,10 @@ private fun MinimizedTabPill(selectedTab: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(PILL_SIZE)
+            .tabGlassTouch(source, rememberReduceMotion())
             .immersiveGlassSurface(CircleShape, interactionSource = source)
             .clickable(
-                interactionSource = source,
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 role = Role.Button,
                 onClickLabel = stringResource(R.string.immersive_expand_tab_bar),

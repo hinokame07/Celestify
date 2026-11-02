@@ -1,13 +1,15 @@
-# Celestify release process
+# Celestify releases
 
-The private repository is the source of truth for Celestify. Each release contains the signed APK and its SHA-256 checksum. The tagged tree includes the corresponding source and licenses. Give APK recipients access to that source or provide a copy alongside the APK.
+The [public release feed](https://api.github.com/repos/hinokame07/Celestify/releases/latest) identifies the latest stable release. Every published Android update should have a signed APK named `Celestify-<version>.apk`, its checksum and corresponding source. The app uses this feed without a GitHub login. Prereleases stay out of stable update prompts.
 
-## On a phone
+## Installed versions
 
-Open Settings → App → Versions on GitHub, sign in with an authorized GitHub account and download the APK. Android verifies the signing identity and asks before installing. Builds through 2.1.0 require a manual first update. The optional automated checker is prepared for an accessible releases API. GitHub denies anonymous API access to private releases. If a version check fails, use the authenticated browser link.
+- From 2.4.3, automatic checks are enabled by default. Settings remembers an explicit opt-out. The app checks at launch/resume and approximately every hour while open. An Android network-constrained periodic job also checks in the background. Android controls its timing, including Doze and force-stop. A notification opens the app for review and installation. Notifications need Android notification permission. In-app updates remain available when notifications are disabled. A release already announced in the app or by the notification is not repeatedly posted to the notification tray.
+- From 2.2.0 through 2.4.2 the public stable feed works with the existing updater. Its switch was off by default. Turn on automatic checks under Settings → App or use the manual check. With the old switch off, those binaries cannot receive an automatic notice from the repository alone. Builds through 2.1.0 need a manual first installation of a current APK.
+- Android requires the same package and signing certificate for an in-place upgrade. Installation is confirmed by the user.
 
 ## Publishing
 
-Push a semantic version tag such as v2.2.1 for a stable release or v2.3.0-beta.1 for a beta. Keep main and the tag on the tested source. The tag workflow runs unit tests, signs the APK, checks the Celestify certificate and publishes the APK and checksum together. GitHub creates source archives from the same tag. Use a consistent workflow and increasing version codes for all updates to app.myspoti.dev.
+Bump the version name and the checked-in Android version code for **every distributed APK**, including betas. Verify that the code increases over the previous release for `app.myspoti.dev`. Push main and its matching semantic version tag together. The Android workflow uses the tagged version code instead of a GitHub run counter. When CI signing is configured, it tests, builds and checks the certificate before uploading the APK and checksum. Without signing secrets, sign locally with the existing identity. Upload and verify all assets on a draft, then publish the stable release as GitHub's **Latest**. Check the anonymous releases/latest response and its APK download. Public downloaders have access to the matching source tag.
 
-For unattended signing a repository administrator must configure CELESTIFY_KEYSTORE_BASE64, CELESTIFY_KEYSTORE_PASSWORD, CELESTIFY_KEY_ALIAS and CELESTIFY_KEY_PASSWORD as GitHub Actions secrets. The certificate must match the existing Celestify build. Before entrusting a signing key to CI, ensure it is dedicated to the app. With no signing secrets, CI runs tests and leaves signing to the maintainer. Build locally with the existing signing identity, verify the certificate with apksigner, then attach the signed APK and checksum to the release. Keep credentials, local device logs and keystores outside Git.
+CI signing uses CELESTIFY_KEYSTORE_BASE64, CELESTIFY_KEYSTORE_PASSWORD, CELESTIFY_KEY_ALIAS and CELESTIFY_KEY_PASSWORD as GitHub Actions secrets. Keep keys and credentials outside Git.

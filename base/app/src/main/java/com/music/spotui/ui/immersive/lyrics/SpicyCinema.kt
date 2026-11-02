@@ -154,7 +154,7 @@ internal fun SpicyCinema(
             options = false
         }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
-            if (ambient != null) CinemaVideoBackground(ambient, reduced)
+            if (ambient != null) CinemaVideoBackground(ambient, !motion, playing && !state.buffering)
             else SpicyBackdrop(cover, artist, playing, coverSource = true)
             NativeCinemaLayout(
                 state,
@@ -328,34 +328,22 @@ internal fun NativeCinemaLayout(
                             else AbsoluteAlignment.CenterLeft
                         )
                         .fillMaxHeight()
-                        .fillMaxWidth(.52f)
+                        .fillMaxWidth(.60f)
                 else Modifier.align(Alignment.TopCenter).fillMaxWidth().height(videoHeight)
             videoLayer(
                 area
                     .testTag("cinema-film")
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                     .drawWithCache {
-                        val mask =
-                            when {
-                                !split ->
-                                    Brush.verticalGradient(
-                                        0f to Color.Black,
-                                        .66f to Color.Black,
-                                        1f to Color.Transparent,
-                                    )
-                                lyricsLeft ->
-                                    Brush.horizontalGradient(
-                                        0f to Color.Transparent,
-                                        .31f to Color.Black,
-                                        1f to Color.Black,
-                                    )
-                                else ->
-                                    Brush.horizontalGradient(
-                                        0f to Color.Black,
-                                        .69f to Color.Black,
-                                        1f to Color.Transparent,
-                                    )
-                            }
+                        // A smoothstep falloff has zero slope where the video meets the ambient light.
+                        val stops=Array(13){ i ->
+                            val at=i/12f
+                            val distance=if(split && lyricsLeft) 1f-at else at
+                            val begin=if(split) .39f else .42f
+                            val u=((distance-begin)/(1f-begin)).coerceIn(0f,1f)
+                            at to Color.Black.copy(alpha=1f-u*u*(3f-2f*u))
+                        }
+                        val mask=if(split) Brush.horizontalGradient(*stops) else Brush.verticalGradient(*stops)
                         val shade =
                             Brush.verticalGradient(
                                 listOf(

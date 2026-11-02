@@ -1,5 +1,13 @@
 # Celestify · player, letras e Cinema nativos
 
+## Cor e movimento em 2.4.3
+
+O Cinema extrai seis cores locais de cada amostra de vídeo (24 × 18 pixels), em duas colunas e três alturas. Cores vivas têm mais peso na amostra local. Os campos de luz se movem lentamente durante a reprodução e conservam a composição quando a música pausa. Com movimento reduzido, a luz deixa de se deslocar. O fundo dinâmico de capa também aproveita cores regionais da imagem original antes do desfoque. Uma máscara de opacidade com queda gradual estende a fusão do vídeo com o fundo em retrato e nas duas orientações laterais.
+
+Na barra inferior do visual Imersivo, a lente começa a responder no primeiro toque. O reflexo segue o contato durante a pressão e o arraste, inclusive no botão de busca e no botão recolhido da barra. A lente mantém parte da tonalidade sobre fundos uniformes. A navegação por toque continua com o botão acessível e o arraste confirma a aba apenas ao soltar. A preferência de movimento reduzido permanece respeitada.
+
+Os testes em Compose/Robolectric compararam amostras dos pixels da barra em repouso, após segurar por 1,1 segundo e depois de arrastar. Também verificaram a navegação uma única vez ao soltar e o cancelamento do gesto. Para o Cinema, compararam capturas da mesma cena em movimento e em pausa. A refração pela GPU de um telefone físico ainda não foi verificada nesta versão.
+
 ## Duetos na versão 2.4.2
 
 O player e o Cinema mantêm um lado por cantor quando a fonte identifica as vozes, inclusive quando a resposta começa antes do fim do verso principal. O recuo se adapta à largura do painel de letras. Uma segunda voz identificada dentro de um vocal de apoio também pode aparecer do outro lado. A escolha é automática.

@@ -7,5 +7,5 @@
     <string name="settings_find_title">Buscar nos ajustes</string>
     <string name="settings_find_empty">Nenhum ajuste encontrado</string>
     <string name="celestify_github_versions">Versões no GitHub</string>
-    <string name="celestify_private_updates">Entre com uma conta que tenha acesso ao repositório privado para baixar o APK assinado.</string>
+    <string name="celestify_private_updates">Veja as versões públicas e baixe o APK assinado sem precisar entrar no GitHub.</string>
 </resources>

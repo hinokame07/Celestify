@@ -105,7 +105,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           [[ "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-beta[.][0-9]+)?$ ]]
-          ./gradlew :app:assembleRelease -PappVersionName="$VERSION" -PappVersionCode="$((2002000 + GITHUB_RUN_NUMBER))" -PupdateRepo="$GITHUB_REPOSITORY"
+          ./gradlew :app:assembleRelease -PappVersionName="$VERSION" -PupdateRepo="$GITHUB_REPOSITORY"
           cd app/build/outputs/apk/release
           APK="Celestify-$VERSION.apk"
           mv app-release.apk "$APK"
@@ -120,3 +120,4 @@ jobs:
             base/app/build/outputs/apk/release/Celestify-*.sha256
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-beta.') }}
+          make_latest: ${{ contains(github.ref_name, '-beta.') && 'false' || 'true' }}

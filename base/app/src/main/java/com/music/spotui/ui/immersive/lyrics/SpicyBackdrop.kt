@@ -24,7 +24,7 @@ import com.music.spotui.ui.look.rememberReduceMotion
 import com.tx24.spicyplayer.lyrics.spicy.canvas.StackBlur
 import kotlinx.coroutines.*
 
-private data class BackdropArt(val bitmap: Bitmap, val mean: Color)
+private data class BackdropArt(val bitmap: Bitmap, val mean: Color, val cinema: CinemaLight? = null)
 
 private val blurredCovers = LruCache<String, BackdropArt>(16)
 
@@ -117,6 +117,7 @@ internal fun SpicyBackdrop(
                                     Bitmap.Config.ARGB_8888,
                                 ),
                                 mean,
+                                CinemaLight.from(Bitmap.createScaledBitmap(small,24,18,true)),
                             )
                             .also { blurredCovers.put(source, it) }
                     } catch (e: CancellationException) {
@@ -228,6 +229,9 @@ internal fun SpicyBackdrop(
                     )
                 }
             }
+        }
+        if (coverSource && (style==StageBackground.Dynamic || style==StageBackground.Color)) {
+            current?.cinema?.let { CinemaVideoBackground(it, reduced || !pref[StageOption.MotionBackground], playing, overlay=true) }
         }
         Box(
             Modifier.fillMaxSize()
