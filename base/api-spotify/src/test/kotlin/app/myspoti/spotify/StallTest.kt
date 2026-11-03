@@ -24,7 +24,30 @@ class StallTest {
     @Test fun `a user pause at the end never expires`() = assertNull(SpotifyPlayer.stallOf(state(199_500, 0, paused = true), 600_000, true))
     @Test fun `paused mid-song`() = assertNull(SpotifyPlayer.stallOf(state(50_000, 0, paused = true), 60_000, false))
     @Test fun `buffering for long`() = assertEquals("buffering", SpotifyPlayer.stallOf(state(0, 0, buffering = true), 20_000, false))
-    @Test fun `buffering a moment`() = assertNull(SpotifyPlayer.stallOf(state(0, 0, buffering = true), 5_000, false))
+    @Test fun `fresh buffer reports without progress still escalate`() {
+        val timer = SpotifyPlayer.StallTimer()
+        fun check(t: Long, pos: Long = 1234) = timer.poll(song.uri,
+            SpotifyPlayer.stallOf(state(pos, t, buffering = true), t, false)!!, pos, t)
+        assertEquals(0, check(0))
+        assertEquals(0, check(20_000))
+        assertEquals(1, check(25_000))
+        assertEquals(0, check(27_000))
+        assertEquals(2, check(33_000))
+        assertEquals(0, check(34_000, 5000))
+        timer.reset()
+        assertEquals(0, check(100_000, 5000))
+    }
+
+    @Test fun `a silent stream gets a reload if the first seek did not restore audio`() {
+        val timer = SpotifyPlayer.StallTimer()
+        val first = SpotifyPlayer.SILENT_MS
+        fun check(uri: String, time: Long) = timer.poll(uri, SpotifyPlayer.SILENT, 0, time)
+        assertEquals(0, check(song.uri, 0))
+        assertEquals(1, check(song.uri, first))
+        assertEquals(0, check(song.uri, first + 1))
+        assertEquals(2, check(song.uri, first + SpotifyPlayer.STUCK_MS))
+        assertEquals(0, check(after.uri, first + SpotifyPlayer.STUCK_MS + 1))
+    }
 
     private val episode = song.copy(kind = ItemKind.EPISODE, uri = "spotify:episode:e", name = "E")
     private val nextEpisode = episode.copy(uri = "spotify:episode:f", name = "F")

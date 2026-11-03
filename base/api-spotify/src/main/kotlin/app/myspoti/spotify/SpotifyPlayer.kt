@@ -241,8 +241,8 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                 if (!reloadAndWait(reload)) return@runCatching
                 if (playPickAfterReload()) return@runCatching
                 if (s == null) return@runCatching
-                if (next) { delay(1_500); playOn(s) } else resumeAfterReload(s)
-            }
+                if (next) { delay(1_500); if (!pausedByUser) playOn(s) } else resumeAfterReload(s)
+            }.onFailure { bridge.logger?.invoke("reload recovery failed: ${it.javaClass.simpleName}") }
         } finally {
             ownReload = false
             playingAtLoss = null
@@ -407,15 +407,43 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
         )
     }
 
+    internal class StallTimer {
+        private var track: String? = null
+        private var condition: String? = null
+        private var position = 0L
+        private var since = 0L
+        private var attempt = 0
+
+        fun reset() { track = null }
+
+        fun poll(uri: String, reason: String, positionMs: Long, now: Long): Int {
+            if (track != uri || condition != reason || (reason == "buffering" && positionMs != position)) {
+                track = uri
+                condition = reason
+                position = positionMs
+                since = now
+                attempt = 0
+            }
+            val wait = when {
+                attempt > 0 -> STUCK_MS
+                reason == "buffering" -> BUFFERING_STALL_MS
+                reason == SILENT -> SILENT_MS
+                reason == "past the end" -> END_STUCK_MS
+                else -> STUCK_MS
+            }
+            if (now - since < wait) return 0
+            since = now
+            return ++attempt
+        }
+    }
+
     /**
      * Every [WATCH_TICK_MS]: the page answers (else it is frozen and reloaded), the song it
      * says it plays is heard (its media element moves), the sound is on, ads are got past,
      * and a song stuck between two others moves on.
      */
     private suspend fun watchStalls() {
-        var key: String? = null
-        var since = 0L
-        var attempts = 0
+        val stalls = StallTimer()
         var adAttempts = 0
         var adReloaded = false
         var frozenReloadAt = 0L
@@ -423,7 +451,6 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
         var frozenMisses = 0
         var tick = 0
         var lastMediaTime = -1.0
-        var silentSince = 0L
         while (true) {
             // A song plays (or an ad is on): the watcher looks every [WATCH_TICK_MS] to hear a
             // stall in seconds. Nothing plays: there is less to see, so it looks less often.
@@ -434,7 +461,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
             tick++
             // Repairs held (a sign-in page open, playback limited): nothing is judged, not even a
             // silent page, which is what a sign-in page looks like from here.
-            if (!bridge.ready.value || ownReload || recoveryHeld()) { key = null; attempts = 0; silentSince = 0L; frozenMisses = 0; continue }
+            if (!bridge.ready.value || ownReload || recoveryHeld()) { stalls.reset(); frozenMisses = 0; continue }
             val now = System.currentTimeMillis()
             // The page answers nothing, not even a ping: frozen (a stuck renderer). Reloaded
             // at once, the song going on where it was.
@@ -449,7 +476,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                     // suspect page makes the next resume ping first: it is marked only after
                     // [FROZEN_MISSES] in a row, as a playing page is. Any answer clears it below.
                     if (++frozenMisses >= FROZEN_MISSES) pageSuspect = true
-                    key = null; silentSince = 0L; continue
+                    stalls.reset(); continue
                 }
                 // One silent page is not a dead one: a busy main thread (a long render, a reload
                 // still settling, an ad break starting) also holds the bridge for seconds, and
@@ -457,14 +484,14 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                 // one the user actually sees. The reload needs two misses in a row
                 // ([FROZEN_MISSES] ticks of WATCH_TICK_MS, so about four seconds of real silence).
                 frozenMisses++
-                if (frozenMisses < FROZEN_MISSES) { key = null; silentSince = 0L; continue }
+                if (frozenMisses < FROZEN_MISSES) { stalls.reset(); continue }
                 if (now - frozenReloadAt > FROZEN_RELOAD_GAP_MS) {
                     frozenReloadAt = now
                     frozenMisses = 0
                     bridge.logger?.invoke("page not answering ($FROZEN_MISSES misses in a row): reloading the player")
                     val playing = lastTrackState?.takeIf { !pausedByUser && !it.isPaused }
                     reloadAndPlayOn(playing?.copy(positionMs = playing.positionAt(now), timestampMs = now), next = false)
-                    key = null; attempts = 0; silentSince = 0L
+                    stalls.reset()
                 }
                 continue
             }
@@ -508,7 +535,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                         _adPlaying.value = false
                         runCatching { refresh() }
                     }
-                    key = null; silentSince = 0L
+                    stalls.reset()
                     continue
                 }
                 // A refused ad sits at 0:00, buffering; a real one plays to its end.
@@ -541,7 +568,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                     }
                     adSince = System.currentTimeMillis()
                 }
-                key = null; silentSince = 0L
+                stalls.reset()
                 continue
             }
             // A song really playing again: the ad break is over.
@@ -551,8 +578,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
             // state that came a moment late, "buffering" on its report — was answered with a seek or
             // a play of the next song, i.e. a command that skipped a track on that other device.
             if (remoteActive) {
-                if (key != null || attempts != 0) bridge.logger?.invoke("another device plays: nothing repaired from here")
-                key = null; attempts = 0; silentSince = 0L
+                stalls.reset()
                 continue
             }
             // Silent: the state says this phone plays, yet its media element stands still.
@@ -560,27 +586,25 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
             val playingHere = s != null && !s.isPaused && !s.isBuffering && media != null && media.active != false && !fading
             val moved = media != null && !media.paused && kotlin.math.abs(media.time - lastMediaTime) > 0.25
             lastMediaTime = media?.time ?: -1.0
-            silentSince = if (playingHere && !moved) (if (silentSince == 0L) now else silentSince) else 0L
-            val silent = silentSince != 0L && now - silentSince >= SILENT_MS
-            val reason = s?.let { stallOf(it, now, pausedByUser) } ?: (if (silent) SILENT else null)
-            if (recoveryHeld()) { key = null; attempts = 0; continue }
-            if (s == null || reason == null) { key = null; attempts = 0; continue }
-            val k = "${s.item?.uri}|$reason"
-            if (k != key) { key = k; since = now; attempts = 0; if (reason != SILENT) continue }
-            val wait = when (reason) { "past the end" -> END_STUCK_MS; SILENT -> 0L; else -> STUCK_MS }
-            if (now - since < wait) continue
-            since = now
-            attempts++
-            silentSince = 0L
-            bridge.logger?.invoke("player stalled ($reason) on ${s.item?.name}, attempt $attempts; media element: ${media?.describe() ?: "none"}")
+            val reason = s?.let { stallOf(it, now, pausedByUser) } ?: (if (playingHere && !moved) SILENT else null)
+            if (s == null || reason == null || pausedByUser || recoveryHeld()) { stalls.reset(); continue }
+            val item = s.item ?: continue
+            val attempt = stalls.poll(item.uri, reason, s.positionMs, System.nanoTime() / 1_000_000)
+            if (attempt == 0) continue
+            bridge.logger?.invoke("player stalled ($reason) on ${s.item?.name}, attempt $attempt; media element: ${media?.describe() ?: "none"}")
             // A song stuck at its end moves on; one stuck in its middle goes on where it was.
             val onward = reason == "past the end" || reason == "paused at the end"
             // A frozen page answers nothing: straight to the reload.
-            if (attempts == 1 && !bridge.ping()) attempts = 2
-            if (attempts == 1) runCatching { if (onward) playOn(s) else seek(s.positionAt(now)) }
+            val position = if (reason == SILENT && media != null && media.time.isFinite() && media.time >= 0)
+                (media.time * 1000).toLong().coerceAtMost(item.durationMs.takeIf { it > 0 } ?: Long.MAX_VALUE)
+            else if (s.isBuffering) s.positionMs else s.positionAt(now)
+            val canSeek = attempt == 1 && bridge.ping()
+            if (pausedByUser || recoveryHeld() || remoteActive || _state.value?.item?.uri != item.uri) continue
+            if (canSeek) runCatching { if (onward) playOn(s) else seek(position) }
+                .onFailure { bridge.logger?.invoke("stall recovery failed ($reason): ${it.javaClass.simpleName}") }
             else {
-                attempts = 0
-                reloadAndPlayOn(if (onward) s else s.copy(positionMs = s.positionAt(now), timestampMs = now), next = onward)
+                stalls.reset()
+                reloadAndPlayOn(if (onward) s else s.copy(positionMs = position, timestampMs = now), next = onward)
             }
         }
     }
@@ -1917,7 +1941,7 @@ class SpotifyPlayer(private val bridge: Bridge, private val scope: CoroutineScop
                 val atEnd = s.positionMs >= item.durationMs - 2_000
                 return if (atEnd && s.next != null && !userPaused) "paused at the end" else null
             }
-            if (s.isBuffering) return if (now - s.timestampMs > BUFFERING_STALL_MS - STUCK_MS) "buffering" else null
+            if (s.isBuffering) return "buffering"
             val clock = s.positionMs + ((now - s.timestampMs) * s.speed).toLong()
             return if (clock > item.durationMs + 1_500) "past the end" else null
         }

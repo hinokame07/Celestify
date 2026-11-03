@@ -2,6 +2,10 @@
 
 Each release on GitHub shows its section below. The app shows it too when it offers the update. Every detail: [docs/CHANGELOG-full.md](docs/CHANGELOG-full.md).
 
+## 2.4.4
+
+- Spotify playback now detects sustained buffering even when status updates keep arriving. If the first recovery attempt leaves the audio frozen, Celestify can reload the player and resume the same track.
+
 ## 2.4.3
 
 - Bottom navigation keeps its glass lens raised from the first touch through a hold or drag. A light reflection follows the finger, including on the separate Search button.
