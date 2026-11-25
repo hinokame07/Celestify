@@ -47,7 +47,7 @@ public struct RootShellView: View {
     private func authenticatedShell(theme: CelestialTokens) -> some View {
         @Bindable var router = deps.router
 
-        return ZStack(alignment: .bottom) {
+        return ZStack {
             (deps.preferences.pureBlackOLED && !theme.isLight ? Color.black : theme.background)
                 .ignoresSafeArea()
 
@@ -59,38 +59,113 @@ public struct RootShellView: View {
                 )
             }
 
-            Group {
-                switch router.selectedTab {
-                case .home:
-                    NavigationStack(path: $router.homePath) {
-                        HomeView()
-                            .navigationDestination(for: AppRoute.self) { routeDestination($0) }
-                    }
-                case .search:
-                    NavigationStack(path: $router.searchPath) {
-                        SearchView()
-                            .navigationDestination(for: AppRoute.self) { routeDestination($0) }
-                    }
-                case .library:
-                    NavigationStack(path: $router.libraryPath) {
-                        LibraryView()
-                            .navigationDestination(for: AppRoute.self) { routeDestination($0) }
-                    }
-                case .settings:
-                    NavigationStack(path: $router.settingsPath) {
-                        SettingsView()
-                            .navigationDestination(for: AppRoute.self) { routeDestination($0) }
-                    }
-                }
-            }
-            .tint(theme.accent)
-
-            FloatingBottomChrome()
+            tabShell(router: router, theme: theme)
+                .tint(theme.accent)
         }
         .fullScreenCover(isPresented: $router.isShowingFullPlayer) {
             FullPlayerView()
                 .environment(deps)
                 .environment(\.celestial, theme)
+        }
+    }
+
+    @ViewBuilder
+    private func tabShell(router: Bindable<AppRouter>, theme: CelestialTokens) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *), let currentTrack = deps.player.currentTrack {
+            appTabs(router: router)
+                .tabBarMinimizeBehavior(.onScrollDown)
+                .tabViewBottomAccessory {
+                    MiniPlayerBar(track: currentTrack)
+                }
+        } else {
+            tabsWithFallbackAccessory(router: router, theme: theme)
+        }
+        #else
+        tabsWithFallbackAccessory(router: router, theme: theme)
+        #endif
+    }
+
+    private func tabsWithFallbackAccessory(
+        router: Bindable<AppRouter>,
+        theme: CelestialTokens
+    ) -> some View {
+        appTabs(router: router)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let currentTrack = deps.player.currentTrack {
+                    MiniPlayerBar(track: currentTrack)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.ultraThinMaterial)
+                        .overlay(alignment: .top) {
+                            Rectangle()
+                                .fill(theme.separator)
+                                .frame(height: 0.5)
+                        }
+                }
+            }
+    }
+
+    @ViewBuilder
+    private func appTabs(router: Bindable<AppRouter>) -> some View {
+        if #available(iOS 18.0, *) {
+            TabView(selection: router.selectedTab) {
+                Tab(AppTab.home.title, systemImage: AppTab.home.systemImage, value: AppTab.home) {
+                    homeStack(path: router.homePath)
+                }
+                Tab(AppTab.search.title, systemImage: AppTab.search.systemImage, value: AppTab.search) {
+                    searchStack(path: router.searchPath)
+                }
+                Tab(AppTab.library.title, systemImage: AppTab.library.systemImage, value: AppTab.library) {
+                    libraryStack(path: router.libraryPath)
+                }
+                Tab(AppTab.settings.title, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
+                    settingsStack(path: router.settingsPath)
+                }
+            }
+        } else {
+            TabView(selection: router.selectedTab) {
+                homeStack(path: router.homePath)
+                    .tabItem { Label(AppTab.home.title, systemImage: AppTab.home.systemImage) }
+                    .tag(AppTab.home)
+                searchStack(path: router.searchPath)
+                    .tabItem { Label(AppTab.search.title, systemImage: AppTab.search.systemImage) }
+                    .tag(AppTab.search)
+                libraryStack(path: router.libraryPath)
+                    .tabItem { Label(AppTab.library.title, systemImage: AppTab.library.systemImage) }
+                    .tag(AppTab.library)
+                settingsStack(path: router.settingsPath)
+                    .tabItem { Label(AppTab.settings.title, systemImage: AppTab.settings.systemImage) }
+                    .tag(AppTab.settings)
+            }
+        }
+    }
+
+    private func homeStack(path: Binding<NavigationPath>) -> some View {
+        NavigationStack(path: path) {
+            HomeView()
+                .navigationDestination(for: AppRoute.self) { routeDestination($0) }
+        }
+    }
+
+    private func searchStack(path: Binding<NavigationPath>) -> some View {
+        NavigationStack(path: path) {
+            SearchView()
+                .navigationDestination(for: AppRoute.self) { routeDestination($0) }
+        }
+    }
+
+    private func libraryStack(path: Binding<NavigationPath>) -> some View {
+        NavigationStack(path: path) {
+            LibraryView()
+                .navigationDestination(for: AppRoute.self) { routeDestination($0) }
+        }
+    }
+
+    private func settingsStack(path: Binding<NavigationPath>) -> some View {
+        NavigationStack(path: path) {
+            SettingsView()
+                .navigationDestination(for: AppRoute.self) { routeDestination($0) }
         }
     }
 

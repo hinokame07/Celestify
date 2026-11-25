@@ -2,68 +2,11 @@
 //  FloatingLiquidTabBar.swift
 //  Celestify
 //
-//  Apple iOS 26-inspired floating Liquid Glass bottom chrome pairing the
-//  morphing Now Playing Mini-Bar with the 4-destination Liquid Pill Tab Bar.
+//  Compact Now Playing control used by the native TabView accessory and fallback inset.
+//  Built on Myspoti (https://github.com/kota-zo/myspoti), GPL-3.0.
 //
 
 import SwiftUI
-
-public struct FloatingBottomChrome: View {
-    @Environment(AppDependencies.self) private var deps
-    @Environment(\.celestialTheme) private var theme
-
-    public init() {}
-
-    public var body: some View {
-        VStack(spacing: 10) {
-            if let currentItem = deps.player.currentTrack {
-                MiniPlayerBar(track: currentItem)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
-            HStack(spacing: 4) {
-                ForEach(CelestifyTab.allCases) { tab in
-                    let isSelected = deps.router.selectedTab == tab
-                    Button {
-                        HapticsManager.shared.selection()
-                        if isSelected {
-                            deps.router.popToRoot(of: tab)
-                        } else {
-                            withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
-                                deps.router.selectedTab = tab
-                            }
-                        }
-                    } label: {
-                        VStack(spacing: 3) {
-                            Image(systemName: tab.systemImage)
-                                .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
-                                .symbolEffect(.bounce, value: isSelected)
-                            Text(tab.title)
-                                .font(.caption2.weight(isSelected ? .semibold : .medium))
-                        }
-                        .foregroundStyle(isSelected ? theme.accent : theme.secondaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background {
-                            if isSelected {
-                                Capsule(style: .continuous)
-                                    .fill(theme.accent.opacity(0.16))
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(tab.title)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .liquidGlass(shape: Capsule(style: .continuous), tint: theme.surface)
-        }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 6)
-    }
-}
 
 public struct MiniPlayerBar: View {
     public let track: Track
@@ -167,11 +110,6 @@ public struct MiniPlayerBar: View {
                 .padding(.bottom, 4)
             }
         }
-        .liquidGlass(
-            shape: RoundedRectangle(cornerRadius: 18, style: .continuous),
-            tint: Color(argb: deps.player.artworkPalette.dominantARGB),
-            interactive: true
-        )
         .gesture(
             DragGesture(minimumDistance: 24)
                 .onEnded { value in
