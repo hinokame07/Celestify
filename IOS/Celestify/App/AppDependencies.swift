@@ -27,13 +27,20 @@ public final class AppDependencies {
     public let listenHistory: ListenHistoryStore
     public let extensions: ExtensionManager
 
+    // FIX: main-actor-isolated defaults (`.shared`, `AppRouter()`) are not allowed
+    // as default argument values here, so they are optional and resolved inside
+    // the init body, which runs on the main actor.
     public init(
-        preferences: PreferencesStore = .shared,
-        themeManager: ThemeManager = .shared,
-        router: AppRouter = AppRouter(),
+        preferences: PreferencesStore? = nil,
+        themeManager: ThemeManager? = nil,
+        router: AppRouter? = nil,
         keychain: KeychainStore = .shared,
         http: HTTPClient = .shared
     ) {
+        let preferences = preferences ?? PreferencesStore.shared
+        let themeManager = themeManager ?? ThemeManager.shared
+        let router = router ?? AppRouter()
+
         self.preferences = preferences
         self.themeManager = themeManager
         self.router = router
@@ -57,17 +64,21 @@ public final class AppDependencies {
         let auth = SpotifyAuthManager(keychain: keychain)
         self.authManager = auth
 
-        self.offlineStore = .shared
-        self.listenHistory = .shared
-        self.extensions = .shared
+        let offline = OfflineStore.shared
+        let history = ListenHistoryStore.shared
+        let exts = ExtensionManager.shared
+
+        self.offlineStore = offline
+        self.listenHistory = history
+        self.extensions = exts
         self.lyricsRepository = LyricsRepository(api: apiClient, http: http)
 
         self.player = PlayerController(
             api: apiClient,
             bridge: webBridge,
-            offlineStore: .shared,
-            listenHistory: .shared,
-            extensions: .shared,
+            offlineStore: offline,
+            listenHistory: history,
+            extensions: exts,
             keychain: keychain
         )
 
