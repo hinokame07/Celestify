@@ -59,7 +59,7 @@ public struct RootShellView: View {
                 )
             }
 
-            tabShell(router: router, theme: theme)
+            tabShell(router: $router, theme: theme)
                 .tint(theme.accent)
         }
         .fullScreenCover(isPresented: $router.isShowingFullPlayer) {
