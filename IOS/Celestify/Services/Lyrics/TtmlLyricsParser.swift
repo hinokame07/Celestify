@@ -19,6 +19,11 @@
 
 import Foundation
 
+private final class LyricContentBuffer {
+    var words: [LyricWord] = []
+    var plainPieces: [String] = []
+}
+
 public enum TtmlParseError: Error, LocalizedError, Sendable, Equatable {
     case payloadTooLarge
     case forbiddenEntityDeclaration
@@ -218,23 +223,21 @@ public enum TtmlLyricsParser {
             let agent = p.attribute("ttm:agent") ?? p.attribute("agent")
             let speaker: LyricSpeaker = (agent != nil && duetAgents.contains(agent!)) ? .duet : .main
 
-            var leadWords: [LyricWord] = []
-            var leadPlainPieces: [String] = []
-            var bgWords: [LyricWord] = []
-            var bgPlainPieces: [String] = []
+            let leadContent = LyricContentBuffer()
+            let backgroundContent = LyricContentBuffer()
             var inlineRoman: String?
             var inlineTranslation: String?
 
-            func processItems(_ items: [XMLContent], intoWords targetWords: inout [LyricWord], intoPlain targetPlain: inout [String]) {
+            func processItems(_ items: [XMLContent], into target: LyricContentBuffer) {
                 for item in items {
                     switch item {
                     case .text(let str):
-                        targetPlain.append(str)
+                        target.plainPieces.append(str)
                         // Whitespace between two timed spans separates words (clears isPartOfWord on previous span)
-                        if str.contains(where: \.isWhitespace), let lastIdx = targetWords.indices.last {
-                            let prev = targetWords[lastIdx]
+                        if str.contains(where: \.isWhitespace), let lastIdx = target.words.indices.last {
+                            let prev = target.words[lastIdx]
                             if prev.isPartOfWord {
-                                targetWords[lastIdx] = LyricWord(
+                                target.words[lastIdx] = LyricWord(
                                     text: prev.text,
                                     startMs: prev.startMs,
                                     endMs: prev.endMs,
@@ -246,7 +249,7 @@ public enum TtmlLyricsParser {
                     case .element(let span):
                         let role = span.attribute("ttm:role") ?? span.attribute("role") ?? ""
                         if role == "x-bg" {
-                            processItems(span.contents, intoWords: &bgWords, intoPlain: &bgPlainPieces)
+                            processItems(span.contents, into: backgroundContent)
                         } else if role == "x-roman" {
                             let r = collapseSpaces(span.flattenedText)
                             if !r.isEmpty { inlineRoman = r }
@@ -260,15 +263,15 @@ public enum TtmlLyricsParser {
                                 sEnd = s + dur
                             }
                             let rawSpanText = span.directLeadText
-                            targetPlain.append(rawSpanText)
+                            target.plainPieces.append(rawSpanText)
 
                             if let sStart {
                                 let hasTrailingSpace = rawSpanText.last?.isWhitespace == true
                                 let hasLeadingSpace = rawSpanText.first?.isWhitespace == true
-                                if hasLeadingSpace, let lastIdx = targetWords.indices.last {
-                                    let prev = targetWords[lastIdx]
+                                if hasLeadingSpace, let lastIdx = target.words.indices.last {
+                                    let prev = target.words[lastIdx]
                                     if prev.isPartOfWord {
-                                        targetWords[lastIdx] = LyricWord(
+                                        target.words[lastIdx] = LyricWord(
                                             text: prev.text,
                                             startMs: prev.startMs,
                                             endMs: prev.endMs,
@@ -279,7 +282,7 @@ public enum TtmlLyricsParser {
                                 let trimmed = rawSpanText.trimmingCharacters(in: .whitespacesAndNewlines)
                                 if !trimmed.isEmpty {
                                     // Tentatively mark isPartOfWord = !hasTrailingSpace; cleared at end or on whitespace
-                                    targetWords.append(
+                                    target.words.append(
                                         LyricWord(
                                             text: trimmed,
                                             startMs: sStart,
@@ -293,7 +296,7 @@ public enum TtmlLyricsParser {
                             for sub in span.children {
                                 let subRole = sub.attribute("ttm:role") ?? sub.attribute("role") ?? ""
                                 if subRole == "x-bg" {
-                                    processItems(sub.contents, intoWords: &bgWords, intoPlain: &bgPlainPieces)
+                                    processItems(sub.contents, into: backgroundContent)
                                 } else if subRole == "x-roman" {
                                     let r = collapseSpaces(sub.flattenedText)
                                     if !r.isEmpty { inlineRoman = r }
@@ -306,10 +309,10 @@ public enum TtmlLyricsParser {
                     }
                 }
                 // Last syllable in a line never joins into a next syllable
-                if let lastIdx = targetWords.indices.last {
-                    let last = targetWords[lastIdx]
+                if let lastIdx = target.words.indices.last {
+                    let last = target.words[lastIdx]
                     if last.isPartOfWord {
-                        targetWords[lastIdx] = LyricWord(
+                        target.words[lastIdx] = LyricWord(
                             text: last.text,
                             startMs: last.startMs,
                             endMs: last.endMs,
@@ -319,63 +322,63 @@ public enum TtmlLyricsParser {
                 }
             }
 
-            processItems(p.contents, intoWords: &leadWords, intoPlain: &leadPlainPieces)
+            processItems(p.contents, into: leadContent)
 
             let joinedPlain: String = {
-                if !leadWords.isEmpty {
+                if !leadContent.words.isEmpty {
                     var built = ""
-                    for (idx, w) in leadWords.enumerated() {
-                        if idx > 0 && !leadWords[idx - 1].isPartOfWord {
+                    for (idx, w) in leadContent.words.enumerated() {
+                        if idx > 0 && !leadContent.words[idx - 1].isPartOfWord {
                             built.append(" ")
                         }
                         built.append(w.text)
                     }
                     return built
                 }
-                return collapseSpaces(leadPlainPieces.joined())
+                return collapseSpaces(leadContent.plainPieces.joined())
             }()
 
             let cleanedBgText: String? = {
                 let rawBg: String
-                if !bgWords.isEmpty {
+                if !backgroundContent.words.isEmpty {
                     var built = ""
-                    for (idx, w) in bgWords.enumerated() {
-                        if idx > 0 && !bgWords[idx - 1].isPartOfWord { built.append(" ") }
+                    for (idx, w) in backgroundContent.words.enumerated() {
+                        if idx > 0 && !backgroundContent.words[idx - 1].isPartOfWord { built.append(" ") }
                         built.append(w.text)
                     }
                     rawBg = built
                 } else {
-                    rawBg = collapseSpaces(bgPlainPieces.joined())
+                    rawBg = collapseSpaces(backgroundContent.plainPieces.joined())
                 }
                 let stripped = stripOuterParentheses(rawBg)
                 return stripped.isEmpty ? nil : stripped
             }()
 
             // Strip outer parentheses on first/last bgWords if present
-            if !bgWords.isEmpty {
-                if bgWords[0].text.hasPrefix("(") {
-                    let w = bgWords[0]
+            if !backgroundContent.words.isEmpty {
+                if backgroundContent.words[0].text.hasPrefix("(") {
+                    let w = backgroundContent.words[0]
                     let t = String(w.text.dropFirst()).trimmingCharacters(in: .whitespaces)
-                    bgWords[0] = LyricWord(text: t, startMs: w.startMs, endMs: w.endMs, isPartOfWord: w.isPartOfWord)
+                    backgroundContent.words[0] = LyricWord(text: t, startMs: w.startMs, endMs: w.endMs, isPartOfWord: w.isPartOfWord)
                 }
-                if let lastIdx = bgWords.indices.last, bgWords[lastIdx].text.hasSuffix(")") {
-                    let w = bgWords[lastIdx]
+                if let lastIdx = backgroundContent.words.indices.last, backgroundContent.words[lastIdx].text.hasSuffix(")") {
+                    let w = backgroundContent.words[lastIdx]
                     let t = String(w.text.dropLast()).trimmingCharacters(in: .whitespaces)
-                    bgWords[lastIdx] = LyricWord(text: t, startMs: w.startMs, endMs: w.endMs, isPartOfWord: false)
+                    backgroundContent.words[lastIdx] = LyricWord(text: t, startMs: w.startMs, endMs: w.endMs, isPartOfWord: false)
                 }
-                bgWords.removeAll { $0.text.isEmpty }
+                backgroundContent.words.removeAll { $0.text.isEmpty }
             }
 
-            if pStart == nil, let firstWord = leadWords.first {
+            if pStart == nil, let firstWord = leadContent.words.first {
                 pStart = firstWord.startMs
             }
-            if pEnd == nil, let lastWord = leadWords.last {
+            if pEnd == nil, let lastWord = leadContent.words.last {
                 pEnd = lastWord.endMs
             }
 
             guard !joinedPlain.isEmpty || cleanedBgText != nil else { continue }
 
-            if !leadWords.isEmpty && !declaredUnsynced && timingAttr != "line" {
+            if !leadContent.words.isEmpty && !declaredUnsynced && timingAttr != "line" {
                 anyWordSynced = true
             }
             if pStart != nil && !declaredUnsynced {
@@ -397,9 +400,9 @@ public enum TtmlLyricsParser {
                     startMs: declaredUnsynced ? 0 : pStart,
                     endMs: declaredUnsynced ? nil : pEnd,
                     speaker: speaker,
-                    words: (declaredUnsynced || timingAttr == "line") ? [] : leadWords,
+                    words: (declaredUnsynced || timingAttr == "line") ? [] : leadContent.words,
                     plainText: joinedPlain.isEmpty ? (cleanedBgText ?? "") : joinedPlain,
-                    bgWords: declaredUnsynced ? [] : bgWords,
+                    bgWords: declaredUnsynced ? [] : backgroundContent.words,
                     bgText: joinedPlain.isEmpty ? nil : cleanedBgText,
                     romanized: resolvedRoman,
                     translation: resolvedTranslation

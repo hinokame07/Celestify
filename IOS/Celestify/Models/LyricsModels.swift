@@ -61,7 +61,7 @@ public struct LyricLine: Codable, Sendable, Hashable, Identifiable {
         translation: String? = nil
     ) {
         self.startMs = max(0, startMs)
-        self.endMs = endMs.map { max(self.startMs, $0) }
+        self.endMs = endMs.map { max(startMs, $0) }
         self.words = words
         self.speaker = speaker
         self.wordTimings = wordTimings
