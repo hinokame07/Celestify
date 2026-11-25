@@ -36,7 +36,7 @@ public struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(active.displayName)
                                 .font(.headline)
-                            let handle = active.username ?? active.id
+                            let handle = active.id.hasPrefix("acct-") ? active.displayName : active.id
                             let plan = (active.product ?? "spotify").capitalized
                             Text("@\(handle) · \(plan)")
                                 .font(.caption)
