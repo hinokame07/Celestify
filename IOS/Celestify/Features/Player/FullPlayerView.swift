@@ -54,7 +54,8 @@ public struct FullPlayerView: View {
             }
 
             if let currentItem = deps.player.currentTrack {
-                let track = currentItem.asTrack()
+                // FIX: `currentTrack` is already a `Track`, so no `.asTrack()` conversion.
+                let track = currentItem
                 VStack(spacing: 14) {
                     grabberAndContextHeader(track: track)
                         .padding(.horizontal, 22)
@@ -98,12 +99,12 @@ public struct FullPlayerView: View {
         }
         .sheet(isPresented: $showingCreditsSheet) {
             if let currentItem = deps.player.currentTrack {
-                TrackCreditsSheet(track: currentItem.asTrack())
+                TrackCreditsSheet(track: currentItem)
             }
         }
         .sheet(isPresented: $showingMeaningSheet) {
             if let currentItem = deps.player.currentTrack {
-                SongMeaningSheet(track: currentItem.asTrack(), focusedLyricLine: meaningFocusedLine)
+                SongMeaningSheet(track: currentItem, focusedLyricLine: meaningFocusedLine)
             }
         }
     }
@@ -512,6 +513,7 @@ public struct QueueInlinePane: View {
         }
     }
 
+    // NOTE: `item` here is a `NowPlayingItem`, which does have `asTrack()`. Left unchanged.
     private func queueItemRow(_ item: NowPlayingItem) -> some View {
         Button {
             deps.player.playTrack(item.asTrack())
