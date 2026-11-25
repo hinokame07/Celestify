@@ -163,6 +163,42 @@ final class LyricsAndParsersTests: XCTestCase {
         XCTAssertLessThanOrEqual(pSeek, 5_100)
     }
 
+    func testLyricClockRestartResetsLearnedPlaybackRate() {
+        let clock = LyricClock()
+        _ = clock.frame(nowMs: 1_000, reportedMs: 1_000, sampledAtMs: 1_000)
+        _ = clock.frame(nowMs: 2_000, reportedMs: 2_500, sampledAtMs: 2_000)
+        XCTAssertEqual(clock.learnedRate, 1.5, accuracy: 0.01)
+
+        clock.restart()
+
+        XCTAssertEqual(clock.learnedRate, 1.0, accuracy: 0.001)
+        XCTAssertEqual(clock.frame(nowMs: 3_000, reportedMs: 8_000, sampledAtMs: 3_000), 8_000)
+    }
+
+    func testLyricClockHoldPreservesLearnedPlaybackRate() {
+        let clock = LyricClock()
+        _ = clock.frame(nowMs: 1_000, reportedMs: 1_000, sampledAtMs: 1_000)
+        _ = clock.frame(nowMs: 2_000, reportedMs: 2_500, sampledAtMs: 2_000)
+
+        clock.hold(positionMs: 2_500, nowMs: 2_000)
+        XCTAssertEqual(clock.learnedRate, 1.5, accuracy: 0.01)
+        XCTAssertEqual(clock.frame(nowMs: 3_000, reportedMs: 4_000, sampledAtMs: 3_000), 4_000)
+        XCTAssertEqual(clock.learnedRate, 1.5, accuracy: 0.01)
+    }
+
+    func testInterludeProgressUsesTheCurrentGap() {
+        let lines = [
+            LyricLine(startMs: 0, endMs: 1_000, words: "First line"),
+            LyricLine(startMs: 5_000, endMs: 6_000, words: "Second line")
+        ]
+
+        let interlude = LyricTiming.interludeState(in: lines, at: 3_000)
+
+        XCTAssertEqual(interlude?.startMs, 1_000)
+        XCTAssertEqual(interlude?.endMs, 5_000)
+        XCTAssertEqual(interlude?.progress ?? 0, 0.5, accuracy: 0.001)
+    }
+
     func testRomanizerHangulKanaAndCyrillic() {
         XCTAssertNotNil(Romanizer.romanizeLine("봄날"))
         XCTAssertEqual(Romanizer.romanizeLine("さくら"), "sakura")
