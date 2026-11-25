@@ -476,7 +476,8 @@ public struct DiagnosticLogbookView: View {
     private var formattedExportText: String {
         let iso = ISO8601DateFormatter()
         return entries.map { entry in
-            "[\(iso.string(from: entry.at))] [\(entry.tag)] \(entry.message)"
+            // FIX: DiagnosticEntry uses `timestamp` and `category` (not `at` / `tag`).
+            "[\(iso.string(from: entry.timestamp))] [\(entry.category)] \(entry.message)"
         }.joined(separator: "\n")
     }
 
@@ -498,11 +499,11 @@ public struct DiagnosticLogbookView: View {
                 ForEach(entries.reversed()) { entry in
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
-                            Text(entry.tag.uppercased())
+                            Text(entry.category.uppercased())
                                 .font(.caption2.weight(.bold))
                                 .foregroundStyle(.tint)
                             Spacer()
-                            Text(entry.at, style: .time)
+                            Text(entry.timestamp, style: .time)
                                 .font(.caption2.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
