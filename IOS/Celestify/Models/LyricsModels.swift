@@ -60,8 +60,9 @@ public struct LyricLine: Codable, Sendable, Hashable, Identifiable {
         romanized: String? = nil,
         translation: String? = nil
     ) {
-        self.startMs = max(0, startMs)
-        self.endMs = endMs.map { max(self.startMs, $0) }
+        let normalizedStartMs = max(0, startMs)
+        self.startMs = normalizedStartMs
+        self.endMs = endMs.map { max(normalizedStartMs, $0) }
         self.words = words
         self.speaker = speaker
         self.wordTimings = wordTimings
