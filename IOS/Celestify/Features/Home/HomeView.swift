@@ -16,6 +16,7 @@ public struct HomeView: View {
     @State private var selectedFacetID: String?
     @State private var recentEntries: [RecentEntry] = []
     @State private var isLoading = false
+    @State private var loadGeneration = 0
     @State private var errorMessage: String?
     @State private var showingWhatsNew = false
     @State private var showingFriendActivity = false
@@ -329,10 +330,15 @@ public struct HomeView: View {
     }
 
     private func reload() async {
-        guard !isLoading else { return }
+        loadGeneration += 1
+        let generation = loadGeneration
         isLoading = true
         errorMessage = nil
-        defer { isLoading = false }
+        defer {
+            if generation == loadGeneration {
+                isLoading = false
+            }
+        }
 
         DiagnosticLogbook.shared.log("home", "Starting Home load")
         do {
@@ -341,11 +347,13 @@ public struct HomeView: View {
             }
             DiagnosticLogbook.shared.log("home", "Waiting for authenticated Web Player bridge")
             try await deps.bridge.waitUntilReady(timeoutSeconds: 30)
+            guard generation == loadGeneration else { return }
             DiagnosticLogbook.shared.log("home", "Web Player bridge ready; requesting Spotify Home")
 
             async let feedRequest = loadHomeFeed()
             async let recentsRequest = loadRecentEntries()
             let (feedResult, recentsResult) = await (feedRequest, recentsRequest)
+            guard generation == loadGeneration else { return }
 
             switch feedResult {
             case .success(let loadedFeed):
@@ -385,7 +393,9 @@ public struct HomeView: View {
                 "home",
                 "Home load failed (\(String(describing: type(of: error))))"
             )
-            self.errorMessage = error.localizedDescription
+            if generation == loadGeneration {
+                self.errorMessage = error.localizedDescription
+            }
         }
     }
 
