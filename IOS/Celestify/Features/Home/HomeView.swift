@@ -2,8 +2,7 @@
 //  HomeView.swift
 //  Celestify
 //
-//  Home tab featuring time-of-day greeting, facet filter chips, Friend Activity &
-//  Recents sheets, 2-column Liquid Glass shortcuts, Spotify Home shelves, and Listening Recap card.
+//  Home tab featuring Spotify shelves, recent plays, and listening recap.
 //  Built on Myspoti (https://github.com/kota-zo/myspoti), GPL-3.0.
 //
 
@@ -17,6 +16,7 @@ public struct HomeView: View {
     @State private var selectedFacetID: String?
     @State private var recentEntries: [RecentEntry] = []
     @State private var isLoading = false
+    @State private var loadGeneration = 0
     @State private var errorMessage: String?
     @State private var showingWhatsNew = false
     @State private var showingFriendActivity = false
@@ -28,6 +28,19 @@ public struct HomeView: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 24) {
                 headerToolbar
+
+                if isLoading && feed == nil {
+                    loadingSkeleton
+                } else if let errorMessage {
+                    loadErrorState(errorMessage)
+                } else if let feed, feed.sections.isEmpty, recentEntries.isEmpty {
+                    ContentUnavailableView(
+                        "No music yet",
+                        systemImage: "music.note.list",
+                        description: Text("Your Spotify Home has no content right now.")
+                    )
+                    .padding(.horizontal, 16)
+                }
 
                 if let chips = feed?.chips, !chips.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -41,14 +54,15 @@ public struct HomeView: View {
                                 } label: {
                                     Text(chip.label)
                                         .font(.footnote.weight(.semibold))
-                                        .foregroundStyle(active ? .white : theme.primaryText)
+                                        .foregroundStyle(active ? theme.onAccent : theme.primaryText)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
+                                        .frame(minHeight: 44)
                                         .background {
                                             if active {
                                                 Capsule().fill(theme.accent)
                                             } else {
-                                                Capsule().fill(Color.white.opacity(0.08))
+                                                Capsule().fill(theme.elevated)
                                             }
                                         }
                                 }
@@ -57,20 +71,6 @@ public struct HomeView: View {
                         }
                         .padding(.horizontal, 16)
                     }
-                }
-
-                if let firstSection = feed?.sections.first, !firstSection.items.isEmpty {
-                    LazyVGrid(
-                        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-                        spacing: 10
-                    ) {
-                        ForEach(firstSection.items.prefix(6)) { card in
-                            HomeShortcutTile(card: card) {
-                                openMediaCard(card)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
                 }
 
                 listeningRecapBanner
@@ -97,12 +97,14 @@ public struct HomeView: View {
                                     }
                                 }
                             }
+                            .scrollTargetLayout()
                             .padding(.horizontal, 16)
                         }
+                        .scrollTargetBehavior(.viewAligned)
                     }
                 }
 
-                if let sections = feed?.sections.dropFirst() {
+                if let sections = feed?.sections {
                     ForEach(Array(sections)) { section in
                         VStack(alignment: .leading, spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
@@ -131,37 +133,12 @@ public struct HomeView: View {
                                         }
                                     }
                                 }
+                                .scrollTargetLayout()
                                 .padding(.horizontal, 16)
                             }
+                            .scrollTargetBehavior(.viewAligned)
                         }
                     }
-                }
-
-                if isLoading && feed == nil {
-                    HStack {
-                        Spacer()
-                        ProgressView("Loading Celestial Home…")
-                            .tint(theme.accent)
-                            .padding(.vertical, 48)
-                        Spacer()
-                    }
-                } else if let errorMessage, feed == nil {
-                    VStack(spacing: 12) {
-                        Image(systemName: "wifi.exclamationmark")
-                            .font(.largeTitle)
-                            .foregroundStyle(theme.secondaryText)
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(theme.secondaryText)
-                            .multilineTextAlignment(.center)
-                        Button("Retry") {
-                            Task { await reload() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(theme.accent)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(32)
                 }
 
                 Spacer(minLength: 130)
@@ -198,7 +175,7 @@ public struct HomeView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(greetingTitle)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.largeTitle.weight(.bold))
                     .foregroundStyle(theme.primaryText)
                 if let name = deps.authManager.currentAccount?.displayName, !name.isEmpty {
                     Text(name)
@@ -215,7 +192,7 @@ public struct HomeView: View {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(theme.primaryText)
-                    .frame(width: 38, height: 38)
+                    .frame(width: 44, height: 44)
                     .liquidGlass(shape: Circle(), interactive: true)
             }
             .buttonStyle(.plain)
@@ -227,7 +204,7 @@ public struct HomeView: View {
                 Image(systemName: "person.2.wave.2")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(theme.primaryText)
-                    .frame(width: 38, height: 38)
+                    .frame(width: 44, height: 44)
                     .liquidGlass(shape: Circle(), interactive: true)
             }
             .buttonStyle(.plain)
@@ -244,6 +221,7 @@ public struct HomeView: View {
                         isCircular: true,
                         fallbackSystemImage: "person.crop.circle.fill"
                     )
+                    .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Your Profile")
@@ -268,7 +246,7 @@ public struct HomeView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Celestial Listening Recap")
+                    Text("Listening Recap")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text(
@@ -288,9 +266,63 @@ public struct HomeView: View {
                     .foregroundStyle(theme.secondaryText)
             }
             .padding(14)
-            .liquidGlass(shape: RoundedRectangle(cornerRadius: 18, style: .continuous), interactive: true)
+            .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(theme.separator, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
+    }
+
+    private var loadingSkeleton: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Loading your music…")
+                .font(.headline)
+                .foregroundStyle(theme.secondaryText)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        VStack(alignment: .leading, spacing: 8) {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(theme.secondaryText.opacity(0.12))
+                                .frame(width: 132, height: 132)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(theme.secondaryText.opacity(0.12))
+                                .frame(width: 100, height: 12)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(theme.secondaryText.opacity(0.08))
+                                .frame(width: 72, height: 10)
+                        }
+                    }
+                }
+            }
+            .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityLabel("Loading your music")
+    }
+
+    @ViewBuilder
+    private func loadErrorState(_ message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.largeTitle)
+                .foregroundStyle(theme.secondaryText)
+            Text(message)
+                .font(.footnote)
+                .foregroundStyle(theme.secondaryText)
+                .multilineTextAlignment(.center)
+            Button("Try again") {
+                Task { await reload() }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(theme.accent)
+            .disabled(isLoading)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(32)
     }
 
     private var greetingTitle: String {
@@ -304,17 +336,89 @@ public struct HomeView: View {
     }
 
     private func reload() async {
+        loadGeneration += 1
+        let generation = loadGeneration
         isLoading = true
         errorMessage = nil
-        do {
-            async let homeTask = deps.api.homeFeed(facet: selectedFacetID)
-            async let recentsTask = deps.api.recentlyPlayed(limit: 20)
-            self.feed = try await homeTask
-            self.recentEntries = (try? await recentsTask)?.items ?? []
-        } catch {
-            self.errorMessage = error.localizedDescription
+        defer {
+            if generation == loadGeneration {
+                isLoading = false
+            }
         }
-        isLoading = false
+
+        DiagnosticLogbook.shared.log("home", "Starting Home load")
+        do {
+            guard deps.authManager.currentAccount != nil else {
+                throw HomeLoadError.notAuthenticated
+            }
+            DiagnosticLogbook.shared.log("home", "Waiting for authenticated Web Player bridge")
+            try await deps.bridge.waitUntilReady(timeoutSeconds: 30)
+            guard generation == loadGeneration else { return }
+            DiagnosticLogbook.shared.log("home", "Web Player bridge ready; requesting Spotify Home")
+
+            async let feedRequest = loadHomeFeed()
+            async let recentsRequest = loadRecentEntries()
+            let (feedResult, recentsResult) = await (feedRequest, recentsRequest)
+            guard generation == loadGeneration else { return }
+
+            switch feedResult {
+            case .success(let loadedFeed):
+                self.feed = loadedFeed
+                let sectionItemCount = loadedFeed.sections.reduce(0) { $0 + $1.items.count }
+                DiagnosticLogbook.shared.log(
+                    "home",
+                    "Home mapped \(loadedFeed.sections.count) sections and \(sectionItemCount) cards"
+                )
+            case .failure(let error):
+                DiagnosticLogbook.shared.log(
+                    "home",
+                    "Home feed request failed (\(String(describing: type(of: error))))"
+                )
+                self.errorMessage = error.localizedDescription
+            }
+
+            switch recentsResult {
+            case .success(let entries):
+                self.recentEntries = entries
+                DiagnosticLogbook.shared.log("home", "Recently played mapped \(entries.count) items")
+            case .failure(let error):
+                self.recentEntries = []
+                DiagnosticLogbook.shared.log(
+                    "home",
+                    "Recently played request failed (\(String(describing: type(of: error))))"
+                )
+            }
+            if case .success(let loadedFeed) = feedResult,
+               loadedFeed.sections.isEmpty && recentEntries.isEmpty {
+                DiagnosticLogbook.shared.log("home", "Spotify Home completed without displayable content")
+            }
+        } catch is CancellationError {
+            DiagnosticLogbook.shared.log("home", "Home load cancelled")
+        } catch {
+            DiagnosticLogbook.shared.log(
+                "home",
+                "Home load failed (\(String(describing: type(of: error))))"
+            )
+            if generation == loadGeneration {
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func loadHomeFeed() async -> Result<HomeFeed, Error> {
+        do {
+            return .success(try await deps.api.homeFeed(facet: selectedFacetID))
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func loadRecentEntries() async -> Result<[RecentEntry], Error> {
+        do {
+            return .success(try await deps.api.recentlyPlayed(limit: 20).items)
+        } catch {
+            return .failure(error)
+        }
     }
 
     private func openMediaCard(_ card: MediaCard) {
@@ -330,6 +434,7 @@ public struct HomeView: View {
         } else {
             deps.router.openSpotifyURI(card.uri, fallbackTitle: card.title)
         }
+
     }
 
     private func openRecentEntry(_ entry: RecentEntry) {
@@ -345,6 +450,14 @@ public struct HomeView: View {
             deps.player.playTrack(track)
         } else {
             deps.router.openSpotifyURI(entry.uri, fallbackTitle: entry.title)
+        }
+    }
+
+    private enum HomeLoadError: LocalizedError {
+        case notAuthenticated
+
+        var errorDescription: String? {
+            NSLocalizedString("Sign in to Spotify to load Home.", comment: "Shown when Home is opened without an active Spotify account")
         }
     }
 }

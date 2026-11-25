@@ -39,7 +39,7 @@ public struct AlbumDetailView: View {
                             size: 214,
                             cornerRadius: 20
                         )
-                        .shadow(color: .black.opacity(0.45), radius: 20, y: 10)
+                        .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
 
                         VStack(spacing: 5) {
                             Text(album.name)
@@ -211,10 +211,10 @@ public struct ArtistDetailView: View {
                             isCircular: true,
                             fallbackSystemImage: "music.mic"
                         )
-                        .shadow(color: .black.opacity(0.45), radius: 20, y: 8)
+                        .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
 
                         Text(page.artist.name)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .font(.largeTitle.weight(.bold))
                             .foregroundStyle(theme.primaryText)
                             .multilineTextAlignment(.center)
 
@@ -317,7 +317,11 @@ public struct ArtistDetailView: View {
                                 .lineLimit(8)
                         }
                         .padding(16)
-                        .liquidGlass(shape: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(theme.separator, lineWidth: 1)
+                        }
                         .padding(.horizontal, 16)
                     }
                 } else if isLoading {
@@ -409,7 +413,7 @@ public struct PlaylistDetailView: View {
                             size: 204,
                             cornerRadius: 20
                         )
-                        .shadow(color: .black.opacity(0.45), radius: 20, y: 10)
+                        .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
 
                         Text(playlist.name)
                             .font(.title2.weight(.bold))
@@ -469,7 +473,7 @@ public struct PlaylistDetailView: View {
                                     Button {
                                         showingBlendStory = true
                                     } label: {
-                                        Label("View Blend Taste Story", systemImage: "sparkles.rectangle.stack")
+                                        Label("View blend story", systemImage: "text.quote")
                                     }
                                 }
                             } label: {

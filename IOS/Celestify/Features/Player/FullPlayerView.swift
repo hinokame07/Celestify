@@ -2,9 +2,9 @@
 //  FullPlayerView.swift
 //  Celestify
 //
-//  Apple Music iOS 26-inspired Full-Screen Liquid Glass Now Playing experience:
-//  - Live Artwork Atmospheric Backdrop + looping Spotify Canvas video stage
-//  - Seamless toggle between Artwork Stage, Spicy Lyrics Stage, and Up Next Queue
+// Full-screen Now Playing view:
+//  - Artwork-derived background and optional looping Spotify Canvas video
+//  - Artwork, lyrics, and queue views
 //  - Interactive Liquid Scrubber, Transport Controls, Volume, Connect/Jam & Credits
 //  Built on Myspoti (https://github.com/kota-zo/myspoti), GPL-3.0.
 //
@@ -34,19 +34,22 @@ public struct FullPlayerView: View {
     @State private var sleepTimerTask: Task<Void, Never>?
     @State private var sleepTimerMinutes: Int = 0
 
+    private var playerForeground: Color { theme.isLight ? theme.primaryText : .white }
+    private var playerSecondaryForeground: Color { theme.isLight ? theme.secondaryText : .white }
+
     public init() {}
 
     public var body: some View {
         ZStack {
             AtmosphericBackdrop(
                 palette: deps.player.artworkPalette,
-                isPlaying: deps.player.isPlaying,
-                intensity: activePane == .lyrics ? 0.85 : 1.0
+                isAnimating: deps.player.isPlaying
             )
 
             if let canvas = deps.player.currentCanvas,
                canvas.isVideo,
                let canvasURL = URL(string: canvas.url),
+               !reduceMotion,
                activePane == .artwork {
                 LoopingCanvasVideoView(url: canvasURL)
                     .opacity(0.32)
@@ -87,13 +90,12 @@ public struct FullPlayerView: View {
                 VStack(spacing: 14) {
                     Text("Nothing Playing")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(playerForeground)
                     Button("Close") { dismiss() }
                         .buttonStyle(.borderedProminent)
                 }
             }
         }
-        .preferredColorScheme(.dark)
         .sheet(isPresented: $showingConnectSheet) {
             ConnectAndJamSheet()
         }
@@ -114,7 +116,7 @@ public struct FullPlayerView: View {
     private func grabberAndContextHeader(track: Track) -> some View {
         VStack(spacing: 10) {
             Capsule()
-                .fill(Color.white.opacity(0.36))
+                .fill(playerForeground.opacity(0.36))
                 .frame(width: 40, height: 5)
                 .onTapGesture { dismiss() }
 
@@ -122,11 +124,11 @@ public struct FullPlayerView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(deps.player.sourceLabel.uppercased())
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(playerSecondaryForeground)
                     if !deps.player.contextName.isEmpty {
                         Text(deps.player.contextName)
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(playerForeground)
                             .lineLimit(1)
                     }
                 }
@@ -144,7 +146,7 @@ public struct FullPlayerView: View {
                         meaningFocusedLine = nil
                         showingMeaningSheet = true
                     } label: {
-                        Label("Genius Song Meaning", systemImage: "sparkles.rectangle.stack")
+                        Label("Song meaning", systemImage: "text.quote")
                     }
 
                     if let firstArtist = track.artists.first, !firstArtist.uri.isEmpty {
@@ -182,8 +184,8 @@ public struct FullPlayerView: View {
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 34, height: 34)
+                        .foregroundStyle(playerForeground)
+                        .frame(width: 44, height: 44)
                         .liquidGlass(shape: Circle(), interactive: true)
                 }
                 .accessibilityLabel("More Track Options")
@@ -201,15 +203,13 @@ public struct FullPlayerView: View {
                 ArtworkView(
                     urlString: track.coverURL,
                     size: max(180, side),
-                    cornerRadius: 24
+                    cornerRadius: 16
                 )
-                .scaleEffect(deps.player.isPlaying || reduceMotion ? 1.0 : 0.87)
                 .shadow(
-                    color: Color(argb: deps.player.artworkPalette.vibrantARGB).opacity(deps.player.isPlaying ? 0.50 : 0.22),
-                    radius: deps.player.isPlaying ? 32 : 14,
-                    y: deps.player.isPlaying ? 18 : 8
+                    color: .black.opacity(0.18),
+                    radius: 12,
+                    y: 6
                 )
-                .animation(.spring(response: 0.45, dampingFraction: 0.78), value: deps.player.isPlaying)
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -228,12 +228,12 @@ public struct FullPlayerView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(track.name)
                         .font(activePane == .artwork ? .title3.weight(.bold) : .headline.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(playerForeground)
                         .lineLimit(1)
 
                     Text(track.artistNames)
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.72))
+                        .foregroundStyle(playerSecondaryForeground)
                         .lineLimit(1)
                 }
 
@@ -244,8 +244,8 @@ public struct FullPlayerView: View {
                 } label: {
                     Image(systemName: deps.player.isCurrentTrackLiked ? "heart.fill" : "heart")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(deps.player.isCurrentTrackLiked ? theme.accent : .white.opacity(0.78))
-                        .frame(width: 40, height: 40)
+                        .foregroundStyle(deps.player.isCurrentTrackLiked ? theme.accent : playerForeground)
+                        .frame(width: 44, height: 44)
                         .liquidGlass(shape: Circle(), interactive: true)
                 }
                 .buttonStyle(.plain)
@@ -265,11 +265,11 @@ public struct FullPlayerView: View {
                     GeometryReader { barGeo in
                         ZStack(alignment: .leading) {
                             Capsule()
-                                .fill(Color.white.opacity(0.22))
+                                .fill(playerForeground.opacity(0.22))
                                 .frame(height: isScrubbing ? 11 : 6)
 
                             Capsule()
-                                .fill(Color.white)
+                                .fill(playerForeground)
                                 .frame(
                                     width: max(0, barGeo.size.width * displayedFraction),
                                     height: isScrubbing ? 11 : 6
@@ -308,7 +308,7 @@ public struct FullPlayerView: View {
                         Text("-\(TrackRowView.formatDuration(remainMs))")
                     }
                     .font(.caption2.monospacedDigit().weight(.medium))
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(playerSecondaryForeground)
                 }
             }
         }
@@ -323,8 +323,8 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: "shuffle")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(deps.player.isShuffled ? theme.accent : .white.opacity(0.65))
-                    .frame(width: 42, height: 42)
+                    .foregroundStyle(deps.player.isShuffled ? theme.accent : playerSecondaryForeground)
+                    .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Shuffle")
@@ -336,7 +336,7 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: "backward.fill")
                     .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(playerForeground)
                     .frame(width: 52, height: 52)
             }
             .buttonStyle(.plain)
@@ -351,12 +351,12 @@ public struct FullPlayerView: View {
                 ZStack {
                     if deps.player.isBuffering {
                         ProgressView()
-                            .tint(.white)
+                            .tint(playerForeground)
                             .scaleEffect(1.3)
                     } else {
                         Image(systemName: deps.player.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 40, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(playerForeground)
                     }
                 }
                 .frame(width: 72, height: 72)
@@ -372,7 +372,7 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: "forward.fill")
                     .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(playerForeground)
                     .frame(width: 52, height: 52)
             }
             .buttonStyle(.plain)
@@ -385,8 +385,8 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: deps.player.repeatMode == .track ? "repeat.1" : "repeat")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(deps.player.repeatMode == .off ? .white.opacity(0.65) : theme.accent)
-                    .frame(width: 42, height: 42)
+                    .foregroundStyle(deps.player.repeatMode == .off ? playerSecondaryForeground : theme.accent)
+                    .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Repeat Mode")
@@ -405,11 +405,11 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: activePane == .lyrics ? "quote.bubble.fill" : "quote.bubble")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(activePane == .lyrics ? theme.accent : .white.opacity(0.75))
-                    .frame(width: 44, height: 40)
+                    .foregroundStyle(activePane == .lyrics ? theme.accent : playerSecondaryForeground)
+                    .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Toggle Spicy Lyrics")
+            .accessibilityLabel("Toggle lyrics")
 
             Spacer()
 
@@ -425,9 +425,9 @@ public struct FullPlayerView: View {
                             .lineLimit(1)
                     }
                 }
-                .foregroundStyle(deps.player.activeRemoteDeviceName != nil ? theme.accent : .white.opacity(0.75))
+                .foregroundStyle(deps.player.activeRemoteDeviceName != nil ? theme.accent : playerSecondaryForeground)
                 .padding(.horizontal, 10)
-                .frame(height: 40)
+                .frame(minHeight: 44)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Devices and Jam")
@@ -442,8 +442,8 @@ public struct FullPlayerView: View {
             } label: {
                 Image(systemName: "list.bullet")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(activePane == .queue ? theme.accent : .white.opacity(0.75))
-                    .frame(width: 44, height: 40)
+                    .foregroundStyle(activePane == .queue ? theme.accent : playerSecondaryForeground)
+                    .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Toggle Playback Queue")
@@ -469,8 +469,12 @@ public struct FullPlayerView: View {
 
 public struct QueueInlinePane: View {
     @Environment(AppDependencies.self) private var deps
+    @Environment(\.celestialTheme) private var theme
 
     public init() {}
+
+    private var foreground: Color { theme.isLight ? theme.primaryText : .white }
+    private var secondaryForeground: Color { theme.isLight ? theme.secondaryText : .white.opacity(0.65) }
 
     public var body: some View {
         ScrollView {
@@ -479,13 +483,13 @@ public struct QueueInlinePane: View {
                     HStack {
                         Text("Next in Queue")
                             .font(.headline.weight(.bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foreground)
                         Spacer()
                         Button("Clear") {
                             deps.player.clearUserQueue()
                         }
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(secondaryForeground)
                     }
                     ForEach(deps.player.queue.queued) { item in
                         queueItemRow(item)
@@ -494,13 +498,13 @@ public struct QueueInlinePane: View {
 
                 Text("Playing Next")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foreground)
                     .padding(.top, 6)
 
                 if deps.player.queue.nextUp.isEmpty {
                     Text("Upcoming tracks from your current album, playlist, or Autoplay radio appear here.")
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(secondaryForeground)
                         .padding(.vertical, 12)
                 } else {
                     ForEach(deps.player.queue.nextUp.prefix(30)) { item in
@@ -523,17 +527,17 @@ public struct QueueInlinePane: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(foreground)
                         .lineLimit(1)
                     Text(item.artists.map(\.name).joined(separator: ", "))
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.65))
+                        .foregroundStyle(secondaryForeground)
                         .lineLimit(1)
                 }
                 Spacer()
                 Image(systemName: "line.3.horizontal")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(secondaryForeground.opacity(0.6))
             }
         }
         .buttonStyle(.plain)

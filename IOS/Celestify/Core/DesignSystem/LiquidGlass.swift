@@ -31,7 +31,7 @@ public enum LiquidGlassRenderPath: String, Sendable {
 public enum GlassProminence: Sendable {
     /// Floating chrome: tab bar, mini-player, floating top action pills.
     case regular
-    /// Thin interactive controls, chips, badges, transport orbs.
+    /// Thin interactive controls, chips, and badges.
     case thin
     /// Sheets, dialogs, and dense cards where multi-line text legibility dominates.
     case thick
@@ -109,24 +109,13 @@ public struct CelestialLiquidGlassModifier<S: InsettableShape>: ViewModifier {
                 }
             }
             .overlay {
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(celestial.isLight ? 0.65 : 0.34),
-                            celestial.glassEdge,
-                            Color.white.opacity(celestial.isLight ? 0.22 : 0.08)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.85
-                )
+                shape.strokeBorder(celestial.glassEdge.opacity(0.65), lineWidth: 0.75)
             }
             .shadow(
-                color: Color.black.opacity(celestial.isLight ? 0.10 : 0.34),
-                radius: prominence == .thin ? 8 : 18,
+                color: Color.black.opacity(celestial.isLight ? 0.06 : 0.12),
+                radius: prominence == .thin ? 4 : 8,
                 x: 0,
-                y: prominence == .thin ? 4 : 10
+                y: prominence == .thin ? 2 : 4
             )
     }
 }

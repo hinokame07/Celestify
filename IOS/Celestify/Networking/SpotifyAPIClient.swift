@@ -33,14 +33,14 @@ public final class SpotifyAPIClient: Sendable {
         var vars: [String: JSONValue] = [
             "timeZone": .string(tz),
             "sp_t": .string(""),
-            "country": .string(""),
             "facet": facet.flatMap { $0.isEmpty ? nil : .string($0) } ?? .null,
-            "sectionItemsLimit": .int(20)
+            "sectionItemsLimit": .int(20),
+            "homeEndUserIntegration": .string("INTEGRATION_WEB_PLAYER"),
+            "includeEpisodeContentRatingsV2": .bool(true),
+            "includeHomeChapterVideoCards": .bool(false)
         ]
-        if facet == nil || facet?.isEmpty == true {
-            vars["facet"] = .null
-        }
         let root = try await gql.query("home", variables: vars)
+        DiagnosticLogbook.shared.log("home", "Received Home GraphQL response")
         let home = try root.entity("data.home", operation: "home")
         let greeting = home.str("greeting.transformedLabel") ?? home.str("greeting.text")
         let chips = home.list("homeChips").compactMap { chip -> HomeChip? in
@@ -48,20 +48,32 @@ public final class SpotifyAPIClient: Sendable {
                   let label = chip.str("label.transformedLabel") ?? chip.str("label.originalLabel") else { return nil }
             return HomeChip(id: id, label: label)
         }
-        let sections = home.list("sectionContainer.sections.items").compactMap { sec -> HomeSection? in
+        let sourceSections = home.list("sectionContainer.sections.items")
+        var rejectedCardCount = 0
+        var emptySectionCount = 0
+        let sections = sourceSections.compactMap { sec -> HomeSection? in
             let typeName = sec.at("data")?.typename() ?? ""
             if typeName.contains("Wrapped") || typeName.contains("Promo") || typeName.contains("Banner") {
                 return nil
             }
-            let cards = sec.list("sectionItems.items").compactMap { item -> MediaCard? in
+            let sourceCards = sec.list("sectionItems.items")
+            let cards = sourceCards.compactMap { item -> MediaCard? in
                 SpotifyMappers.card(item.at("content"))
             }
-            guard !cards.isEmpty else { return nil }
+            rejectedCardCount += sourceCards.count - cards.count
+            guard !cards.isEmpty else {
+                emptySectionCount += 1
+                return nil
+            }
             let uri = sec.str("uri") ?? UUID().uuidString
             let title = sec.str("data.title.transformedLabel") ?? sec.str("data.title.text") ?? ""
             let subtitle = sec.str("data.subtitle.transformedLabel")
             return HomeSection(uri: uri, title: title, subtitle: subtitle, items: cards)
         }
+        DiagnosticLogbook.shared.log(
+            "home",
+            "Home mapping: \(sourceSections.count) source sections, \(sections.count) displayable, \(rejectedCardCount) rejected cards, \(emptySectionCount) empty sections"
+        )
         return HomeFeed(greeting: greeting, chips: chips, sections: sections)
     }
 
@@ -773,7 +785,7 @@ public final class SpotifyAPIClient: Sendable {
             "limit": .int(Int64(limit))
         ])
         let rowsNode = r.list("data.lists").first?.at("items")
-        return SpotifyMappers.page(rowsNode, offset: offset) { row -> RecentEntry? in
+        let page = SpotifyMappers.page(rowsNode, offset: offset) { row -> RecentEntry? in
             guard let entity = row.at("entity") else { return nil }
             let d = entity.at("data") ?? entity
             guard let uri = d.str("uri") ?? entity.str("_uri"),
@@ -810,6 +822,11 @@ public final class SpotifyAPIClient: Sendable {
                 isMusic: isMusic
             )
         }
+        DiagnosticLogbook.shared.log(
+            "home",
+            "Recently played mapping: \(rowsNode?.list("items").count ?? 0) source rows, \(page.items.count) displayable"
+        )
+        return page
     }
 
     // MARK: - Connect Devices & Jam

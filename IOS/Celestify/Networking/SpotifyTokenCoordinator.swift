@@ -68,9 +68,11 @@ public actor SpotifyTokenCoordinator {
         body: Data? = nil,
         allowRetryOnAuthFailure: Bool = true
     ) async throws -> HTTPResponse {
+        DiagnosticLogbook.shared.log("token", "Preparing authenticated \(method) request to \(url.host ?? "Spotify")")
         let auth = try await validHeaders(forceRefresh: false)
         var headers = buildHeaders(from: auth, accept: accept, contentType: contentType, extra: extraHeaders)
         let first = try await http.send(method: method, url: url, headers: headers, body: body)
+        DiagnosticLogbook.shared.log("token", "Authenticated request returned HTTP \(first.statusCode)")
 
         if allowRetryOnAuthFailure && (first.statusCode == 401 || (first.statusCode == 400 && first.text.contains("client-token"))) {
             DiagnosticLogbook.shared.log("token", "HTTP \(first.statusCode) from \(url.host ?? "spotify") — refreshing tokens once and retrying")
@@ -102,12 +104,26 @@ public actor SpotifyTokenCoordinator {
     // MARK: - Header & Token Resolution
 
     public func validHeaders(forceRefresh: Bool = false) async throws -> SpotifyAuthHeaders {
-        let web = try await resolveWebToken(forceRefresh: forceRefresh)
-        let client = try await resolveClientToken(
-            clientID: web.clientID,
-            appVersion: web.appVersion,
-            forceRefresh: forceRefresh
-        )
+        DiagnosticLogbook.shared.log("token", "Resolving Spotify Web Player access and client tokens")
+        let web: StoredWebToken
+        do {
+            web = try await resolveWebToken(forceRefresh: forceRefresh)
+        } catch {
+            DiagnosticLogbook.shared.log("token", "Web Player token resolution failed (\(String(describing: type(of: error))))")
+            throw error
+        }
+        let client: StoredClientToken
+        do {
+            client = try await resolveClientToken(
+                clientID: web.clientID,
+                appVersion: web.appVersion,
+                forceRefresh: forceRefresh
+            )
+        } catch {
+            DiagnosticLogbook.shared.log("token", "Client token resolution failed (\(String(describing: type(of: error))))")
+            throw error
+        }
+        DiagnosticLogbook.shared.log("token", "Spotify Web Player tokens resolved")
         return SpotifyAuthHeaders(
             authorization: "Bearer \(web.accessToken)",
             clientToken: client.token,

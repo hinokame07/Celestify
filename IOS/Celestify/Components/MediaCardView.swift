@@ -46,7 +46,7 @@ public struct MediaCardView: View {
                     isCircular: isCircular,
                     fallbackSystemImage: isCircular ? "person.wave.2.fill" : "music.quarternote.3"
                 )
-                .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 5)
+                .shadow(color: .black.opacity(0.12), radius: 5, x: 0, y: 3)
 
                 VStack(alignment: isCircular ? .center : .leading, spacing: 2) {
                     Text(title)
@@ -95,7 +95,11 @@ public struct HomeShortcutTile: View {
             }
             .padding(.trailing, 10)
             .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
-            .liquidGlass(shape: RoundedRectangle(cornerRadius: 12, style: .continuous), tint: theme.elevated, interactive: true)
+            .background(theme.elevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(theme.separator, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }

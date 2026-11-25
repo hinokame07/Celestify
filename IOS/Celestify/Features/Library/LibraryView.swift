@@ -179,7 +179,7 @@ public struct LibraryView: View {
     private var headerBar: some View {
         HStack {
             Text("Your Library")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
+                .font(.largeTitle.weight(.bold))
                 .foregroundStyle(theme.primaryText)
 
             Spacer()
@@ -304,17 +304,11 @@ public struct LibraryView: View {
                 HStack(spacing: 14) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(argb: 0xFF5E5CE6), theme.accent],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(theme.elevated)
                             .frame(width: 56, height: 56)
                         Image(systemName: "heart.fill")
                             .font(.title3)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.accent)
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 5) {

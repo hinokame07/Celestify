@@ -8,8 +8,8 @@
 import Foundation
 import SwiftUI
 
-/// Resolved semantic design tokens for Celestify's Celestial Midnight, Golden Seraph,
-/// Adaptive Celestial, Light/Dark modes, and imported Spicetify/Glassify native themes.
+/// Resolved semantic design tokens for built-in palettes, system appearance,
+/// and imported Spicetify/Glassify themes.
 public struct CelestialTokens: Sendable, Equatable {
     public let page: Color
     public let secondary: Color
@@ -47,7 +47,7 @@ public struct CelestialTokens: Sendable, Equatable {
                 textSecondary: Color(argb: 0xFF5A5D68),
                 separator: Color.black.opacity(0.08),
                 accent: Color(argb: accentHex),
-                onAccent: luminance(of: accentHex) < 0.42 ? .white : .black,
+                onAccent: luminance(of: accentHex) < 0.179 ? .white : .black,
                 glassFill: Color.white.opacity(0.72),
                 glassEdge: Color(argb: accentHex).opacity(0.22),
                 destructive: Color(argb: 0xFFFF3B30),
@@ -94,7 +94,7 @@ public struct CelestialTokens: Sendable, Equatable {
             textSecondary: Color(argb: subHex),
             separator: Color(argb: textHex).opacity(0.10),
             accent: Color(argb: accentHex),
-            onAccent: luminance(of: accentHex) < 0.34 ? .white : .black,
+            onAccent: luminance(of: accentHex) < 0.179 ? .white : .black,
             glassFill: Color(argb: secHex).opacity(glassAlpha),
             glassEdge: Color(argb: edgeHex).opacity(edgeAlpha),
             destructive: Color(argb: 0xFFFF453A),
@@ -159,11 +159,11 @@ public extension CelestialTokens {
     var secondaryText: Color { textSecondary }
 }
 
-// MARK: - Dynamic Type Editorial Typography Helpers
+// MARK: - System Typography Helpers
 
 public enum CelestialFont {
-    public static var largeTitle: Font { .system(.largeTitle, design: .rounded, weight: .bold) }
-    public static var title: Font { .system(.title2, design: .rounded, weight: .bold) }
+    public static var largeTitle: Font { .system(.largeTitle, design: .default, weight: .bold) }
+    public static var title: Font { .system(.title2, design: .default, weight: .bold) }
     public static var headline: Font { .system(.headline, design: .default, weight: .semibold) }
     public static var body: Font { .system(.body, design: .default, weight: .regular) }
     public static var bodyStrong: Font { .system(.body, design: .default, weight: .semibold) }
@@ -171,10 +171,10 @@ public enum CelestialFont {
     public static var caption: Font { .system(.caption, design: .default, weight: .medium) }
 
     public static func lyricLine(scale: Double = 1.0, emphasized: Bool = true) -> Font {
-        .system(size: CGFloat(28.0 * scale), weight: emphasized ? .bold : .semibold, design: .rounded)
+        .system(size: CGFloat(28.0 * scale), weight: emphasized ? .bold : .semibold, design: .default)
     }
 
     public static func lyricSubline(scale: Double = 1.0) -> Font {
-        .system(size: CGFloat(15.5 * scale), weight: .medium, design: .rounded)
+        .system(size: CGFloat(15.5 * scale), weight: .medium, design: .default)
     }
 }

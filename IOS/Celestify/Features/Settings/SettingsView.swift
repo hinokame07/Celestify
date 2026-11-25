@@ -3,7 +3,7 @@
 //  Celestify
 //
 //  Full Settings & Personalization hub: Multi-account Keychain switcher,
-//  Celestial Palettes & Native Spicetify/Glassify Themes, Spicy Lyrics &
+// color palettes and imported themes, lyrics &
 //  Translation, Playback & Crossfade, Listening Recap, JavaScriptCore Extensions,
 //  Diagnostic Logbook, and GPL-3.0 / AGPL-3.0 Open-Source Attributions.
 //  Built on Myspoti (https://github.com/kota-zo/myspoti), GPL-3.0.
@@ -103,7 +103,7 @@ public struct SettingsView: View {
                 }
             }
 
-            // MARK: Spicy Lyrics & Genius Meanings
+            // MARK: Lyrics & Song Meanings
             Section {
                 Picker("Stage Typography", selection: Bindable(deps.preferences).spicyStageStyle) {
                     ForEach(SpicyStageStyle.allCases) { mode in
@@ -123,7 +123,7 @@ public struct SettingsView: View {
                 Toggle("Genius Song Stories & Annotations", isOn: Bindable(deps.preferences).spicyGeniusMeanings)
                 Toggle("Supplemental Providers (NetEase & Genius)", isOn: Bindable(deps.preferences).lyricsExtraSources)
             } header: {
-                Text("Spicy Lyrics & Cinema")
+                Text("Lyrics")
             } footer: {
                 Text("When Supplemental Providers is enabled, track title and artist name may be sent to NetEase Cloud Music or Genius if primary word-synced providers have no match.")
             }

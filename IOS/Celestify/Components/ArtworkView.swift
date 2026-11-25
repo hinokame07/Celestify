@@ -84,14 +84,7 @@ public struct ArtworkView: View {
                     .scaledToFill()
                     .transition(.opacity.animation(.easeOut(duration: 0.2)))
             } else {
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.10),
-                        Color.white.opacity(0.04)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                Color.secondary.opacity(0.10)
                 Image(systemName: fallbackSystemImage)
                     .font(.system(size: max(14, size * 0.34), weight: .medium))
                     .foregroundStyle(.secondary)

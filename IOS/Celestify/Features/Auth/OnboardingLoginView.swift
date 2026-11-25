@@ -2,7 +2,7 @@
 //  OnboardingLoginView.swift
 //  Celestify
 //
-//  Celestial Liquid Glass onboarding and resilient Spotify authentication screen:
+// Spotify authentication screen:
 //  1) Interactive WebKit sign-in (with coherent iOS Safari UA & popup OAuth support)
 //  2) Manual `sp_dc` cookie import fallback
 //  3) Email magic-link paste fallback
@@ -34,61 +34,30 @@ public struct OnboardingLoginView: View {
 
     public var body: some View {
         ZStack {
-            AtmosphericBackdrop(palette: .celestialDefault, isPlaying: true, intensity: 0.9)
+            AtmosphericBackdrop(palette: .celestialDefault, isAnimating: false)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 28) {
                     Spacer(minLength: 42)
 
                     ZStack {
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [theme.accent.opacity(0.55), .clear],
-                                    center: .center,
-                                    startRadius: 8,
-                                    endRadius: 84
-                                )
-                            )
-                            .frame(width: 164, height: 164)
-
                         RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(argb: 0xFF1A2744),
-                                        Color(argb: 0xFF0A0E1A)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(theme.elevated)
                             .frame(width: 112, height: 112)
                             .overlay {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 46, weight: .semibold))
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [Color(argb: 0xFFFF5C74), Color(argb: 0xFF0A84FF)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 42, weight: .semibold))
+                                    .foregroundStyle(theme.accent)
                             }
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
-                            }
-                            .shadow(color: .black.opacity(0.5), radius: 22, y: 10)
                     }
 
                     VStack(spacing: 10) {
                         Text("Celestify")
-                            .font(.system(size: 38, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
+                            .font(.largeTitle.weight(.bold))
+                            .foregroundStyle(theme.primaryText)
 
-                        Text("Immersive Liquid Glass streaming, syllable-synced Spicy Lyrics, and native themes — privately stored in your iPhone Keychain.")
-                            .font(.subheadline)
+                        Text("Play music, follow lyrics, and manage your Spotify library.")
+                            .font(.body)
                             .foregroundStyle(theme.secondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
@@ -97,22 +66,26 @@ public struct OnboardingLoginView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         featureRow(
                             icon: "waveform.and.magnifyingglass",
-                            title: "Syllable-Synced Spicy Lyrics",
-                            subtitle: "60/120Hz ProMotion word fills, Romanization, translations & Genius song stories."
+                            title: "Lyrics synced to words",
+                            subtitle: "Follow lyrics with translation and romanization."
                         )
                         featureRow(
                             icon: "paintbrush.pointed.fill",
-                            title: "Adaptive Liquid Glass & Themes",
-                            subtitle: "Live album-art atmosphere plus safe native Spicetify & Glassify color conversion."
+                            title: "Appearance",
+                            subtitle: "Choose colors and display preferences."
                         )
                         featureRow(
                             icon: "lock.shield.fill",
-                            title: "Keychain Session Security",
-                            subtitle: "Tokens and cookies never leave your device; offline tracks use AES-256-CTR."
+                            title: "Private by design",
+                            subtitle: "Sessions stay in Keychain; offline audio is encrypted."
                         )
                     }
                     .padding(20)
-                    .liquidGlass(shape: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(theme.separator, lineWidth: 1)
+                    }
                     .padding(.horizontal, 20)
 
                     if let banner = authBannerMessage, !banner.isEmpty {
@@ -138,7 +111,7 @@ public struct OnboardingLoginView: View {
                             HStack(spacing: 10) {
                                 if deps.authManager.state == .signingIn {
                                     ProgressView()
-                                        .tint(.white)
+                                        .tint(theme.onAccent)
                                 } else {
                                     Image(systemName: "person.badge.key.fill")
                                         .font(.headline)
@@ -146,18 +119,10 @@ public struct OnboardingLoginView: View {
                                 Text("Continue with Spotify")
                                     .font(.headline.weight(.semibold))
                             }
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.onAccent)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(
-                                LinearGradient(
-                                    colors: [theme.accent, Color(argb: 0xFF0A84FF)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                ),
-                                in: Capsule(style: .continuous)
-                            )
-                            .shadow(color: theme.accent.opacity(0.42), radius: 14, y: 6)
+                            .background(theme.accent, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                         .buttonStyle(.plain)
 
@@ -169,7 +134,7 @@ public struct OnboardingLoginView: View {
                                     .font(.footnote.weight(.medium))
                                     .foregroundStyle(theme.primaryText)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
+                                    .padding(.vertical, 14)
                                     .liquidGlass(shape: Capsule(style: .continuous), interactive: true)
                             }
                             .buttonStyle(.plain)
@@ -181,7 +146,7 @@ public struct OnboardingLoginView: View {
                                     .font(.footnote.weight(.medium))
                                     .foregroundStyle(theme.primaryText)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
+                                    .padding(.vertical, 14)
                                     .liquidGlass(shape: Capsule(style: .continuous), interactive: true)
                             }
                             .buttonStyle(.plain)
@@ -220,7 +185,7 @@ public struct OnboardingLoginView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.primaryText)
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(theme.secondaryText)

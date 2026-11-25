@@ -246,7 +246,11 @@ public enum TtmlLyricsParser {
                     case .element(let span):
                         let role = span.attribute("ttm:role") ?? span.attribute("role") ?? ""
                         if role == "x-bg" {
-                            processItems(span.contents, intoWords: &bgWords, intoPlain: &bgPlainPieces)
+                            var nestedWords: [LyricWord] = []
+                            var nestedPlainPieces: [String] = []
+                            processItems(span.contents, intoWords: &nestedWords, intoPlain: &nestedPlainPieces)
+                            bgWords.append(contentsOf: nestedWords)
+                            bgPlainPieces.append(contentsOf: nestedPlainPieces)
                         } else if role == "x-roman" {
                             let r = collapseSpaces(span.flattenedText)
                             if !r.isEmpty { inlineRoman = r }
@@ -293,7 +297,11 @@ public enum TtmlLyricsParser {
                             for sub in span.children {
                                 let subRole = sub.attribute("ttm:role") ?? sub.attribute("role") ?? ""
                                 if subRole == "x-bg" {
-                                    processItems(sub.contents, intoWords: &bgWords, intoPlain: &bgPlainPieces)
+                                    var nestedWords: [LyricWord] = []
+                                    var nestedPlainPieces: [String] = []
+                                    processItems(sub.contents, intoWords: &nestedWords, intoPlain: &nestedPlainPieces)
+                                    bgWords.append(contentsOf: nestedWords)
+                                    bgPlainPieces.append(contentsOf: nestedPlainPieces)
                                 } else if subRole == "x-roman" {
                                     let r = collapseSpaces(sub.flattenedText)
                                     if !r.isEmpty { inlineRoman = r }

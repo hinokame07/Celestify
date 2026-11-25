@@ -35,7 +35,7 @@ public struct ThemeImporterView: View {
                     repoInput = GlassifyAdapter.repositorySlug
                     Task { await scanRepository() }
                 } label: {
-                    Label("Inspect Glassify (\(GlassifyAdapter.repositorySlug))", systemImage: "sparkles")
+                    Label("Inspect Glassify (\(GlassifyAdapter.repositorySlug))", systemImage: "doc.text.magnifyingglass")
                 }
 
                 Button {
@@ -155,7 +155,7 @@ public struct ThemeImporterView: View {
                     deps.themeManager.activateTheme(id: nil)
                 } label: {
                     HStack {
-                        Text("Built-in Celestial Palette")
+                        Text("Built-in palette")
                             .foregroundStyle(.primary)
                         Spacer()
                         if deps.themeManager.activeThemeID == nil {
@@ -534,7 +534,7 @@ public struct AboutLicensesView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Celestify 2.4 · Native iOS Port")
                         .font(.headline.weight(.bold))
-                    Text("An immersive Liquid Glass music client featuring syllable-synced Spicy Lyrics, live album-art atmospheres, Genius song stories, and native theme conversion.")
+                    Text("A Spotify music client with synced lyrics, listening history, and theme support.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

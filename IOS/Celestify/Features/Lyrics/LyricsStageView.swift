@@ -2,7 +2,7 @@
 //  LyricsStageView.swift
 //  Celestify
 //
-//  60/120Hz ProMotion Spicy Lyrics & Cinema Stage featuring:
+//  Synchronized lyrics with inline translations and romanization:
 //  - `LyricClock` timestamped smoothstep playhead steering
 //  - Per-syllable horizontal fill & spring glow lift (`SyllableFlowLayout`)
 //  - Duet vocalist opposite alignment (`speaker == .duet`) & `x-bg` backing vocals
@@ -21,6 +21,7 @@ public struct LyricsStageView: View {
     @Environment(AppDependencies.self) private var deps
     @Environment(\.celestialTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var lyricForeground: Color { theme.isLight ? theme.primaryText : .white }
 
     @State private var baseLyrics: Lyrics?
     @State private var displayedLyrics: Lyrics?
@@ -28,6 +29,7 @@ public struct LyricsStageView: View {
     @State private var clock = LyricClock()
     @State private var lastScrolledLineIndex: Int = -1
     @State private var manualScrollSuppressionUntil: Date = .distantPast
+    @State private var autoScrollGeneration = 0
     @State private var showingOffsetPopover = false
     @State private var showingTTMLImporter = false
 
@@ -48,12 +50,12 @@ public struct LyricsStageView: View {
 
             if isLoading && displayedLyrics == nil {
                 Spacer()
-                ProgressView("Syncing Spicy Lyrics…")
-                    .tint(.white)
-                    .foregroundStyle(.white.opacity(0.8))
+                ProgressView("Loading lyrics…")
+                    .tint(lyricForeground)
+                    .foregroundStyle(theme.secondaryText)
                 Spacer()
             } else if let lyrics = displayedLyrics, !lyrics.lines.isEmpty {
-                TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !deps.player.isPlaying)) { context in
+                TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: !deps.player.isPlaying)) { context in
                     let nowMs = context.date.timeIntervalSinceReferenceDate * 1000.0
                     let posMs: Int64 = {
                         if deps.player.isPlaying && !deps.player.isBuffering {
@@ -68,41 +70,81 @@ public struct LyricsStageView: View {
                             return held
                         }
                     }()
-                    let activeIdx = lyrics.synced
+                    let clockActiveIndex = lyrics.synced
                         ? LyricTiming.activeLineIndex(in: lyrics.lines, at: posMs)
                         : -1
+                    let interlude = lyrics.synced
+                        ? LyricTiming.interludeState(in: lyrics.lines, at: posMs)
+                        : nil
+                    let activeIsInstrumental = lyrics.lines.indices.contains(clockActiveIndex)
+                        && lyrics.lines[clockActiveIndex].isInstrumental
+                    let activeIdx = interlude != nil && !activeIsInstrumental ? -1 : clockActiveIndex
 
                     ScrollViewReader { proxy in
                         ScrollView(showsIndicators: false) {
                             LazyVStack(alignment: .leading, spacing: isCompactStyle ? 16 : 24) {
                                 Spacer().frame(height: 24)
 
-                                if let interlude = LyricTiming.interludeState(in: lyrics.lines, at: posMs), activeIdx < 0 {
-                                    interludeDots(progress: interlude.progress)
-                                }
-
-                                ForEach(Array(lyrics.lines.enumerated()), id: \.offset) { idx, line in
-                                    lyricLineView(
+                                ForEach(lyrics.lines.indices, id: \.self) { idx in
+                                    let line = lyrics.lines[idx]
+                                    if let interlude,
+                                       interlude.startMs == 0,
+                                       idx == 0 {
+                                        interludeDots(progress: interlude.progress)
+                                    }
+                                    let isFrameSensitive = lyrics.wordSynced
+                                        && activeIdx >= 0
+                                        && abs(idx - activeIdx) <= 2
+                                    let rowInterludeProgress = idx == activeIdx ? interlude?.progress : nil
+                                    let rowKey = LyricLineRenderKey(
                                         line: line,
                                         index: idx,
                                         activeIndex: activeIdx,
-                                        positionMs: posMs,
+                                        framePositionMs: isFrameSensitive ? posMs : nil,
+                                        interludeProgress: rowInterludeProgress,
                                         synced: lyrics.synced,
                                         wordSynced: lyrics.wordSynced,
-                                        isRTL: lyrics.isRTL
+                                        isRTL: lyrics.isRTL,
+                                        isCompactStyle: isCompactStyle,
+                                        duetAlignment: deps.preferences.spicyDuets,
+                                        fontScale: deps.preferences.lyricFontScale,
+                                        romanize: deps.preferences.spicyRomanize,
+                                        translationLanguage: deps.preferences.lyricTranslateLanguage,
+                                        backingVocals: deps.preferences.spicyBackingVocals,
+                                        glow: deps.preferences.lyricsGlow,
+                                        reduceMotion: reduceMotion
                                     )
+                                    EquatableContent(
+                                        key: rowKey,
+                                        content: lyricLineView(
+                                            line: line,
+                                            index: idx,
+                                            activeIndex: activeIdx,
+                                            positionMs: isFrameSensitive ? posMs : line.startMs,
+                                            interludeProgress: rowInterludeProgress,
+                                            synced: lyrics.synced,
+                                            wordSynced: lyrics.wordSynced,
+                                            isRTL: lyrics.isRTL
+                                        )
+                                    )
+                                    .equatable()
                                     .id(idx)
+
+                                    if let interlude,
+                                       line.endMs == interlude.startMs {
+                                        interludeDots(progress: interlude.progress)
+                                    }
                                 }
 
                                 VStack(alignment: .leading, spacing: 6) {
                                     if !lyrics.songwriters.isEmpty {
                                         Text("Written by \(lyrics.songwriters.joined(separator: ", "))")
                                             .font(.caption)
-                                            .foregroundStyle(.white.opacity(0.55))
+                                            .foregroundStyle(theme.secondaryText)
                                     }
                                     Text("Source: \(lyrics.provider)")
                                         .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(.white.opacity(0.4))
+                                        .foregroundStyle(theme.secondaryText)
                                 }
                                 .padding(.top, 20)
                                 .padding(.bottom, 80)
@@ -110,9 +152,18 @@ public struct LyricsStageView: View {
                             .padding(.horizontal, 22)
                         }
                         .simultaneousGesture(
-                            DragGesture(minimumDistance: 8).onChanged { _ in
-                                manualScrollSuppressionUntil = Date().addingTimeInterval(4.0)
-                            }
+                            DragGesture(minimumDistance: 8)
+                                .onChanged { _ in
+                                    manualScrollSuppressionUntil = Date().addingTimeInterval(4.0)
+                                }
+                                .onEnded { _ in
+                                    Task {
+                                        try? await Task.sleep(nanoseconds: 4_000_000_000)
+                                        guard Date() >= manualScrollSuppressionUntil else { return }
+                                        manualScrollSuppressionUntil = .distantPast
+                                        autoScrollGeneration += 1
+                                    }
+                                }
                         )
                         .onChange(of: activeIdx) { _, newIdx in
                             guard newIdx >= 0,
@@ -120,10 +171,21 @@ public struct LyricsStageView: View {
                                   Date() >= manualScrollSuppressionUntil else { return }
                             lastScrolledLineIndex = newIdx
                             if reduceMotion {
-                                proxy.scrollTo(newIdx, anchor: .center)
+                                proxy.scrollTo(newIdx, anchor: UnitPoint(x: 0.5, y: 0.36))
                             } else {
                                 withAnimation(.spring(response: 0.44, dampingFraction: 0.86)) {
-                                    proxy.scrollTo(newIdx, anchor: .center)
+                                    proxy.scrollTo(newIdx, anchor: UnitPoint(x: 0.5, y: 0.36))
+                                }
+                            }
+                        }
+                        .onChange(of: autoScrollGeneration) { _, _ in
+                            guard activeIdx >= 0 else { return }
+                            lastScrolledLineIndex = activeIdx
+                            if reduceMotion {
+                                proxy.scrollTo(activeIdx, anchor: UnitPoint(x: 0.5, y: 0.36))
+                            } else {
+                                withAnimation(.spring(response: 0.44, dampingFraction: 0.86)) {
+                                    proxy.scrollTo(activeIdx, anchor: UnitPoint(x: 0.5, y: 0.36))
                                 }
                             }
                         }
@@ -134,16 +196,16 @@ public struct LyricsStageView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 40))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(theme.secondaryText)
                     Text("No Lyrics Found for This Track")
                         .font(.headline)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(theme.primaryText)
                     Button {
                         showingTTMLImporter = true
                     } label: {
                         Label("Import Custom .ttml Lyrics", systemImage: "doc.badge.plus")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(lyricForeground)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .liquidGlass(shape: Capsule(), interactive: true)
@@ -213,14 +275,15 @@ public struct LyricsStageView: View {
                 } label: {
                     Label(translateActive ? "Translate (\(deps.preferences.lyricTranslateLanguage.uppercased()))" : "Translate", systemImage: "globe")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(translateActive ? .black : .white)
+                        .foregroundStyle(translateActive ? theme.onAccent : lyricForeground)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
+                        .frame(minHeight: 44)
                         .background {
                             if translateActive {
-                                Capsule().fill(Color.white)
+                                Capsule().fill(theme.accent)
                             } else {
-                                Capsule().fill(Color.white.opacity(0.12))
+                                Capsule().fill(theme.elevated)
                             }
                         }
                 }
@@ -234,11 +297,12 @@ public struct LyricsStageView: View {
                         }
                         onShowMeaning(activeLine)
                     } label: {
-                        Label("Song Meaning", systemImage: "sparkles.rectangle.stack")
+                        Label("Song meaning", systemImage: "text.quote")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(lyricForeground)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
+                            .frame(minHeight: 44)
                             .liquidGlass(shape: Capsule(), interactive: true)
                     }
                     .buttonStyle(.plain)
@@ -250,9 +314,10 @@ public struct LyricsStageView: View {
                     let off = deps.preferences.lyricsOffsetMs
                     Label(off == 0 ? "Sync 0ms" : "Sync \(off > 0 ? "+" : "")\(off)ms", systemImage: "metronome")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(off == 0 ? .white.opacity(0.85) : theme.accent)
+                        .foregroundStyle(off == 0 ? lyricForeground : theme.accent)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
+                        .frame(minHeight: 44)
                         .liquidGlass(shape: Capsule(), interactive: true)
                 }
                 .buttonStyle(.plain)
@@ -283,9 +348,10 @@ public struct LyricsStageView: View {
                 } label: {
                     Image(systemName: "slider.horizontal.3")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(lyricForeground)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 8)
+                        .frame(width: 44, height: 44)
                         .liquidGlass(shape: Capsule(), interactive: true)
                 }
             }
@@ -299,14 +365,15 @@ public struct LyricsStageView: View {
         }) {
             Label(title, systemImage: icon)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(isOn ? .black : .white)
+                .foregroundStyle(isOn ? theme.onAccent : lyricForeground)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
+                .frame(minHeight: 44)
                 .background {
                     if isOn {
-                        Capsule().fill(Color.white)
+                        Capsule().fill(theme.accent)
                     } else {
-                        Capsule().fill(Color.white.opacity(0.12))
+                        Capsule().fill(theme.elevated)
                     }
                 }
         }
@@ -332,12 +399,14 @@ public struct LyricsStageView: View {
     }
 
     private func interludeDots(progress: Double) -> some View {
-        HStack(spacing: 8) {
+        let breath = 0.94 + 0.06 * sin(Date().timeIntervalSinceReferenceDate * 2.4)
+        return HStack(spacing: 8) {
             ForEach(0..<3, id: \.self) { dot in
-                let active = progress >= Double(dot) / 3.0
+                let fill = min(max(progress * 3 - Double(dot), 0), 1)
                 Circle()
-                    .fill(Color.white.opacity(active ? 0.92 : 0.30))
+                    .fill(lyricForeground.opacity(0.30 + 0.62 * fill))
                     .frame(width: 9, height: 9)
+                    .scaleEffect(reduceMotion ? 1 : CGFloat(0.9 + 0.1 * breath))
             }
         }
         .padding(.vertical, 8)
@@ -351,6 +420,7 @@ public struct LyricsStageView: View {
         index: Int,
         activeIndex: Int,
         positionMs: Int64,
+        interludeProgress: Double?,
         synced: Bool,
         wordSynced: Bool,
         isRTL: Bool
@@ -373,11 +443,12 @@ public struct LyricsStageView: View {
         VStack(alignment: alignOpposite ? .trailing : .leading, spacing: 6) {
             if line.isInstrumental {
                 if isActive {
-                    interludeDots(progress: 0.65)
+                    interludeDots(progress: interludeProgress ?? 0)
                 }
-            } else if wordSynced && !line.wordTimings.isEmpty && isActive {
+            } else if wordSynced && !line.wordTimings.isEmpty && isActive && !reduceMotion {
                 SyllableFlowLayout(spacingX: 0, spacingY: 4, alignTrailing: alignOpposite) {
-                    ForEach(Array(line.wordTimings.enumerated()), id: \.offset) { wIdx, word in
+                    ForEach(line.wordTimings.indices, id: \.self) { wIdx in
+                        let word = line.wordTimings[wIdx]
                         let nextStart: Int64? = (wIdx + 1 < line.wordTimings.count) ? line.wordTimings[wIdx + 1].startMs : nil
                         let prog = LyricTiming.wordSweepProgress(
                             word,
@@ -385,9 +456,9 @@ public struct LyricsStageView: View {
                             lineEndMs: line.endMs,
                             at: positionMs
                         )
-                        let trailingSpace = word.isPartOfWord ? "" : " "
                         SyllableWordText(
-                            text: word.text + trailingSpace,
+                            text: word.text,
+                            trailingSpace: !word.isPartOfWord,
                             progress: prog,
                             fontSize: baseFontSize,
                             glowEnabled: deps.preferences.lyricsGlow && !reduceMotion
@@ -396,8 +467,8 @@ public struct LyricsStageView: View {
                 }
             } else {
                 Text(line.words)
-                    .font(.system(size: baseFontSize, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(opacity))
+                    .font(.system(size: baseFontSize, weight: .bold, design: .default))
+                    .foregroundStyle(lyricForeground.opacity(opacity))
                     .multilineTextAlignment(alignOpposite ? .trailing : .leading)
             }
 
@@ -405,8 +476,8 @@ public struct LyricsStageView: View {
                let rom = line.romanized,
                !rom.isEmpty {
                 Text(rom)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(isActive ? 0.72 : 0.30))
+                    .font(.system(size: 14, weight: .medium, design: .default))
+                    .foregroundStyle(lyricForeground.opacity(isActive ? 0.72 : 0.30))
                     .multilineTextAlignment(alignOpposite ? .trailing : .leading)
             }
 
@@ -423,14 +494,20 @@ public struct LyricsStageView: View {
                let bg = line.backgroundText,
                !bg.isEmpty {
                 Text("(\(bg))")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .default))
                     .italic()
-                    .foregroundStyle(.white.opacity(isActive ? 0.62 : 0.24))
+                    .foregroundStyle(lyricForeground.opacity(isActive ? 0.62 : 0.24))
             }
         }
         .frame(maxWidth: .infinity, alignment: alignOpposite ? .trailing : .leading)
         .scaleEffect(isActive && synced && !reduceMotion ? 1.02 : 1.0, anchor: alignOpposite ? .trailing : .leading)
         .blur(radius: (!synced || isActive || reduceMotion) ? 0 : min(CGFloat(distance) * 0.65, 2.2))
+        .animation(
+            reduceMotion
+                ? .easeInOut(duration: 0.16)
+                : .spring(response: 0.38, dampingFraction: 0.88),
+            value: opacity
+        )
         .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -448,6 +525,8 @@ public struct LyricsStageView: View {
         baseLyrics = nil
         displayedLyrics = nil
         clock.restart()
+        lastScrolledLineIndex = -1
+        manualScrollSuppressionUntil = .distantPast
 
         let isrc = await deps.api.trackISRC(trackURI: track.uri)
         let query = LyricsTrackQuery(
@@ -496,41 +575,95 @@ public struct LyricsStageView: View {
     }
 }
 
+private struct LyricLineRenderKey: Equatable {
+    let line: LyricLine
+    let index: Int
+    let activeIndex: Int
+    let framePositionMs: Int64?
+    let interludeProgress: Double?
+    let synced: Bool
+    let wordSynced: Bool
+    let isRTL: Bool
+    let isCompactStyle: Bool
+    let duetAlignment: Bool
+    let fontScale: Double
+    let romanize: Bool
+    let translationLanguage: String
+    let backingVocals: Bool
+    let glow: Bool
+    let reduceMotion: Bool
+}
+
+private struct EquatableContent<Content: View, Key: Equatable>: View, Equatable {
+    let key: Key
+    let content: Content
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.key == rhs.key
+    }
+
+    var body: some View {
+        content
+    }
+}
+
 // MARK: - Per-Syllable Partial Fill View & Wrapping Layout
 
 public struct SyllableWordText: View {
+    @Environment(\.celestialTheme) private var theme
+
     public let text: String
+    public let trailingSpace: Bool
     public let progress: Double
     public let fontSize: CGFloat
     public let glowEnabled: Bool
 
-    public init(text: String, progress: Double, fontSize: CGFloat, glowEnabled: Bool) {
+    public init(text: String, trailingSpace: Bool = false, progress: Double, fontSize: CGFloat, glowEnabled: Bool) {
         self.text = text
+        self.trailingSpace = trailingSpace
         self.progress = progress
         self.fontSize = fontSize
         self.glowEnabled = glowEnabled
     }
 
     public var body: some View {
-        let liftY: CGFloat = (progress > 0.0 && progress < 1.0) ? -2.2 : (progress >= 1.0 ? -1.0 : 0.0)
-        Text(text)
-            .font(.system(size: fontSize, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.34))
+        let clampedProgress = min(max(progress, 0), 1)
+        let gradientProgress = CGFloat(clampedProgress)
+        let glowAmount = sin(Double.pi * clampedProgress)
+        let liftY = -2.0 * CGFloat(glowAmount)
+        let fillColor = theme.isLight ? theme.primaryText : Color.white
+        let displayText = Text(text) + (trailingSpace ? Text(" ") : Text(""))
+
+        displayText
+            .font(.system(size: fontSize, weight: .bold, design: .default))
+            .foregroundStyle(fillColor.opacity(0.34))
             .overlay {
                 GeometryReader { geo in
-                    Text(text)
-                        .font(.system(size: fontSize, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                    displayText
+                        .font(.system(size: fontSize, weight: .bold, design: .default))
+                        .foregroundStyle(fillColor)
                         .frame(width: geo.size.width, alignment: .leading)
                         .mask(alignment: .leading) {
-                            Rectangle()
-                                .frame(width: geo.size.width * CGFloat(min(max(progress, 0.0), 1.0)))
+                            if clampedProgress <= 0 {
+                                Color.clear
+                            } else if clampedProgress >= 1 {
+                                Color.white
+                            } else {
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: .white, location: max(0, gradientProgress - 0.025)),
+                                        .init(color: .clear, location: min(1, gradientProgress + 0.025))
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            }
                         }
                 }
             }
             .shadow(
-                color: glowEnabled && progress > 0 && progress < 1 ? .white.opacity(0.55) : .clear,
-                radius: 8,
+                color: glowEnabled ? fillColor.opacity(0.30 * glowAmount) : .clear,
+                radius: 2 + 5 * CGFloat(glowAmount),
                 y: 0
             )
             .offset(y: liftY)

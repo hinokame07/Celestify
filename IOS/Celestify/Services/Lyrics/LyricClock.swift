@@ -67,6 +67,22 @@ public final class LyricClock {
     }
 
     public func restart() {
+        resetRun()
+        lastReportMs = .min
+        lastSampledAtMs = .nan
+        heldAtMs = -.infinity
+        lastDiscontinuity = nil
+        anchorAtMs = .nan
+        anchorMs = 0
+        learnedRate = 1.0
+        historySize = 0
+        rateSettled = false
+        suspectMs = 0
+        rejections = 0
+        glideOffsetMs = 0
+    }
+
+    private func resetRun() {
         lastNowMs = .nan
         jumpPending = false
         glideStartMs = .nan
@@ -74,7 +90,7 @@ public final class LyricClock {
     }
 
     public func hold(positionMs: Int64, nowMs: Double) {
-        restart()
+        resetRun()
         displayedMs = Double(positionMs)
         heldAtMs = nowMs
     }

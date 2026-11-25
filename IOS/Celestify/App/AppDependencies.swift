@@ -82,13 +82,10 @@ public final class AppDependencies {
             keychain: keychain
         )
 
-        Task {
-            await coordinator.attachBridge(webBridge)
-            await gqlClient.attachBridge(webBridge)
-        }
-
         auth.onSessionActivated = { [weak self] session in
             guard let self else { return }
+            await self.tokenCoordinator.attachBridge(self.bridge)
+            await self.gql.attachBridge(self.bridge)
             self.bridge.start(localizedPlayerURL: session.localizedPlayerURL)
             Task {
                 if let profile = try? await self.api.currentUserProfile() {

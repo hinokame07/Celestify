@@ -31,7 +31,7 @@ public struct WhatsNewSheet: View {
                 } else if entries.isEmpty {
                     ContentUnavailableView(
                         "No Recent History Yet",
-                        systemImage: "sparkles",
+                        systemImage: "clock",
                         description: Text("Songs, albums, playlists, and podcast episodes you play appear here.")
                     )
                     .listRowBackground(Color.clear)
