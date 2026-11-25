@@ -394,7 +394,7 @@ public struct LyricsStageView: View {
 
     private func interludeDots(progress: Double) -> some View {
         let breath = 0.94 + 0.06 * sin(Date().timeIntervalSinceReferenceDate * 2.4)
-        HStack(spacing: 8) {
+        return HStack(spacing: 8) {
             ForEach(0..<3, id: \.self) { dot in
                 let fill = min(max(progress * 3 - Double(dot), 0), 1)
                 Circle()
