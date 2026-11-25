@@ -257,7 +257,9 @@ public actor LyricsRepository {
             return kugou
         }
 
-        return lrcBest ?? netEase ?? (await geniusTask)
+        if let lrcBest { return lrcBest }
+        if let netEase { return netEase }
+        return await geniusTask
     }
 
     // MARK: - Provider 1: Spotify Color-Lyrics v2
