@@ -188,6 +188,12 @@ jobs:
           ls -lah "$APP_PATH"
 
           INFO_PLIST="$APP_PATH/Info.plist"
+          if /usr/libexec/PlistBuddy -c 'Print :UILaunchStoryboardName' "$INFO_PLIST" >/dev/null 2>&1; then
+            /usr/libexec/PlistBuddy -c 'Set :UILaunchStoryboardName LaunchScreen' "$INFO_PLIST"
+          else
+            /usr/libexec/PlistBuddy -c 'Add :UILaunchStoryboardName string LaunchScreen' "$INFO_PLIST"
+          fi
+
           LAUNCH_STORYBOARD="$(/usr/libexec/PlistBuddy -c 'Print :UILaunchStoryboardName' "$INFO_PLIST")"
 
           if [[ "$LAUNCH_STORYBOARD" != "LaunchScreen" ]]; then
