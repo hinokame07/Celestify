@@ -54,14 +54,15 @@ public struct HomeView: View {
                                 } label: {
                                     Text(chip.label)
                                         .font(.footnote.weight(.semibold))
-                                        .foregroundStyle(active ? .white : theme.primaryText)
+                                        .foregroundStyle(active ? theme.onAccent : theme.primaryText)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
+                                        .frame(minHeight: 44)
                                         .background {
                                             if active {
                                                 Capsule().fill(theme.accent)
                                             } else {
-                                                Capsule().fill(Color.white.opacity(0.08))
+                                                Capsule().fill(theme.elevated)
                                             }
                                         }
                                 }
@@ -174,7 +175,7 @@ public struct HomeView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(greetingTitle)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.largeTitle.weight(.bold))
                     .foregroundStyle(theme.primaryText)
                 if let name = deps.authManager.currentAccount?.displayName, !name.isEmpty {
                     Text(name)
@@ -191,7 +192,7 @@ public struct HomeView: View {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(theme.primaryText)
-                    .frame(width: 38, height: 38)
+                    .frame(width: 44, height: 44)
                     .liquidGlass(shape: Circle(), interactive: true)
             }
             .buttonStyle(.plain)
@@ -203,7 +204,7 @@ public struct HomeView: View {
                 Image(systemName: "person.2.wave.2")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(theme.primaryText)
-                    .frame(width: 38, height: 38)
+                    .frame(width: 44, height: 44)
                     .liquidGlass(shape: Circle(), interactive: true)
             }
             .buttonStyle(.plain)
@@ -220,6 +221,7 @@ public struct HomeView: View {
                         isCircular: true,
                         fallbackSystemImage: "person.crop.circle.fill"
                     )
+                    .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Your Profile")
@@ -244,7 +246,7 @@ public struct HomeView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Celestial Listening Recap")
+                    Text("Listening Recap")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text(
@@ -264,7 +266,11 @@ public struct HomeView: View {
                     .foregroundStyle(theme.secondaryText)
             }
             .padding(14)
-            .liquidGlass(shape: RoundedRectangle(cornerRadius: 18, style: .continuous), interactive: true)
+            .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(theme.separator, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }

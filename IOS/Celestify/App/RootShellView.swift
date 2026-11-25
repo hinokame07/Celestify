@@ -2,9 +2,8 @@
 //  RootShellView.swift
 //  Celestify
 //
-//  Root SwiftUI navigation shell coordinating authentication states, ambient
-//  Celestial backdrops, 4 independent NavigationStacks, floating Liquid Glass
-//  chrome, and the Full-Screen Now Playing cover.
+// Root SwiftUI navigation shell coordinating authentication, app tabs,
+// independent navigation stacks, and the full-screen player.
 //  Built on Myspoti (https://github.com/kota-zo/myspoti), GPL-3.0.
 //
 
@@ -23,9 +22,9 @@ public struct RootShellView: View {
             switch deps.authManager.state {
             case .restoringSession, .bootstrappingPlayer:
                 ZStack {
-                    AtmosphericBackdrop(palette: .celestialDefault, isPlaying: false, intensity: 0.7)
+                    AtmosphericBackdrop(palette: .celestialDefault, isAnimating: false)
                     VStack(spacing: 14) {
-                        Image(systemName: "sparkles")
+                        Image(systemName: "music.note")
                             .font(.system(size: 44, weight: .semibold))
                             .foregroundStyle(resolvedTheme.accent)
                         ProgressView()
@@ -54,8 +53,7 @@ public struct RootShellView: View {
             if deps.preferences.dynamicArtworkColors && deps.player.currentTrack != nil {
                 AtmosphericBackdrop(
                     palette: deps.player.artworkPalette,
-                    isPlaying: deps.player.isPlaying,
-                    intensity: 0.35
+                    isAnimating: deps.player.isPlaying
                 )
             }
 

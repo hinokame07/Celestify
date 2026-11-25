@@ -18,26 +18,22 @@ public enum CelestialPalette: String, Codable, Sendable, CaseIterable, Identifia
 
     public var displayName: String {
         switch self {
-        case .midnight: return "Celestial Midnight"
-        case .goldenSeraph: return "Golden Seraph"
-        case .adaptive: return "Adaptive Celestial"
+        case .midnight: return String(localized: "Midnight")
+        case .goldenSeraph: return String(localized: "Golden")
+        case .adaptive: return String(localized: "Adaptive")
         }
     }
 
     public var subtitle: String {
         switch self {
-        case .midnight: return "Obsidian glass with deep sapphire luminescence"
-        case .goldenSeraph: return "Warm onyx surfaces with champagne and seraphic gold"
-        case .adaptive: return "Live artwork color extraction with Liquid Glass refraction"
+        case .midnight: return String(localized: "Dark blue and black.")
+        case .goldenSeraph: return String(localized: "Warm neutral colors.")
+        case .adaptive: return String(localized: "Colors based on album artwork.")
         }
     }
 
     public var defaultAccentHex: UInt32 {
-        switch self {
-        case .midnight: return 0xFF0A84FF
-        case .goldenSeraph: return 0xFFFFD60A
-        case .adaptive: return 0xFFFF5C74
-        }
+        0xFF0A84FF
     }
 }
 
@@ -50,9 +46,9 @@ public enum AppearanceMode: String, Codable, Sendable, CaseIterable, Identifiabl
 
     public var displayName: String {
         switch self {
-        case .system: return "Automatic (System)"
-        case .dark: return "Dark"
-        case .light: return "Light"
+        case .system: return String(localized: "Automatic")
+        case .dark: return String(localized: "Dark")
+        case .light: return String(localized: "Light")
         }
     }
 

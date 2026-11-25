@@ -1,6 +1,76 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Appearance" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência" } }
+      }
+    },
+    "A Spotify music client with synced lyrics, listening history, and theme support." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Um cliente de música do Spotify com letras sincronizadas, histórico de audição e temas." } }
+      }
+    },
+    "Automatic" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Automática" } }
+      }
+    },
+    "Adaptive" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Adaptável" } }
+      }
+    },
+    "Choose colors and display preferences." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Escolha as cores e as preferências de exibição." } }
+      }
+    },
+    "Built-in palette" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Paleta integrada" } }
+      }
+    },
+    "Continue with Spotify" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Continuar com o Spotify" } }
+      }
+    },
+    "Follow lyrics with translation and romanization." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Acompanhe a letra com tradução e romanização." } }
+      }
+    },
+    "Dark blue and black." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Azul escuro e preto." } }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Escuro" } }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Claro" } }
+      }
+    },
+    "Warm neutral colors." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tons neutros e quentes." } }
+      }
+    },
+    "Colors based on album artwork." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Cores baseadas na capa do álbum." } }
+      }
+    },
+    "Golden" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Dourado" } }
+      }
+    },
     "Home" : {
       "localizations" : {
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "Accueil" } },
@@ -32,6 +102,11 @@
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tentar de novo" } }
       }
     },
+    "View blend story" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ver história da mistura" } }
+      }
+    },
     "Sign in to Spotify to load Home." : {
       "localizations" : {
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Entre no Spotify para carregar a página inicial." } }
@@ -40,6 +115,26 @@
     "Recently Played" : {
       "localizations" : {
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tocadas recentemente" } }
+      }
+    },
+    "Listening Recap" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Resumo de audição" } }
+      }
+    },
+    "Loading lyrics…" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carregando letras…" } }
+      }
+    },
+    "Midnight" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Meia-noite" } }
+      }
+    },
+    "New Mix" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Nova mistura" } }
       }
     },
     "Search" : {
@@ -64,6 +159,36 @@
       "localizations" : {
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "Paramètres" } },
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Configurações" } }
+      }
+    },
+    "Lyrics synced to words" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Letras sincronizadas por palavra" } }
+      }
+    },
+    "Play music, follow lyrics, and manage your Spotify library." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ouça música, acompanhe letras e gerencie sua biblioteca do Spotify." } }
+      }
+    },
+    "Song meaning" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Significado da música" } }
+      }
+    },
+    "Private by design" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Privacidade desde o início" } }
+      }
+    },
+    "Toggle lyrics" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Alternar letras" } }
+      }
+    },
+    "Sessions stay in Keychain; offline audio is encrypted." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "As sessões ficam no Keychain; o áudio offline é criptografado." } }
       }
     },
     "Sign in with Spotify" : {

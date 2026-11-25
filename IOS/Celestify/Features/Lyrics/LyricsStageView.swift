@@ -2,7 +2,7 @@
 //  LyricsStageView.swift
 //  Celestify
 //
-//  60/120Hz ProMotion Spicy Lyrics & Cinema Stage featuring:
+//  Synchronized lyrics with inline translations and romanization:
 //  - `LyricClock` timestamped smoothstep playhead steering
 //  - Per-syllable horizontal fill & spring glow lift (`SyllableFlowLayout`)
 //  - Duet vocalist opposite alignment (`speaker == .duet`) & `x-bg` backing vocals
@@ -21,6 +21,7 @@ public struct LyricsStageView: View {
     @Environment(AppDependencies.self) private var deps
     @Environment(\.celestialTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var lyricForeground: Color { theme.isLight ? theme.primaryText : .white }
 
     @State private var baseLyrics: Lyrics?
     @State private var displayedLyrics: Lyrics?
@@ -49,9 +50,9 @@ public struct LyricsStageView: View {
 
             if isLoading && displayedLyrics == nil {
                 Spacer()
-                ProgressView("Syncing Spicy Lyrics…")
-                    .tint(.white)
-                    .foregroundStyle(.white.opacity(0.8))
+                ProgressView("Loading lyrics…")
+                    .tint(lyricForeground)
+                    .foregroundStyle(theme.secondaryText)
                 Spacer()
             } else if let lyrics = displayedLyrics, !lyrics.lines.isEmpty {
                 TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: !deps.player.isPlaying)) { context in
@@ -139,11 +140,11 @@ public struct LyricsStageView: View {
                                     if !lyrics.songwriters.isEmpty {
                                         Text("Written by \(lyrics.songwriters.joined(separator: ", "))")
                                             .font(.caption)
-                                            .foregroundStyle(.white.opacity(0.55))
+                                            .foregroundStyle(theme.secondaryText)
                                     }
                                     Text("Source: \(lyrics.provider)")
                                         .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(.white.opacity(0.4))
+                                        .foregroundStyle(theme.secondaryText)
                                 }
                                 .padding(.top, 20)
                                 .padding(.bottom, 80)
@@ -195,16 +196,16 @@ public struct LyricsStageView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 40))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(theme.secondaryText)
                     Text("No Lyrics Found for This Track")
                         .font(.headline)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(theme.primaryText)
                     Button {
                         showingTTMLImporter = true
                     } label: {
                         Label("Import Custom .ttml Lyrics", systemImage: "doc.badge.plus")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(lyricForeground)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .liquidGlass(shape: Capsule(), interactive: true)
@@ -274,14 +275,15 @@ public struct LyricsStageView: View {
                 } label: {
                     Label(translateActive ? "Translate (\(deps.preferences.lyricTranslateLanguage.uppercased()))" : "Translate", systemImage: "globe")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(translateActive ? .black : .white)
+                        .foregroundStyle(translateActive ? theme.onAccent : lyricForeground)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
+                        .frame(minHeight: 44)
                         .background {
                             if translateActive {
-                                Capsule().fill(Color.white)
+                                Capsule().fill(theme.accent)
                             } else {
-                                Capsule().fill(Color.white.opacity(0.12))
+                                Capsule().fill(theme.elevated)
                             }
                         }
                 }
@@ -295,11 +297,12 @@ public struct LyricsStageView: View {
                         }
                         onShowMeaning(activeLine)
                     } label: {
-                        Label("Song Meaning", systemImage: "sparkles.rectangle.stack")
+                        Label("Song meaning", systemImage: "text.quote")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(lyricForeground)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
+                            .frame(minHeight: 44)
                             .liquidGlass(shape: Capsule(), interactive: true)
                     }
                     .buttonStyle(.plain)
@@ -311,9 +314,10 @@ public struct LyricsStageView: View {
                     let off = deps.preferences.lyricsOffsetMs
                     Label(off == 0 ? "Sync 0ms" : "Sync \(off > 0 ? "+" : "")\(off)ms", systemImage: "metronome")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(off == 0 ? .white.opacity(0.85) : theme.accent)
+                        .foregroundStyle(off == 0 ? lyricForeground : theme.accent)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 7)
+                        .frame(minHeight: 44)
                         .liquidGlass(shape: Capsule(), interactive: true)
                 }
                 .buttonStyle(.plain)
@@ -344,9 +348,10 @@ public struct LyricsStageView: View {
                 } label: {
                     Image(systemName: "slider.horizontal.3")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(lyricForeground)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 8)
+                        .frame(width: 44, height: 44)
                         .liquidGlass(shape: Capsule(), interactive: true)
                 }
             }
@@ -360,14 +365,15 @@ public struct LyricsStageView: View {
         }) {
             Label(title, systemImage: icon)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(isOn ? .black : .white)
+                .foregroundStyle(isOn ? theme.onAccent : lyricForeground)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
+                .frame(minHeight: 44)
                 .background {
                     if isOn {
-                        Capsule().fill(Color.white)
+                        Capsule().fill(theme.accent)
                     } else {
-                        Capsule().fill(Color.white.opacity(0.12))
+                        Capsule().fill(theme.elevated)
                     }
                 }
         }
@@ -398,7 +404,7 @@ public struct LyricsStageView: View {
             ForEach(0..<3, id: \.self) { dot in
                 let fill = min(max(progress * 3 - Double(dot), 0), 1)
                 Circle()
-                    .fill(Color.white.opacity(0.30 + 0.62 * fill))
+                    .fill(lyricForeground.opacity(0.30 + 0.62 * fill))
                     .frame(width: 9, height: 9)
                     .scaleEffect(reduceMotion ? 1 : CGFloat(0.9 + 0.1 * breath))
             }
@@ -461,8 +467,8 @@ public struct LyricsStageView: View {
                 }
             } else {
                 Text(line.words)
-                    .font(.system(size: baseFontSize, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(opacity))
+                    .font(.system(size: baseFontSize, weight: .bold, design: .default))
+                    .foregroundStyle(lyricForeground.opacity(opacity))
                     .multilineTextAlignment(alignOpposite ? .trailing : .leading)
             }
 
@@ -470,8 +476,8 @@ public struct LyricsStageView: View {
                let rom = line.romanized,
                !rom.isEmpty {
                 Text(rom)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(isActive ? 0.72 : 0.30))
+                    .font(.system(size: 14, weight: .medium, design: .default))
+                    .foregroundStyle(lyricForeground.opacity(isActive ? 0.72 : 0.30))
                     .multilineTextAlignment(alignOpposite ? .trailing : .leading)
             }
 
@@ -488,9 +494,9 @@ public struct LyricsStageView: View {
                let bg = line.backgroundText,
                !bg.isEmpty {
                 Text("(\(bg))")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .default))
                     .italic()
-                    .foregroundStyle(.white.opacity(isActive ? 0.62 : 0.24))
+                    .foregroundStyle(lyricForeground.opacity(isActive ? 0.62 : 0.24))
             }
         }
         .frame(maxWidth: .infinity, alignment: alignOpposite ? .trailing : .leading)
@@ -604,6 +610,8 @@ private struct EquatableContent<Content: View, Key: Equatable>: View, Equatable 
 // MARK: - Per-Syllable Partial Fill View & Wrapping Layout
 
 public struct SyllableWordText: View {
+    @Environment(\.celestialTheme) private var theme
+
     public let text: String
     public let trailingSpace: Bool
     public let progress: Double
@@ -623,16 +631,17 @@ public struct SyllableWordText: View {
         let gradientProgress = CGFloat(clampedProgress)
         let glowAmount = sin(Double.pi * clampedProgress)
         let liftY = -2.0 * CGFloat(glowAmount)
+        let fillColor = theme.isLight ? theme.primaryText : Color.white
         let displayText = Text(text) + (trailingSpace ? Text(" ") : Text(""))
 
         displayText
-            .font(.system(size: fontSize, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.34))
+            .font(.system(size: fontSize, weight: .bold, design: .default))
+            .foregroundStyle(fillColor.opacity(0.34))
             .overlay {
                 GeometryReader { geo in
                     displayText
-                        .font(.system(size: fontSize, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .font(.system(size: fontSize, weight: .bold, design: .default))
+                        .foregroundStyle(fillColor)
                         .frame(width: geo.size.width, alignment: .leading)
                         .mask(alignment: .leading) {
                             if clampedProgress <= 0 {
@@ -653,7 +662,7 @@ public struct SyllableWordText: View {
                 }
             }
             .shadow(
-                color: glowEnabled ? .white.opacity(0.48 * glowAmount) : .clear,
+                color: glowEnabled ? fillColor.opacity(0.30 * glowAmount) : .clear,
                 radius: 2 + 5 * CGFloat(glowAmount),
                 y: 0
             )

@@ -62,7 +62,11 @@ public struct SongMeaningSheet: View {
                             Spacer()
                         }
                         .padding(16)
-                        .liquidGlass(shape: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(theme.separator, lineWidth: 1)
+                        }
 
                         if let summary = meaning.summary, !summary.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
@@ -75,7 +79,11 @@ public struct SongMeaningSheet: View {
                                     .lineSpacing(4)
                             }
                             .padding(18)
-                            .liquidGlass(shape: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(theme.separator, lineWidth: 1)
+                            }
                         }
 
                         if !sortedAnnotations.isEmpty {
@@ -114,7 +122,11 @@ public struct SongMeaningSheet: View {
                                     }
                                 }
                                 .padding(16)
-                                .liquidGlass(shape: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                                .background(theme.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .strokeBorder(theme.separator, lineWidth: 1)
+                                }
                             }
                         }
 
@@ -129,7 +141,7 @@ public struct SongMeaningSheet: View {
                     } else {
                         ContentUnavailableView(
                             "No Song Story Available",
-                            systemImage: "sparkles.rectangle.stack",
+                            systemImage: "text.quote",
                             description: Text("Genius does not have an editorial summary or annotations for this track yet.")
                         )
                     }

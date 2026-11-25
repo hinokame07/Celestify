@@ -34,18 +34,11 @@ public struct LikedSongsDetailView: View {
                 VStack(spacing: 12) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(argb: 0xFF5E5CE6), theme.accent],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(theme.elevated)
                             .frame(width: 176, height: 176)
-                            .shadow(color: theme.accent.opacity(0.4), radius: 18, y: 8)
                         Image(systemName: "heart.fill")
-                            .font(.system(size: 64))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 52))
+                            .foregroundStyle(theme.accent)
                     }
 
                     Text("Liked Songs")
@@ -247,7 +240,7 @@ public struct PlaylistMergeSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedURIs: Set<String> = []
-    @State private var mergedTitle = "Celestial Mix"
+    @State private var mergedTitle = String(localized: "New Mix")
     @State private var interleaveRoundRobin = true
     @State private var isMerging = false
 

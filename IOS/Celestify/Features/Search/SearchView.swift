@@ -42,7 +42,7 @@ public struct SearchView: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 20) {
                 Text("Search")
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .font(.largeTitle.weight(.bold))
                     .foregroundStyle(theme.primaryText)
                     .padding(.horizontal, 16)
 
@@ -121,14 +121,15 @@ public struct SearchView: View {
                     } label: {
                         Text(item.rawValue)
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(active ? .white : theme.primaryText)
+                            .foregroundStyle(active ? theme.onAccent : theme.primaryText)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
+                            .frame(minHeight: 44)
                             .background {
                                 if active {
                                     Capsule().fill(theme.accent)
                                 } else {
-                                    Capsule().fill(Color.white.opacity(0.08))
+                                    Capsule().fill(theme.elevated)
                                 }
                             }
                     }
@@ -168,6 +169,7 @@ public struct SearchView: View {
                                     .foregroundStyle(theme.primaryText)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 8)
+                                    .frame(minHeight: 44)
                                     .liquidGlass(shape: Capsule(), interactive: true)
                             }
                             .buttonStyle(.plain)

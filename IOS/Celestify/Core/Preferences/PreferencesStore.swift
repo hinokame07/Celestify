@@ -75,12 +75,6 @@ public final class PreferencesStore {
     public var dynamicArtworkColors: Bool {
         didSet { defaults.set(dynamicArtworkColors, forKey: Keys.dynamicArtworkColors) }
     }
-    public var ambientParticles: Bool {
-        didSet { defaults.set(ambientParticles, forKey: Keys.ambientParticles) }
-    }
-    public var particleIntensity: Int {
-        didSet { defaults.set(min(max(particleIntensity, 0), 2), forKey: Keys.particleIntensity) }
-    }
     public var lyricsGlow: Bool {
         didSet { defaults.set(lyricsGlow, forKey: Keys.lyricsGlow) }
     }
@@ -187,8 +181,6 @@ public final class PreferencesStore {
         self.appearanceMode = AppearanceMode(rawValue: defaults.string(forKey: Keys.appearanceMode) ?? "") ?? .dark
         self.liquidGlassEnabled = defaults.object(forKey: Keys.liquidGlassEnabled) as? Bool ?? true
         self.dynamicArtworkColors = defaults.object(forKey: Keys.dynamicArtworkColors) as? Bool ?? true
-        self.ambientParticles = defaults.object(forKey: Keys.ambientParticles) as? Bool ?? true
-        self.particleIntensity = (defaults.object(forKey: Keys.particleIntensity) as? Int ?? 1).clamped(to: 0...2)
         self.lyricsGlow = defaults.object(forKey: Keys.lyricsGlow) as? Bool ?? true
         self.reduceAnimations = defaults.object(forKey: Keys.reduceAnimations) as? Bool ?? false
         self.libraryGridView = defaults.object(forKey: Keys.libraryGridView) as? Bool ?? false
@@ -230,8 +222,6 @@ public final class PreferencesStore {
         static let appearanceMode = "celestify.appearance"
         static let liquidGlassEnabled = "immersive_liquid_glass"
         static let dynamicArtworkColors = "dynamic_artwork_colors"
-        static let ambientParticles = "ambient_particles"
-        static let particleIntensity = "particle_intensity"
         static let lyricsGlow = "lyrics_glow"
         static let reduceAnimations = "reduce_animations"
         static let libraryGridView = "library_grid_view"

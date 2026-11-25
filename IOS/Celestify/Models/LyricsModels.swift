@@ -312,7 +312,7 @@ public struct GeniusSongMeaning: Codable, Sendable, Hashable {
     }
 }
 
-// MARK: - Spicy Stage / Cinema Styles
+// MARK: - Lyrics Display Styles
 
 public enum SpicyStageStyle: String, Codable, Sendable, CaseIterable, Identifiable {
     case celestify = "Celestify"
