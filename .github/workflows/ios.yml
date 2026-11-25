@@ -195,7 +195,8 @@ jobs:
             exit 1
           fi
 
-          if [[ ! -d "$APP_PATH/Base.lproj/LaunchScreen.storyboardc" ]]; then
+          if [[ ! -d "$APP_PATH/LaunchScreen.storyboardc" \
+            && ! -d "$APP_PATH/Base.lproj/LaunchScreen.storyboardc" ]]; then
             echo "::error::The LaunchScreen storyboard was not compiled into the app."
             exit 1
           fi
