@@ -161,16 +161,21 @@ public struct LyricsStageView: View {
             allowedContentTypes: [.xml, .plainText],
             allowsMultipleSelection: false
         ) { result in
-            if case .success(let urls), let url = urls.first {
-                Task {
-                    if let imported = try? await SpicyImportsStore.shared.importFile(
-                        from: url,
-                        forTrackID: track.spotifyID,
-                        trackDisplayTitle: track.name
-                    ) {
-                        baseLyrics = imported
-                        await refreshEnhancements()
-                    }
+            // FIX: the `case` pattern needs `= result` (the initializer).
+            guard case .success(let urls) = result, let url = urls.first else { return }
+            Task {
+                // Files picked via fileImporter live outside the app sandbox,
+                // so security-scoped access is required to read them.
+                let granted = url.startAccessingSecurityScopedResource()
+                defer { if granted { url.stopAccessingSecurityScopedResource() } }
+
+                if let imported = try? await SpicyImportsStore.shared.importFile(
+                    from: url,
+                    forTrackID: track.spotifyID,
+                    trackDisplayTitle: track.name
+                ) {
+                    baseLyrics = imported
+                    await refreshEnhancements()
                 }
             }
         }
