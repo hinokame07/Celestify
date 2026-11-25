@@ -100,7 +100,11 @@ public struct ArtworkView: View {
         .frame(width: size, height: size)
         .clipShape(shape)
         .overlay {
-            shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 0.6)
+            // FIX: `AnyShape` is not an `InsettableShape`, so `strokeBorder` is unavailable.
+            // A doubled stroke clipped to the shape gives the same inner 0.6pt rim.
+            shape
+                .stroke(Color.white.opacity(0.12), lineWidth: 1.2)
+                .clipShape(shape)
         }
         .task(id: urlString) {
             guard let raw = urlString, let url = URL(string: raw) else {
