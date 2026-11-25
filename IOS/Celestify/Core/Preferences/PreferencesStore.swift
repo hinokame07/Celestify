@@ -200,7 +200,7 @@ public final class PreferencesStore {
         self.lyricsOffsetMs = (defaults.object(forKey: Keys.lyricsOffsetMs) as? Int ?? 0).clamped(to: -2000...2000)
         self.lyricTranslateLanguage = defaults.string(forKey: Keys.lyricTranslateLanguage) ?? ""
         self.spicyCatalogueKey = defaults.string(forKey: Keys.spicyCatalogueKey) ?? ""
-        self.spicyStageStyle = SpicyStageStyle(rawValue: defaults.string(forKey: Keys.spicyStageStyle) ?? "") ?? .celestify
+        self.spicyStageStyle = SpicyStageStyle(rawValue: defaults.string(forKey: Keys.spicyStageStyle) ?? "") ?? .spicy
         self.spicyStageBackground = SpicyStageBackground(rawValue: defaults.string(forKey: Keys.spicyStageBackground) ?? "") ?? .dynamicMesh
         self.spicyBackgroundBlur = (defaults.object(forKey: Keys.spicyBackgroundBlur) as? Int ?? 24).clamped(to: 0...64)
         self.spicyLeadMs = (defaults.object(forKey: Keys.spicyLeadMs) as? Int ?? 350).clamped(to: 0...800)

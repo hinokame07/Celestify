@@ -110,6 +110,37 @@ public struct SettingsView: View {
                         Text(mode.rawValue).tag(mode)
                     }
                 }
+                Picker("Lyrics Background", selection: Bindable(deps.preferences).spicyStageBackground) {
+                    ForEach(SpicyStageBackground.allCases) { background in
+                        Text(background.rawValue).tag(background)
+                    }
+                }
+                if deps.preferences.spicyStageBackground == .coverBlur
+                    || deps.preferences.spicyStageBackground == .artistHeader {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Background Blur")
+                            Spacer()
+                            Text("\(deps.preferences.spicyBackgroundBlur)")
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                        Slider(
+                            value: Binding(
+                                get: { Double(deps.preferences.spicyBackgroundBlur) },
+                                set: { deps.preferences.spicyBackgroundBlur = Int($0.rounded()) }
+                            ),
+                            in: 0...64,
+                            step: 1
+                        )
+                    }
+                }
+                SecureField(
+                    "Spicy Lyrics API key",
+                    text: Bindable(deps.preferences).spicyCatalogueKey
+                )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
                 Toggle("Word & Syllable Sync", isOn: Bindable(deps.preferences).lyricsWordSync)
                 Toggle("Syllable Glow Highlight", isOn: Bindable(deps.preferences).lyricsGlow)
                 Toggle("Automatic Romanization (CJK / Cyrillic)", isOn: Bindable(deps.preferences).spicyRomanize)
@@ -125,7 +156,7 @@ public struct SettingsView: View {
             } header: {
                 Text("Lyrics")
             } footer: {
-                Text("When Supplemental Providers is enabled, track title and artist name may be sent to NetEase Cloud Music or Genius if primary word-synced providers have no match.")
+                Text("Add a Spicy Lyrics API key to use its hosted catalogue. When Supplemental Providers is enabled, track title and artist name may be sent to NetEase Cloud Music or Genius if primary word-synced providers have no match.")
             }
 
             // MARK: Playback & Audio

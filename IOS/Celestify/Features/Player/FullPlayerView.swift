@@ -11,6 +11,7 @@
 
 import AVKit
 import SwiftUI
+import UIKit
 
 public enum FullPlayerPane: String, CaseIterable {
     case artwork
@@ -36,21 +37,42 @@ public struct FullPlayerView: View {
 
     private var playerForeground: Color { theme.isLight ? theme.primaryText : .white }
     private var playerSecondaryForeground: Color { theme.isLight ? theme.secondaryText : .white }
+    private var lyricsBackgroundStyle: SpicyStageBackground {
+        deps.preferences.dynamicArtworkColors ? deps.preferences.spicyStageBackground : .none
+    }
+
+    private var shouldShowCanvas: Bool {
+        activePane == .artwork
+            || (activePane == .lyrics
+                && deps.preferences.dynamicArtworkColors
+                && [.dynamicMesh, .solidColor].contains(deps.preferences.spicyStageBackground))
+    }
 
     public init() {}
 
     public var body: some View {
         ZStack {
-            AtmosphericBackdrop(
-                palette: deps.player.artworkPalette,
-                isAnimating: deps.player.isPlaying
-            )
+            if activePane == .lyrics, let track = deps.player.currentTrack {
+                LyricsPlayerBackdrop(
+                    track: track,
+                    palette: deps.player.artworkPalette,
+                    style: lyricsBackgroundStyle,
+                    blurRadius: deps.preferences.spicyBackgroundBlur,
+                    isAnimating: deps.player.isPlaying
+                )
+            } else {
+                AtmosphericBackdrop(
+                    palette: deps.player.artworkPalette,
+                    isAnimating: deps.player.isPlaying
+                )
+            }
 
             if let canvas = deps.player.currentCanvas,
                canvas.isVideo,
+               deps.preferences.musicVideoEnabled,
                let canvasURL = URL(string: canvas.url),
                !reduceMotion,
-               activePane == .artwork {
+               shouldShowCanvas {
                 LoopingCanvasVideoView(url: canvasURL)
                     .opacity(0.32)
                     .ignoresSafeArea()
@@ -461,6 +483,72 @@ public struct FullPlayerView: View {
             guard !Task.isCancelled else { return }
             deps.player.pause()
             sleepTimerMinutes = 0
+        }
+    }
+}
+
+private struct LyricsPlayerBackdrop: View {
+    let track: Track
+    let palette: ArtworkPalette
+    let style: SpicyStageBackground
+    let blurRadius: Int
+    let isAnimating: Bool
+
+    @Environment(AppDependencies.self) private var deps
+    @Environment(\.celestialTheme) private var theme
+    @State private var artwork: UIImage?
+
+    var body: some View {
+        ZStack {
+            switch style {
+            case .dynamicMesh:
+                AtmosphericBackdrop(palette: palette, isAnimating: isAnimating)
+            case .coverBlur, .artistHeader:
+                if let artwork {
+                    GeometryReader { geometry in
+                        Image(uiImage: artwork)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                    }
+                    .ignoresSafeArea()
+                    .blur(radius: CGFloat(blurRadius))
+                    .overlay(Color.black.opacity(0.38))
+                } else {
+                    AtmosphericBackdrop(palette: palette, isAnimating: isAnimating)
+                }
+            case .solidColor:
+                LinearGradient(
+                    colors: Array(palette.meshColors.prefix(3)),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .overlay(Color.black.opacity(0.28))
+                .ignoresSafeArea()
+            case .none:
+                theme.page.ignoresSafeArea()
+            }
+        }
+        .task(id: "\(track.uri)|\(style.rawValue)") {
+            artwork = nil
+            guard style == .coverBlur || style == .artistHeader else {
+                return
+            }
+            var imageURL = track.coverURL
+            if style == .artistHeader, let artist = track.artists.first, !artist.uri.isEmpty {
+                let page = try? await deps.api.artistPage(idOrURI: artist.uri)
+                imageURL = page?.headerImages.largestURL ?? imageURL
+            }
+            guard !Task.isCancelled,
+                  let imageURL,
+                  let url = URL(string: imageURL) else {
+                artwork = nil
+                return
+            }
+            let loadedArtwork = await ArtworkCache.shared.image(for: url)
+            guard !Task.isCancelled else { return }
+            artwork = loadedArtwork
         }
     }
 }

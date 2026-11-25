@@ -55,7 +55,12 @@ public struct LyricsStageView: View {
                     .foregroundStyle(theme.secondaryText)
                 Spacer()
             } else if let lyrics = displayedLyrics, !lyrics.lines.isEmpty {
-                TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: !deps.player.isPlaying)) { context in
+                TimelineView(
+                    .animation(
+                        minimumInterval: 1.0 / 120.0,
+                        paused: !deps.player.isPlaying || deps.player.isBuffering
+                    )
+                ) { context in
                     let nowMs = context.date.timeIntervalSinceReferenceDate * 1000.0
                     let posMs: Int64 = {
                         if deps.player.isPlaying && !deps.player.isBuffering {
@@ -79,6 +84,9 @@ public struct LyricsStageView: View {
                     let activeIsInstrumental = lyrics.lines.indices.contains(clockActiveIndex)
                         && lyrics.lines[clockActiveIndex].isInstrumental
                     let activeIdx = interlude != nil && !activeIsInstrumental ? -1 : clockActiveIndex
+                    let activeIndices = activeIdx >= 0
+                        ? LyricTiming.activeLineIndices(in: lyrics.lines, at: posMs)
+                        : nil
 
                     ScrollViewReader { proxy in
                         ScrollView(showsIndicators: false) {
@@ -94,12 +102,13 @@ public struct LyricsStageView: View {
                                     }
                                     let isFrameSensitive = lyrics.wordSynced
                                         && activeIdx >= 0
-                                        && abs(idx - activeIdx) <= 2
+                                        && (activeIndices?.contains(idx) == true || abs(idx - activeIdx) <= 2)
                                     let rowInterludeProgress = idx == activeIdx ? interlude?.progress : nil
                                     let rowKey = LyricLineRenderKey(
                                         line: line,
                                         index: idx,
                                         activeIndex: activeIdx,
+                                        activeLineIndices: activeIndices,
                                         framePositionMs: isFrameSensitive ? posMs : nil,
                                         interludeProgress: rowInterludeProgress,
                                         synced: lyrics.synced,
@@ -120,6 +129,7 @@ public struct LyricsStageView: View {
                                             line: line,
                                             index: idx,
                                             activeIndex: activeIdx,
+                                            activeLineIndices: activeIndices,
                                             positionMs: isFrameSensitive ? posMs : line.startMs,
                                             interludeProgress: rowInterludeProgress,
                                             synced: lyrics.synced,
@@ -235,7 +245,8 @@ public struct LyricsStageView: View {
                     from: url,
                     forTrackID: track.spotifyID,
                     trackDisplayTitle: track.name
-                ) {
+                ), !Task.isCancelled,
+                   deps.player.currentTrack?.uri == track.uri {
                     baseLyrics = imported
                     await refreshEnhancements()
                 }
@@ -419,14 +430,21 @@ public struct LyricsStageView: View {
         line: LyricLine,
         index: Int,
         activeIndex: Int,
+        activeLineIndices: Range<Int>?,
         positionMs: Int64,
         interludeProgress: Double?,
         synced: Bool,
         wordSynced: Bool,
         isRTL: Bool
     ) -> some View {
-        let isActive = !synced || index == activeIndex
-        let distance = synced && activeIndex >= 0 ? abs(index - activeIndex) : 0
+        let isActive = !synced || activeLineIndices?.contains(index) == true || index == activeIndex
+        let distance = synced && activeIndex >= 0
+            ? activeLineIndices.map { range in
+                index < range.lowerBound ? range.lowerBound - index
+                    : index >= range.upperBound ? index - range.upperBound + 1
+                    : 0
+            } ?? abs(index - activeIndex)
+            : 0
         let opacity: Double = {
             if !synced { return 0.92 }
             if isActive { return 1.0 }
@@ -514,7 +532,12 @@ public struct LyricsStageView: View {
             guard synced else { return }
             HapticsManager.shared.softDetent()
             manualScrollSuppressionUntil = .distantPast
-            deps.player.seek(toMs: line.startMs)
+            deps.player.seek(
+                toMs: LyricTiming.seekPositionMs(
+                    lineMs: line.startMs,
+                    userOffsetMs: deps.preferences.lyricsOffsetMs
+                )
+            )
         }
     }
 
@@ -529,6 +552,7 @@ public struct LyricsStageView: View {
         manualScrollSuppressionUntil = .distantPast
 
         let isrc = await deps.api.trackISRC(trackURI: track.uri)
+        guard !Task.isCancelled, deps.player.currentTrack?.uri == track.uri else { return }
         let query = LyricsTrackQuery(
             id: track.spotifyID,
             title: track.name,
@@ -545,14 +569,18 @@ public struct LyricsStageView: View {
             providerFirst: deps.preferences.spicyProviderFirst,
             onEarlySpotifyLineSync: { early in
                 await MainActor.run {
-                    if self.displayedLyrics == nil {
+                    if !Task.isCancelled,
+                       self.deps.player.currentTrack?.uri == self.track.uri,
+                       self.displayedLyrics == nil {
                         self.displayedLyrics = early
                     }
                 }
             }
         )
+        guard !Task.isCancelled, deps.player.currentTrack?.uri == track.uri else { return }
         self.baseLyrics = resolved
         await refreshEnhancements()
+        guard !Task.isCancelled, deps.player.currentTrack?.uri == track.uri else { return }
         isLoading = false
     }
 
@@ -565,12 +593,14 @@ public struct LyricsStageView: View {
             working = await Task.detached(priority: .userInitiated) {
                 Romanizer.applyRomanization(to: working)
             }.value
+            guard !Task.isCancelled, deps.player.currentTrack?.uri == track.uri else { return }
         }
         let targetLang = deps.preferences.lyricTranslateLanguage
         if !targetLang.isEmpty,
            let translated = try? await LyricTranslationService.shared.translateLyrics(working, targetLanguage: targetLang) {
             working = translated
         }
+        guard !Task.isCancelled, deps.player.currentTrack?.uri == track.uri else { return }
         displayedLyrics = working
     }
 }
@@ -579,6 +609,7 @@ private struct LyricLineRenderKey: Equatable {
     let line: LyricLine
     let index: Int
     let activeIndex: Int
+    let activeLineIndices: Range<Int>?
     let framePositionMs: Int64?
     let interludeProgress: Double?
     let synced: Bool

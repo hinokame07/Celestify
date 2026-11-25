@@ -22,9 +22,10 @@ The Android codebase in `/base` remains 100% untouched.
 - **Apple Music iOS 26 Liquid Glass Design System**
   - Uses native `.glassEffect(...)` when compiled with the iOS 26 SDK (`#if compiler(>=6.2)` + `@available(iOS 26.0, *)`) and falls back gracefully on iOS 17–18 to multi-stop specular refraction borders, vibrancy materials, and real-time `MeshGradient` / Canvas album-art atmospheres.
   - Full support for **Celestial Midnight**, **Golden Seraph**, **Adaptive Celestial**, **Pure Black OLED**, **Reduce Transparency**, **Reduce Motion**, **Dynamic Type**, and **VoiceOver**.
-- **60/120Hz ProMotion Spicy Lyrics & Cinema Stage**
-  - Parallel word-synced resolution across **Spicy Catalogue (`spicylyrics.org`)**, **Local `.ttml` Overrides**, **Spotify Color Lyrics**, **LyricsPlus**, **lrc.red TTML**, **Kugou KRC** (`@Gaw^2tGQ61-ÎÒni` XOR + zlib), and **LRCLIB** (plus opt-in NetEase & Genius).
-  - Median audio intro timestamp alignment (`LyricTiming.alignToSpotifyAudio`), timestamped smoothstep `LyricClock` playhead steering, Bluetooth/AirPlay `AVAudioSession.outputLatency` compensation, duet vocalist opposite alignment (`ttm:agent`), `x-bg` backing vocals, native Hangul/Kana/Cyrillic/ICU `Romanizer`, live bilingual translation, and **Genius Song Meanings & Verified Line Annotations**.
+- **60/120Hz ProMotion Spicy Lyrics & Music Player**
+  - Parallel word-synced resolution across **Spicy Catalogue (`spicylyrics.org`)**, **Local `.ttml` Overrides**, **Spotify Color Lyrics**, **LyricsPlus**, **lrc.red TTML**, **Kugou KRC** (`@Gaw^2tGQ61-ÎÒni` XOR + zlib), and **LRCLIB** (plus opt-in NetEase & Genius), with a configurable Spicy API key.
+  - Median audio intro timestamp alignment (`LyricTiming.alignToSpotifyAudio`), timestamped smoothstep `LyricClock` playhead steering, Bluetooth/AirPlay `AVAudioSession.outputLatency` compensation, offset-correct lyric seeks, simultaneous duet highlighting, `x-bg` backing vocals, native Hangul/Kana/Cyrillic/ICU `Romanizer`, live bilingual translation, and **Genius Song Meanings & Verified Line Annotations**.
+  - Lyrics player backdrops can use the animated artwork mesh, blurred cover, artist header, artwork palette, or no image, with adjustable blur.
 - **Hardened Spotify Authentication & Session Persistence**
   - Fixes Android's WebView User-Agent mismatch, OAuth/CAPTCHA popup drops, email-OTP lifecycle wipes, and multi-caller 401 token race conditions.
   - Supports interactive WebKit login, manual `sp_dc` cookie import, email magic-link deep links, and multi-account switching stored in hardware-backed **Apple Keychain** (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`).
