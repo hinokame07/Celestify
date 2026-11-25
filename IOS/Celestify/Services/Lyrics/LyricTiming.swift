@@ -35,6 +35,11 @@ public enum LyricTiming {
         max(0, playbackMs - outputLagMs - Int64(userOffsetMs))
     }
 
+    /// Seeks playback to the point where a lyric line is heard after applying the user's offset.
+    public static func seekPositionMs(lineMs: Int64, userOffsetMs: Int = 0) -> Int64 {
+        max(0, lineMs + Int64(userOffsetMs))
+    }
+
     /// Binary search for the latest lyric line whose `startMs <= positionMs` (`-1` before the first line).
     public static func activeLineIndex(in lines: [LyricLine], at positionMs: Int64) -> Int {
         guard !lines.isEmpty else { return -1 }

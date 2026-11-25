@@ -149,6 +149,21 @@ final class LyricsAndParsersTests: XCTestCase {
         XCTAssertEqual(LyricTiming.activeLineIndex(in: aligned.lines, at: 13_500), 1)
     }
 
+    func testLyricSeekPositionAppliesUserOffset() {
+        XCTAssertEqual(LyricTiming.seekPositionMs(lineMs: 10_000, userOffsetMs: 250), 10_250)
+        XCTAssertEqual(LyricTiming.seekPositionMs(lineMs: 10_000, userOffsetMs: -250), 9_750)
+        XCTAssertEqual(LyricTiming.seekPositionMs(lineMs: 100, userOffsetMs: -250), 0)
+    }
+
+    func testLyricTimingKeepsSimultaneousDuetLinesActive() {
+        let lines = [
+            LyricLine(startMs: 0, endMs: 3_000, words: "Lead line"),
+            LyricLine(startMs: 1_000, endMs: 2_500, words: "Duet line", speaker: .duet)
+        ]
+
+        XCTAssertEqual(LyricTiming.activeLineIndices(in: lines, at: 1_500), 0..<2)
+    }
+
     func testLyricClockMonotonicAdvanceAndDiscontinuityGlide() {
         let clock = LyricClock()
         let p0 = clock.frame(nowMs: 1_000.0, reportedMs: 5_000, sampledAtMs: 1_000.0, discontinuity: 0)
