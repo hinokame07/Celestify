@@ -30,8 +30,8 @@ public final class LyricClock {
     private var anchorMs: Double = 0.0
     public private(set) var learnedRate: Double = 1.0
 
-    private var historyAt = [Double](repeating: 0, count: Self.historyCapacity)
-    private var historyMs = [Double](repeating: 0, count: Self.historyCapacity)
+    private var historyAt = [Double](repeating: 0, count: LyricClock.historyCapacity)
+    private var historyMs = [Double](repeating: 0, count: LyricClock.historyCapacity)
     private var historySize: Int = 0
     private var rateSettled: Bool = false
 
