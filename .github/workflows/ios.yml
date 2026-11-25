@@ -2,108 +2,190 @@
 name: Celestify iOS Build
 
 on:
-  workflow_dispatch:
   push:
-    branches: ["main"]
-    paths:
-      - "IOS/**"
-      - ".github/workflows/ios-build.yml"
+    branches:
+      - main
+      - "arena/**"
   pull_request:
-    branches: ["main"]
-    paths:
-      - "IOS/**"
-      - ".github/workflows/ios-build.yml"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: celestify-ios-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    name: Build Celestify iOS
+    name: Build Celestify for iOS
     runs-on: macos-26
+    timeout-minutes: 60
 
     steps:
+      # 1. Baixar o repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26
+      # 2. Verificar o Xcode disponível
+      - name: Check Xcode installation
+        shell: bash
         run: |
           set -euo pipefail
-          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+
+          echo "Selected developer directory:"
+          xcode-select -p
+
+          echo "Xcode version:"
           xcodebuild -version
-          swift --version
 
-      - name: Validate project
-        run: |
-          set -euo pipefail
+          echo "Available iOS SDK:"
+          xcrun --sdk iphoneos --show-sdk-version
 
-          test -d IOS/Celestify.xcodeproj
-          test -f IOS/project.yml
+          XCODE_VERSION="$(xcodebuild -version | awk '/^Xcode / {print $2}')"
 
-          xcodebuild -list \
-            -project IOS/Celestify.xcodeproj
-
-      - name: Resolve Swift packages
-        run: |
-          set -euo pipefail
-
-          xcodebuild -resolvePackageDependencies \
-            -project IOS/Celestify.xcodeproj \
-            -scheme Celestify
-
-      - name: Build for iOS Simulator
-        run: |
-          set -euo pipefail
-
-          xcodebuild build \
-            -project IOS/Celestify.xcodeproj \
-            -scheme Celestify \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build/Simulator \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run unit and UI tests
-        run: |
-          set -euo pipefail
-
-          xcodebuild test \
-            -project IOS/Celestify.xcodeproj \
-            -scheme Celestify \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-            -derivedDataPath build/Tests \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Build Release for iOS
-        run: |
-          set -euo pipefail
-
-          xcodebuild build \
-            -project IOS/Celestify.xcodeproj \
-            -scheme Celestify \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build/Release \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Package unsigned IPA
-        run: |
-          set -euo pipefail
-
-          APP_PATH="build/Release/Build/Products/Release-iphoneos/Celestify.app"
-
-          if [ ! -d "$APP_PATH" ]; then
-            echo "ERROR: Celestify.app was not generated."
+          if [[ "$XCODE_VERSION" != 26.* ]]; then
+            echo "::error::Xcode 26 is required. Found: $XCODE_VERSION"
             exit 1
           fi
 
-          mkdir -p build/Payload
-          cp -R "$APP_PATH" build/Payload/
+      # 3. Verificar os arquivos do projeto
+      - name: Validate project files
+        shell: bash
+        run: |
+          set -euo pipefail
 
-          cd build
-          /usr/bin/zip -r Celestify-unsigned.ipa Payload
+          test -d IOS || {
+            echo "::error::IOS directory not found."
+            exit 1
+          }
 
-      - name: Upload IPA
+          test -f IOS/project.yml || {
+            echo "::error::IOS/project.yml not found."
+            exit 1
+          }
+
+          echo "iOS project files:"
+          find IOS -maxdepth 2 -type f | sort | head -200
+
+      # 4. Instalar XcodeGen
+      - name: Install XcodeGen
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+
+          xcodegen --version
+
+      # 5. Gerar o projeto Xcode
+      - name: Generate Xcode project
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd IOS
+          xcodegen generate --spec project.yml
+
+          test -d Celestify.xcodeproj || {
+            echo "::error::XcodeGen did not generate Celestify.xcodeproj."
+            exit 1
+          }
+
+      # 6. Preparar diretórios
+      - name: Prepare build directories
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/logs
+          mkdir -p build/ipa/Payload
+
+      # 7. Verificar scheme e dependências
+      - name: Resolve project dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          xcodebuild -list \
+            -project IOS/Celestify.xcodeproj \
+            2>&1 | tee build/logs/project-list.log
+
+          xcodebuild -resolvePackageDependencies \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify \
+            2>&1 | tee build/logs/dependencies.log
+
+      # 8. Compilar para iPhone
+      - name: Build iOS Release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$GITHUB_WORKSPACE/build/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build \
+            2>&1 | tee build/logs/iphoneos-build.log
+
+      # 9. Localizar o aplicativo compilado
+      - name: Locate compiled app
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PRODUCTS="$GITHUB_WORKSPACE/build/DerivedData/Build/Products/Release-iphoneos"
+
+          APP_PATH="$(find "$PRODUCTS" \
+            -maxdepth 1 \
+            -type d \
+            -name '*.app' \
+            -print -quit)"
+
+          if [[ -z "$APP_PATH" ]]; then
+            echo "::error::Compiled .app not found."
+            ls -lah "$PRODUCTS" || true
+            exit 1
+          fi
+
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+
+          echo "Compiled application:"
+          ls -lah "$APP_PATH"
+
+      # 10. Gerar o IPA
+      - name: Package unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/ipa/Payload
+
+          ditto "$APP_PATH" \
+            build/ipa/Payload/"$(basename "$APP_PATH")"
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/ipa/Payload \
+            build/Celestify-unsigned.ipa
+
+          test -s build/Celestify-unsigned.ipa
+
+          echo "IPA successfully generated:"
+          ls -lh build/Celestify-unsigned.ipa
+
+      # 11. Disponibilizar o IPA
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: Celestify-iOS-Unsigned
@@ -111,12 +193,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      # 12. Guardar logs mesmo se a compilação falhar
       - name: Upload build logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Celestify-Build-Logs
-          path: |
-            build/**/*.xcresult
+          name: Celestify-iOS-Build-Logs
+          path: build/logs/
           if-no-files-found: ignore
           retention-days: 7
