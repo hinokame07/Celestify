@@ -1,4 +1,3 @@
-
 name: Celestify iOS Build
 
 on:
@@ -187,6 +186,21 @@ jobs:
 
           echo "Application found:"
           ls -lah "$APP_PATH"
+
+          INFO_PLIST="$APP_PATH/Info.plist"
+          LAUNCH_STORYBOARD="$(/usr/libexec/PlistBuddy -c 'Print :UILaunchStoryboardName' "$INFO_PLIST")"
+
+          if [[ "$LAUNCH_STORYBOARD" != "LaunchScreen" ]]; then
+            echo "::error::The built app does not declare the LaunchScreen storyboard."
+            exit 1
+          fi
+
+          if [[ ! -d "$APP_PATH/Base.lproj/LaunchScreen.storyboardc" ]]; then
+            echo "::error::The LaunchScreen storyboard was not compiled into the app."
+            exit 1
+          fi
+
+          echo "Launch screen metadata and compiled storyboard are present."
 
       # 10. Gerar IPA
       - name: Package unsigned IPA
