@@ -17,7 +17,7 @@ public struct FloatingBottomChrome: View {
     public var body: some View {
         VStack(spacing: 10) {
             if let currentItem = deps.player.currentTrack {
-                MiniPlayerBar(track: currentItem.asTrack())
+                MiniPlayerBar(track: currentItem)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
