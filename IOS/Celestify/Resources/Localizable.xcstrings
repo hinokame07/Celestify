@@ -7,6 +7,41 @@
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Início" } }
       }
     },
+    "Loading your music…" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carregando suas músicas…" } }
+      }
+    },
+    "Loading your music" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carregando suas músicas" } }
+      }
+    },
+    "No music yet" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ainda não há músicas" } }
+      }
+    },
+    "Your Spotify Home has no content right now." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Sua página inicial do Spotify está vazia no momento." } }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tentar de novo" } }
+      }
+    },
+    "Sign in to Spotify to load Home." : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Entre no Spotify para carregar a página inicial." } }
+      }
+    },
+    "Recently Played" : {
+      "localizations" : {
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Tocadas recentemente" } }
+      }
+    },
     "Search" : {
       "localizations" : {
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher" } },

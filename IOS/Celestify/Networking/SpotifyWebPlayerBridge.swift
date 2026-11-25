@@ -44,7 +44,7 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
     private var webView: WKWebView?
     private var nextCallID: Int = 1
     private var pendingCalls: [Int: CheckedContinuation<JSONValue, Error>] = [:]
-    private var readyWaiters: [CheckedContinuation<Void, Error>] = []
+    private var pendingCallTimeouts: [Int: Task<Void, Never>] = [:]
     private var playerURL: URL = SpotifyAuthManager.defaultPlayerURL
 
     public override init() {
@@ -89,30 +89,23 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
         webView = nil
 
         let fail = BridgeError.notReady
-        for (_, cont) in pendingCalls { cont.resume(throwing: fail) }
+        for (callID, cont) in pendingCalls {
+            pendingCallTimeouts.removeValue(forKey: callID)?.cancel()
+            cont.resume(throwing: fail)
+        }
         pendingCalls.removeAll()
-        for waiter in readyWaiters { waiter.resume(throwing: fail) }
-        readyWaiters.removeAll()
+        pendingCallTimeouts.removeAll()
     }
 
     public func waitUntilReady(timeoutSeconds: TimeInterval = 25) async throws {
-        if isReady { return }
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask { @MainActor in
-                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                    if self.isReady {
-                        cont.resume()
-                    } else {
-                        self.readyWaiters.append(cont)
-                    }
-                }
-            }
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))
+        let deadline = Date().addingTimeInterval(max(0, timeoutSeconds))
+        while !isReady {
+            try Task.checkCancellation()
+            guard Date() < deadline else {
+                DiagnosticLogbook.shared.log("bridge", "Timed out waiting for Web Player readiness")
                 throw BridgeError.timeout(method: "bridge.ready")
             }
-            _ = try await group.next()
-            group.cancelAll()
+            try await Task.sleep(nanoseconds: 100_000_000)
         }
     }
 
@@ -131,34 +124,51 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
         let escapedMethod = method.replacingOccurrences(of: "'", with: "\\'")
         let js = "window.Myspoti && window.Myspoti.call(\(callID), '\(escapedMethod)', \(serializedArgs)); true;"
 
-        return try await withThrowingTaskGroup(of: JSONValue.self) { group in
-            group.addTask { @MainActor in
-                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<JSONValue, Error>) in
-                    self.pendingCalls[callID] = cont
-                    webView.evaluateJavaScript(js) { _, error in
-                        if let error, let pending = self.pendingCalls.removeValue(forKey: callID) {
-                            pending.resume(throwing: BridgeError.remoteError(method: method, message: error.localizedDescription))
-                        }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<JSONValue, Error>) in
+                guard !Task.isCancelled else {
+                    cont.resume(throwing: CancellationError())
+                    return
+                }
+                pendingCalls[callID] = cont
+                pendingCallTimeouts[callID] = Task { @MainActor [weak self] in
+                    do {
+                        try await Task.sleep(nanoseconds: UInt64(max(0, timeoutSeconds) * 1_000_000_000))
+                    } catch {
+                        return
+                    }
+                    self?.finishPendingCall(
+                        callID,
+                        with: .failure(BridgeError.timeout(method: method))
+                    )
+                }
+                webView.evaluateJavaScript(js) { _, error in
+                    guard let error else { return }
+                    Task { @MainActor in
+                        self.finishPendingCall(
+                            callID,
+                            with: .failure(BridgeError.remoteError(method: method, message: error.localizedDescription))
+                        )
                     }
                 }
             }
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))
-                throw BridgeError.timeout(method: method)
+        } onCancel: {
+            Task { @MainActor in
+                self.finishPendingCall(callID, with: .failure(CancellationError()))
             }
-            guard let result = try await group.next() else {
-                throw BridgeError.timeout(method: method)
-            }
-            group.cancelAll()
-            Task { @MainActor in self.pendingCalls.removeValue(forKey: callID) }
-            return result
         }
+    }
+
+    private func finishPendingCall(_ callID: Int, with result: Result<JSONValue, Error>) {
+        guard let continuation = pendingCalls.removeValue(forKey: callID) else { return }
+        pendingCallTimeouts.removeValue(forKey: callID)?.cancel()
+        continuation.resume(with: result)
     }
 
     @discardableResult
     public func service(_ serviceName: String, method: String, args: [JSONValue] = []) async throws -> JSONValue {
         try await call(
-            "service",
+            "service.call",
             args: .object([
                 "service": .string(serviceName),
                 "method": .string(method),
@@ -170,13 +180,13 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
     // MARK: - WebTokenBridgeSource Conformance
 
     nonisolated public func fetchBridgeWebToken() async throws -> StoredWebToken {
-        let res = try await call("token", args: .object([:]), timeoutSeconds: 12)
+        let res = try await call("token.get", args: .object([:]), timeoutSeconds: 12)
         guard let token = res.str("accessToken"), !token.isEmpty else {
-            throw BridgeError.remoteError(method: "token", message: "Empty accessToken from TokenProvider")
+            throw BridgeError.remoteError(method: "token.get", message: "Empty accessToken from TokenProvider")
         }
         let clientID = res.str("clientId") ?? SpotifyTokenCoordinator.defaultWebClientID
         let appVersion = res.str("appVersion") ?? SpotifyTokenCoordinator.fallbackAppVersion
-        let expiresAt = res.int64("expiresAt")
+        let expiresAt = res.int64("expiresAtMs") ?? res.int64("expiresAt")
             ?? Int64(Date().addingTimeInterval(3000).timeIntervalSince1970 * 1000)
         return StoredWebToken(
             accessToken: token,
@@ -261,9 +271,6 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
             isReady = true
             drmUnavailable = json.bool("drmMissing") ?? false
             DiagnosticLogbook.shared.log("bridge", "Web Player service registry ready (drmMissing=\(drmUnavailable))")
-            let waiters = readyWaiters
-            readyWaiters.removeAll()
-            waiters.forEach { $0.resume() }
 
         case "state":
             if let rawState = json.at("state"), let mapped = SpotifyMappers.playerState(rawState) {
@@ -284,12 +291,15 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
             }
 
         case "result":
-            guard let id = json.int("id"), let cont = pendingCalls.removeValue(forKey: id) else { return }
+            guard let id = json.int("id") else { return }
             if json.bool("ok") == true {
-                cont.resume(returning: json.at("value") ?? .null)
+                finishPendingCall(id, with: .success(json.at("value") ?? .null))
             } else {
                 let errText = json.str("error") ?? "Bridge RPC failed"
-                cont.resume(throwing: BridgeError.remoteError(method: "rpc#\(id)", message: errText))
+                finishPendingCall(
+                    id,
+                    with: .failure(BridgeError.remoteError(method: "rpc#\(id)", message: errText))
+                )
             }
 
         case "error":

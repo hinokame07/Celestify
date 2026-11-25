@@ -51,28 +51,56 @@ public actor SpotifyGraphQLClient {
 
     public func query(_ operationName: String, variables: [String: JSONValue] = [:]) async throws -> JSONValue {
         guard let op = operations[operationName] else {
+            DiagnosticLogbook.shared.log("gql", "Operation unavailable: \(operationName)")
             throw GraphQLError.unknownOperation(operationName)
         }
         let isMutation = op.kind == "mutation"
+        DiagnosticLogbook.shared.log("gql", "Starting \(operationName)")
 
         do {
-            return try await executeHTTP(op: op, variables: variables)
+            let result = try await executeHTTP(op: op, variables: variables)
+            DiagnosticLogbook.shared.log("gql", "Completed \(operationName)")
+            return result
         } catch let error as HTTPError {
             // If Spotify rotated a persisted query hash, refresh once from open.spotify.com bundles
             if case .badStatus(let code, let snippet, _) = error {
                 if (snippet.contains("PersistedQueryNotFound") || code == 400) && !attemptedHashRefresh {
                     attemptedHashRefresh = true
+                    DiagnosticLogbook.shared.log("gql", "\(operationName) persisted query may be stale; checking bundled hashes")
                     if let updated = try? await refreshOperationHashesFromWebBundles(),
                        let refreshedOp = updated[operationName] {
                         self.operations = updated
-                        return try await executeHTTP(op: refreshedOp, variables: variables)
+                        do {
+                            let result = try await executeHTTP(op: refreshedOp, variables: variables)
+                            DiagnosticLogbook.shared.log("gql", "Completed \(operationName) with refreshed persisted-query hash")
+                            return result
+                        } catch {
+                            DiagnosticLogbook.shared.log(
+                                "gql",
+                                "\(operationName) retry with refreshed hash failed (\(String(describing: type(of: error))))"
+                            )
+                            throw error
+                        }
                     }
+                    DiagnosticLogbook.shared.log("gql", "No refreshed hash available for \(operationName)")
                 }
                 // Non-mutation read queries may safely fall back to the page's GraphQL loader
                 if !isMutation, (400..<500).contains(code), let bridge = bridgeFallback {
-                    return try await executeViaBridge(bridge: bridge, op: op, variables: variables)
+                    DiagnosticLogbook.shared.log("gql", "\(operationName) HTTP \(code); trying Web Player GraphQL fallback")
+                    do {
+                        let result = try await executeViaBridge(bridge: bridge, op: op, variables: variables)
+                        DiagnosticLogbook.shared.log("gql", "Completed \(operationName) through Web Player fallback")
+                        return result
+                    } catch {
+                        DiagnosticLogbook.shared.log("gql", "\(operationName) fallback failed (\(String(describing: type(of: error))))")
+                        throw error
+                    }
                 }
+                DiagnosticLogbook.shared.log("gql", "\(operationName) HTTP request failed with status \(code)")
             }
+            throw error
+        } catch {
+            DiagnosticLogbook.shared.log("gql", "\(operationName) failed (\(String(describing: type(of: error))))")
             throw error
         }
     }
@@ -120,11 +148,11 @@ public actor SpotifyGraphQLClient {
     ) async throws -> JSONValue {
         let args: JSONValue = .object([
             "name": .string(op.name),
-            "kind": .string(op.kind),
+            "operation": .string(op.kind),
             "hash": .string(op.hash),
             "variables": .object(variables)
         ])
-        let raw = try await bridge.call("gql", args: args)
+        let raw = try await bridge.call("gql.query", args: args)
         if raw.at("data") != nil {
             return raw
         }
