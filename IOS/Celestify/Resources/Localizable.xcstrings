@@ -1,0 +1,54 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Home" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Accueil" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Início" } }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Buscar" } }
+      }
+    },
+    "Your Library" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Bibliothèque" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Sua Biblioteca" } }
+      }
+    },
+    "Lyrics" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Paroles" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Letras" } }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Paramètres" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Configurações" } }
+      }
+    },
+    "Sign in with Spotify" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Se connecter avec Spotify" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Entrar com o Spotify" } }
+      }
+    },
+    "Liked Songs" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Titres likés" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Músicas Curtidas" } }
+      }
+    },
+    "Queue" : {
+      "localizations" : {
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "File d'attente" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Fila" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

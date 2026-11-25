@@ -1,0 +1,904 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5B708E2FA47BBF06E5276E54 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7D2D1C374DEAA321AA31DB0A; };
+		1586CD865B7F0A2DE528BFA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E5FCDBBC36A73EC601E6FA0E; };
+		C07FBBFF7D1E5A2C283484DB /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F828D20899D662587EACB35A; };
+		9DA198A86742D9C429DD9AAE /* gql-ops.json in Resources */ = {isa = PBXBuildFile; fileRef = 811F64370DA00B608FB0D22F; };
+		4F1B73F5612C25B7979DC221 /* player-bridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 76745F56F9A143F89911FB93; };
+		3943564F7CE0A0E370855FA2 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5B736D82F668698A994F8F; };
+		02A4CA28B960502A151255E9 /* CelestifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FF01F93269E20ED1072E96D; };
+		340607A5F02279932AB3432C /* RootShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56BCDAE904CB93C5C10ECBD; };
+		ECB2480E60C64178DC4428D8 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0AC3500C519AF474A0748A; };
+		64BF8E1D1F0A821D03F3807E /* FloatingLiquidTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF04FC13C2629A1A77DF4E8; };
+		D12704288D1D416FAEF00D1E /* MediaCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F496EB0C759642710ACF7B60; };
+		1E775EF2E485DFEE1C6A9E5F /* TrackRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA12CB615E909E31197E37B; };
+		B3C6B5F08559679389C9C95F /* ArtworkPaletteExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66DE08504B5EDB62E80B96C; };
+		88C287B031B5393FEC22A046 /* AtmosphericBackdrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A6CECA6B0FF24F156BB3B1; };
+		A2A132354A8F6CE7D68B059A /* CelestialTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66773C01EA81C23F9AB9CAD9; };
+		A411C87670A0381C868CA54F /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A114CEA9DE7A207A88FD9784; };
+		30871A2347255E15DC7CDC64 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8939458A5F2EE22A83AAA3D2; };
+		3039D53F4854E62B10D4F70E /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F03B7B2960DDDAFD6FDF6E; };
+		F645A87F38298771347348A6 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0734C74B7D0E081935C812; };
+		CF53FF8C237AACE336E2E1FA /* OnboardingLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F82646A1F760D3390CB45E; };
+		EBF80552AEE914F3147CE317 /* CatalogDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BE30E8A914ADB4F1998917; };
+		DAEE1D72BF0DBBCD295D5074 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C451E9111113BF223E8A1E95; };
+		3F19EFBB1935705DB24E2C41 /* WhatsNewAndFriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D824127371A3F98BDDC922E; };
+		2C3CE6D3C2D9068B0699BE9E /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C53433663EFDD67561E0290B; };
+		7728DB764E2D7B571C7E393A /* PlaylistEditorSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED8181E6A0CC31661F8D0038; };
+		C29A96CD09BC3CA2A69D2D7B /* LyricsStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010DF4B1494628258BD249A4; };
+		EB5FB12BF8C130C6D0AFEA16 /* SongMeaningSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97BB6A78C014BD213D029830; };
+		AB10188F7D0EC1838BA1C7BA /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31930A3C43D358495E9FD03; };
+		4E9DD619FBA1FF2EA0E427A0 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58ABEE44D2C20B7F077A5F77; };
+		97B1F65F9EE7E2D770411172 /* SettingsSubViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BA733221A6EB06107EBFFE; };
+		B0FEA049529FF6999B9196C6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F39A1776CB16D3F0E8FE5E; };
+		B248F85ACC93607E36418794 /* DomainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C43615B2BAFFA9B8BE3B832; };
+		9AAFC42B534764C362EAC0D2 /* LyricsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38005B19CB9AF25BDD2909F; };
+		355DE23C9E525290C2F25666 /* ThemeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963FC778027EC4F368788FA2; };
+		962C8B14EB712B7DEA572D41 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADE4A6B6320C926F5F41A73; };
+		9F6A566135378045B7C5A451 /* JSONPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59568A5EEBB367554DAC764D; };
+		9BCA097D9F68E2840F156A02 /* SpotifyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7F1510FB9BB2622FF2732D; };
+		9ADCA7A7919E2974782367EA /* SpotifyGraphQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4AA717CE1AB7A71D0BF7BD; };
+		972F5BF30780B8BABBBB2AF6 /* SpotifyMappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A7E43F2AA22B605337E7EA; };
+		E6C3320E92FFE8D26D83F040 /* SpotifyTokenCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA753C76F226F1B048DEE9E; };
+		DA6476C5DA717C622318AC1F /* SpotifyWebPlayerBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6433F0DEA2FC43B38836C4BD; };
+		7C0D4A7292D5BCD71F082D37 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98F35669BF3FD1440A06FF0; };
+		3EA1A04A39DB8DA6E3C5D349 /* SpotifyAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663006E0D17D0326ECEDBE2E; };
+		67DF2E37BB478040FB6542DC /* SpotifyLoginWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5297F47BC87636861856D71F; };
+		B0DB954606C17E9254C96A64 /* DiagnosticLogbook.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3230C07F178AAFEF0CF5E64; };
+		4F53DF539EDB84467065EBBC /* ExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 372DA32905423C05C1FE413D; };
+		8A446E7995EAD99349430581 /* GeniusMeaningService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB614787CB066C76AEB36F3; };
+		5E74F9E823369EFB0E6C4AE9 /* KrcParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31BE3671C188B53F6718EB05; };
+		5E175B67F4044C86359D5D79 /* LrcParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE56970252FA6CDE7E3A9492; };
+		C0EC9E69BF104164B31D7939 /* LyricClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CBCB98829AE04668AA65C0; };
+		D3F4E89C9EA851BA81958B69 /* LyricTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5B2E1287AC6A8D7044B4AB; };
+		84087F6FA2AF1B1BC3370B5A /* LyricTranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D9CC1D7BF5CE7FD3439CA64; };
+		3310ABD4BDC9718DCD45D076 /* LyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57C1279EFE60447AA3668EF; };
+		C4FA6608E5CC63EE47088AF1 /* Romanizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0045A97A89DAAD75057C8AE; };
+		3DF80D70337D67330754F2E7 /* SpicyCatalogueService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDB447E13050FA33FD74D7E; };
+		5CB8D2C59392A74DF9A06A13 /* TtmlLyricsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998B8B6C917B61C17EECEB75; };
+		2D2BB18E2852AB7FFCF4490D /* ListenHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC6929623AEC1BDBDBE3DD1; };
+		79DEA0F0D9130A54E00AB834 /* OfflineCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0BDD7BE2C498F2DF83C6A6; };
+		590936C847478411425324FC /* OfflineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F60AFFEEB8C94072D6E92B; };
+		B155274CF4C657AF1EFCA84A /* NativeAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803FCE4CF0401B8D791B9F7C; };
+		A580D5B7A11C05F6E9F2E0BF /* NowPlayingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA357CE4DAF4233300B7208; };
+		6AFD557CCFB42097D95E81D9 /* PlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC6C64ED3D6F73783AF10D8; };
+		EAC19F0CB56090959996340B /* GitHubThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA85B147B6731D6032CDFD75; };
+		193B05A35934D8D9257AEFEF /* AuthNetworkingAndSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BA0DE1DE805F086E1BB5F4D; };
+		42180E55B57DD3C0B98556CA /* LyricsAndParsersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555B7CE54635B8B485BB8187; };
+		FB9B4D111A1361CE710E5CBA /* CelestifySmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDCA00EA77FDCBDF4FA7839; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		78AF9CBC92B2B17C537164D6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B0CFE96064A9B3C02F2BF0A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C6F364442A68D6E996F66D2B;
+			remoteInfo = Celestify;
+		};
+		81710A13CF494BE772F11684 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B0CFE96064A9B3C02F2BF0A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C6F364442A68D6E996F66D2B;
+			remoteInfo = Celestify;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		21E767D192B7408DE323766A /* Celestify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Celestify.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB3DD62A97D70A8F66BB70ED /* CelestifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CelestifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4A717A9BE116ECFD607B3F8D /* CelestifyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CelestifyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F28C428D91A0D8193383589D /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Base.xcconfig"; path = "Configuration/Base.xcconfig"; sourceTree = "<group>"; };
+		D316B3168E48F0A882DDA866 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Debug.xcconfig"; path = "Configuration/Debug.xcconfig"; sourceTree = "<group>"; };
+		240128E4B8ADBD5342F8590A /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Release.xcconfig"; path = "Configuration/Release.xcconfig"; sourceTree = "<group>"; };
+		AEF5AB7754FC20707C6AADC5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Configuration/Info.plist"; sourceTree = "<group>"; };
+		7A85C88AA3F2EDF3A4A89462 /* Celestify.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "Celestify.entitlements"; path = "Configuration/Celestify.entitlements"; sourceTree = "<group>"; };
+		7D2D1C374DEAA321AA31DB0A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "PrivacyInfo.xcprivacy"; path = "Configuration/PrivacyInfo.xcprivacy"; sourceTree = "<group>"; };
+		E5FCDBBC36A73EC601E6FA0E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = "Assets.xcassets"; path = "Celestify/Resources/Assets.xcassets"; sourceTree = "<group>"; };
+		F828D20899D662587EACB35A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = "Localizable.xcstrings"; path = "Celestify/Resources/Localizable.xcstrings"; sourceTree = "<group>"; };
+		811F64370DA00B608FB0D22F /* gql-ops.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "gql-ops.json"; path = "Celestify/Resources/Spotify/gql-ops.json"; sourceTree = "<group>"; };
+		76745F56F9A143F89911FB93 /* player-bridge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "player-bridge.js"; path = "Celestify/Resources/Spotify/player-bridge.js"; sourceTree = "<group>"; };
+		4F5B736D82F668698A994F8F /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppDependencies.swift"; path = "Celestify/App/AppDependencies.swift"; sourceTree = "<group>"; };
+		5FF01F93269E20ED1072E96D /* CelestifyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CelestifyApp.swift"; path = "Celestify/App/CelestifyApp.swift"; sourceTree = "<group>"; };
+		A56BCDAE904CB93C5C10ECBD /* RootShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RootShellView.swift"; path = "Celestify/App/RootShellView.swift"; sourceTree = "<group>"; };
+		FF0AC3500C519AF474A0748A /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ArtworkView.swift"; path = "Celestify/Components/ArtworkView.swift"; sourceTree = "<group>"; };
+		2CF04FC13C2629A1A77DF4E8 /* FloatingLiquidTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FloatingLiquidTabBar.swift"; path = "Celestify/Components/FloatingLiquidTabBar.swift"; sourceTree = "<group>"; };
+		F496EB0C759642710ACF7B60 /* MediaCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "MediaCardView.swift"; path = "Celestify/Components/MediaCardView.swift"; sourceTree = "<group>"; };
+		BFA12CB615E909E31197E37B /* TrackRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TrackRowView.swift"; path = "Celestify/Components/TrackRowView.swift"; sourceTree = "<group>"; };
+		D66DE08504B5EDB62E80B96C /* ArtworkPaletteExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ArtworkPaletteExtractor.swift"; path = "Celestify/Core/DesignSystem/ArtworkPaletteExtractor.swift"; sourceTree = "<group>"; };
+		D1A6CECA6B0FF24F156BB3B1 /* AtmosphericBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AtmosphericBackdrop.swift"; path = "Celestify/Core/DesignSystem/AtmosphericBackdrop.swift"; sourceTree = "<group>"; };
+		66773C01EA81C23F9AB9CAD9 /* CelestialTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CelestialTheme.swift"; path = "Celestify/Core/DesignSystem/CelestialTheme.swift"; sourceTree = "<group>"; };
+		A114CEA9DE7A207A88FD9784 /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "HapticsManager.swift"; path = "Celestify/Core/DesignSystem/HapticsManager.swift"; sourceTree = "<group>"; };
+		8939458A5F2EE22A83AAA3D2 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LiquidGlass.swift"; path = "Celestify/Core/DesignSystem/LiquidGlass.swift"; sourceTree = "<group>"; };
+		F6F03B7B2960DDDAFD6FDF6E /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppRouter.swift"; path = "Celestify/Core/Navigation/AppRouter.swift"; sourceTree = "<group>"; };
+		1F0734C74B7D0E081935C812 /* PreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PreferencesStore.swift"; path = "Celestify/Core/Preferences/PreferencesStore.swift"; sourceTree = "<group>"; };
+		F1F82646A1F760D3390CB45E /* OnboardingLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "OnboardingLoginView.swift"; path = "Celestify/Features/Auth/OnboardingLoginView.swift"; sourceTree = "<group>"; };
+		23BE30E8A914ADB4F1998917 /* CatalogDetailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CatalogDetailViews.swift"; path = "Celestify/Features/Catalog/CatalogDetailViews.swift"; sourceTree = "<group>"; };
+		C451E9111113BF223E8A1E95 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "HomeView.swift"; path = "Celestify/Features/Home/HomeView.swift"; sourceTree = "<group>"; };
+		7D824127371A3F98BDDC922E /* WhatsNewAndFriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "WhatsNewAndFriendsView.swift"; path = "Celestify/Features/Home/WhatsNewAndFriendsView.swift"; sourceTree = "<group>"; };
+		C53433663EFDD67561E0290B /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryView.swift"; path = "Celestify/Features/Library/LibraryView.swift"; sourceTree = "<group>"; };
+		ED8181E6A0CC31661F8D0038 /* PlaylistEditorSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PlaylistEditorSheets.swift"; path = "Celestify/Features/Library/PlaylistEditorSheets.swift"; sourceTree = "<group>"; };
+		010DF4B1494628258BD249A4 /* LyricsStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricsStageView.swift"; path = "Celestify/Features/Lyrics/LyricsStageView.swift"; sourceTree = "<group>"; };
+		97BB6A78C014BD213D029830 /* SongMeaningSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SongMeaningSheet.swift"; path = "Celestify/Features/Lyrics/SongMeaningSheet.swift"; sourceTree = "<group>"; };
+		F31930A3C43D358495E9FD03 /* FullPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FullPlayerView.swift"; path = "Celestify/Features/Player/FullPlayerView.swift"; sourceTree = "<group>"; };
+		58ABEE44D2C20B7F077A5F77 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SearchView.swift"; path = "Celestify/Features/Search/SearchView.swift"; sourceTree = "<group>"; };
+		78BA733221A6EB06107EBFFE /* SettingsSubViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsSubViews.swift"; path = "Celestify/Features/Settings/SettingsSubViews.swift"; sourceTree = "<group>"; };
+		32F39A1776CB16D3F0E8FE5E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsView.swift"; path = "Celestify/Features/Settings/SettingsView.swift"; sourceTree = "<group>"; };
+		6C43615B2BAFFA9B8BE3B832 /* DomainModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DomainModels.swift"; path = "Celestify/Models/DomainModels.swift"; sourceTree = "<group>"; };
+		F38005B19CB9AF25BDD2909F /* LyricsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricsModels.swift"; path = "Celestify/Models/LyricsModels.swift"; sourceTree = "<group>"; };
+		963FC778027EC4F368788FA2 /* ThemeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ThemeModels.swift"; path = "Celestify/Models/ThemeModels.swift"; sourceTree = "<group>"; };
+		4ADE4A6B6320C926F5F41A73 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "HTTPClient.swift"; path = "Celestify/Networking/HTTPClient.swift"; sourceTree = "<group>"; };
+		59568A5EEBB367554DAC764D /* JSONPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JSONPath.swift"; path = "Celestify/Networking/JSONPath.swift"; sourceTree = "<group>"; };
+		1A7F1510FB9BB2622FF2732D /* SpotifyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyAPIClient.swift"; path = "Celestify/Networking/SpotifyAPIClient.swift"; sourceTree = "<group>"; };
+		7A4AA717CE1AB7A71D0BF7BD /* SpotifyGraphQLClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyGraphQLClient.swift"; path = "Celestify/Networking/SpotifyGraphQLClient.swift"; sourceTree = "<group>"; };
+		A3A7E43F2AA22B605337E7EA /* SpotifyMappers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyMappers.swift"; path = "Celestify/Networking/SpotifyMappers.swift"; sourceTree = "<group>"; };
+		7CA753C76F226F1B048DEE9E /* SpotifyTokenCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyTokenCoordinator.swift"; path = "Celestify/Networking/SpotifyTokenCoordinator.swift"; sourceTree = "<group>"; };
+		6433F0DEA2FC43B38836C4BD /* SpotifyWebPlayerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyWebPlayerBridge.swift"; path = "Celestify/Networking/SpotifyWebPlayerBridge.swift"; sourceTree = "<group>"; };
+		D98F35669BF3FD1440A06FF0 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "KeychainStore.swift"; path = "Celestify/Services/Auth/KeychainStore.swift"; sourceTree = "<group>"; };
+		663006E0D17D0326ECEDBE2E /* SpotifyAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyAuthManager.swift"; path = "Celestify/Services/Auth/SpotifyAuthManager.swift"; sourceTree = "<group>"; };
+		5297F47BC87636861856D71F /* SpotifyLoginWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpotifyLoginWebView.swift"; path = "Celestify/Services/Auth/SpotifyLoginWebView.swift"; sourceTree = "<group>"; };
+		F3230C07F178AAFEF0CF5E64 /* DiagnosticLogbook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DiagnosticLogbook.swift"; path = "Celestify/Services/Diagnostics/DiagnosticLogbook.swift"; sourceTree = "<group>"; };
+		372DA32905423C05C1FE413D /* ExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ExtensionManager.swift"; path = "Celestify/Services/Extensions/ExtensionManager.swift"; sourceTree = "<group>"; };
+		9EB614787CB066C76AEB36F3 /* GeniusMeaningService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GeniusMeaningService.swift"; path = "Celestify/Services/Lyrics/GeniusMeaningService.swift"; sourceTree = "<group>"; };
+		31BE3671C188B53F6718EB05 /* KrcParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "KrcParser.swift"; path = "Celestify/Services/Lyrics/KrcParser.swift"; sourceTree = "<group>"; };
+		DE56970252FA6CDE7E3A9492 /* LrcParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LrcParser.swift"; path = "Celestify/Services/Lyrics/LrcParser.swift"; sourceTree = "<group>"; };
+		48CBCB98829AE04668AA65C0 /* LyricClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricClock.swift"; path = "Celestify/Services/Lyrics/LyricClock.swift"; sourceTree = "<group>"; };
+		7D5B2E1287AC6A8D7044B4AB /* LyricTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricTiming.swift"; path = "Celestify/Services/Lyrics/LyricTiming.swift"; sourceTree = "<group>"; };
+		8D9CC1D7BF5CE7FD3439CA64 /* LyricTranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricTranslationService.swift"; path = "Celestify/Services/Lyrics/LyricTranslationService.swift"; sourceTree = "<group>"; };
+		B57C1279EFE60447AA3668EF /* LyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricsRepository.swift"; path = "Celestify/Services/Lyrics/LyricsRepository.swift"; sourceTree = "<group>"; };
+		F0045A97A89DAAD75057C8AE /* Romanizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Romanizer.swift"; path = "Celestify/Services/Lyrics/Romanizer.swift"; sourceTree = "<group>"; };
+		3BDB447E13050FA33FD74D7E /* SpicyCatalogueService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SpicyCatalogueService.swift"; path = "Celestify/Services/Lyrics/SpicyCatalogueService.swift"; sourceTree = "<group>"; };
+		998B8B6C917B61C17EECEB75 /* TtmlLyricsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TtmlLyricsParser.swift"; path = "Celestify/Services/Lyrics/TtmlLyricsParser.swift"; sourceTree = "<group>"; };
+		2BC6929623AEC1BDBDBE3DD1 /* ListenHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ListenHistoryStore.swift"; path = "Celestify/Services/Offline/ListenHistoryStore.swift"; sourceTree = "<group>"; };
+		3A0BDD7BE2C498F2DF83C6A6 /* OfflineCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "OfflineCrypto.swift"; path = "Celestify/Services/Offline/OfflineCrypto.swift"; sourceTree = "<group>"; };
+		45F60AFFEEB8C94072D6E92B /* OfflineStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "OfflineStore.swift"; path = "Celestify/Services/Offline/OfflineStore.swift"; sourceTree = "<group>"; };
+		803FCE4CF0401B8D791B9F7C /* NativeAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "NativeAudioPlayer.swift"; path = "Celestify/Services/Playback/NativeAudioPlayer.swift"; sourceTree = "<group>"; };
+		2CA357CE4DAF4233300B7208 /* NowPlayingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "NowPlayingCoordinator.swift"; path = "Celestify/Services/Playback/NowPlayingCoordinator.swift"; sourceTree = "<group>"; };
+		7FC6C64ED3D6F73783AF10D8 /* PlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PlayerController.swift"; path = "Celestify/Services/Playback/PlayerController.swift"; sourceTree = "<group>"; };
+		EA85B147B6731D6032CDFD75 /* GitHubThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GitHubThemeService.swift"; path = "Celestify/Services/Themes/GitHubThemeService.swift"; sourceTree = "<group>"; };
+		0BA0DE1DE805F086E1BB5F4D /* AuthNetworkingAndSecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AuthNetworkingAndSecurityTests.swift"; path = "Tests/CelestifyTests/AuthNetworkingAndSecurityTests.swift"; sourceTree = "<group>"; };
+		555B7CE54635B8B485BB8187 /* LyricsAndParsersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LyricsAndParsersTests.swift"; path = "Tests/CelestifyTests/LyricsAndParsersTests.swift"; sourceTree = "<group>"; };
+		1BDCA00EA77FDCBDF4FA7839 /* CelestifySmokeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CelestifySmokeUITests.swift"; path = "Tests/CelestifyUITests/CelestifySmokeUITests.swift"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F001BC2AF9EB5498B3360756 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D6B208DB47DA230159E08E40 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4CC28E8063397C3277FB7B0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9C3925A1C58D23473F08CCC0 = {
+			isa = PBXGroup;
+			children = (
+				C23108729D1809B8323E9806 /* Configuration */,
+				3791B126B09E4E16C08D9998 /* Celestify */,
+				156052F04525D0F710673CF0 /* Tests */,
+				5151B46607EBC8890D8DFCC2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C23108729D1809B8323E9806 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				F28C428D91A0D8193383589D /* Base.xcconfig */,
+				D316B3168E48F0A882DDA866 /* Debug.xcconfig */,
+				240128E4B8ADBD5342F8590A /* Release.xcconfig */,
+				AEF5AB7754FC20707C6AADC5 /* Info.plist */,
+				7A85C88AA3F2EDF3A4A89462 /* Celestify.entitlements */,
+				7D2D1C374DEAA321AA31DB0A /* PrivacyInfo.xcprivacy */,
+			);
+			name = Configuration;
+			sourceTree = "<group>";
+		};
+		5151B46607EBC8890D8DFCC2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				21E767D192B7408DE323766A /* Celestify.app */,
+				EB3DD62A97D70A8F66BB70ED /* CelestifyTests.xctest */,
+				4A717A9BE116ECFD607B3F8D /* CelestifyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3791B126B09E4E16C08D9998 /* Celestify */ = {
+			isa = PBXGroup;
+			children = (
+				4ACBCB6A3EB127CE98C46497 /* App */,
+				F63406508D6EF21200006BD7 /* Components */,
+				D37F8A3A01A1756AF84E35BA /* Core */,
+				2599D5D5EF15D960BF5B35F2 /* Features */,
+				293A52EE6856FA75D4BF1E57 /* Models */,
+				FE74F15D0A548C50D413F8CB /* Networking */,
+				ED76169A1B7663758A167E5F /* Services */,
+				AA8C7B97BA4B09F67851674E /* Resources */,
+			);
+			name = "Celestify";
+			sourceTree = "<group>";
+		};
+		4ACBCB6A3EB127CE98C46497 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				4F5B736D82F668698A994F8F /* AppDependencies.swift */,
+				5FF01F93269E20ED1072E96D /* CelestifyApp.swift */,
+				A56BCDAE904CB93C5C10ECBD /* RootShellView.swift */,
+			);
+			name = "App";
+			sourceTree = "<group>";
+		};
+		F63406508D6EF21200006BD7 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				FF0AC3500C519AF474A0748A /* ArtworkView.swift */,
+				2CF04FC13C2629A1A77DF4E8 /* FloatingLiquidTabBar.swift */,
+				F496EB0C759642710ACF7B60 /* MediaCardView.swift */,
+				BFA12CB615E909E31197E37B /* TrackRowView.swift */,
+			);
+			name = "Components";
+			sourceTree = "<group>";
+		};
+		D37F8A3A01A1756AF84E35BA /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				14FCB2E7BD468913C9AA64F9 /* DesignSystem */,
+				D943A67D0BFB563A12CA74F4 /* Navigation */,
+				C485B691091D746FBBEFF806 /* Preferences */,
+			);
+			name = "Core";
+			sourceTree = "<group>";
+		};
+		14FCB2E7BD468913C9AA64F9 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				D66DE08504B5EDB62E80B96C /* ArtworkPaletteExtractor.swift */,
+				D1A6CECA6B0FF24F156BB3B1 /* AtmosphericBackdrop.swift */,
+				66773C01EA81C23F9AB9CAD9 /* CelestialTheme.swift */,
+				A114CEA9DE7A207A88FD9784 /* HapticsManager.swift */,
+				8939458A5F2EE22A83AAA3D2 /* LiquidGlass.swift */,
+			);
+			name = "DesignSystem";
+			sourceTree = "<group>";
+		};
+		D943A67D0BFB563A12CA74F4 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				F6F03B7B2960DDDAFD6FDF6E /* AppRouter.swift */,
+			);
+			name = "Navigation";
+			sourceTree = "<group>";
+		};
+		C485B691091D746FBBEFF806 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				1F0734C74B7D0E081935C812 /* PreferencesStore.swift */,
+			);
+			name = "Preferences";
+			sourceTree = "<group>";
+		};
+		2599D5D5EF15D960BF5B35F2 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				9DC87B1CFA76949A93BC0DE7 /* Auth */,
+				8A62DE2E89DB3AA4AC8AAFCD /* Catalog */,
+				09EDA4A7CB34475D679C4DB0 /* Home */,
+				07CCA6D32BE705233D71A1C1 /* Library */,
+				75F62A73C9B2F976C3D81B6E /* Lyrics */,
+				9CD0609B3C6267F8A0A98237 /* Player */,
+				0493B0DFD7BF051C28628DE1 /* Search */,
+				EEECD9EB26C8316EA7F15995 /* Settings */,
+			);
+			name = "Features";
+			sourceTree = "<group>";
+		};
+		9DC87B1CFA76949A93BC0DE7 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				F1F82646A1F760D3390CB45E /* OnboardingLoginView.swift */,
+			);
+			name = "Auth";
+			sourceTree = "<group>";
+		};
+		8A62DE2E89DB3AA4AC8AAFCD /* Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				23BE30E8A914ADB4F1998917 /* CatalogDetailViews.swift */,
+			);
+			name = "Catalog";
+			sourceTree = "<group>";
+		};
+		09EDA4A7CB34475D679C4DB0 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				C451E9111113BF223E8A1E95 /* HomeView.swift */,
+				7D824127371A3F98BDDC922E /* WhatsNewAndFriendsView.swift */,
+			);
+			name = "Home";
+			sourceTree = "<group>";
+		};
+		07CCA6D32BE705233D71A1C1 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				C53433663EFDD67561E0290B /* LibraryView.swift */,
+				ED8181E6A0CC31661F8D0038 /* PlaylistEditorSheets.swift */,
+			);
+			name = "Library";
+			sourceTree = "<group>";
+		};
+		75F62A73C9B2F976C3D81B6E /* Lyrics */ = {
+			isa = PBXGroup;
+			children = (
+				010DF4B1494628258BD249A4 /* LyricsStageView.swift */,
+				97BB6A78C014BD213D029830 /* SongMeaningSheet.swift */,
+			);
+			name = "Lyrics";
+			sourceTree = "<group>";
+		};
+		9CD0609B3C6267F8A0A98237 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				F31930A3C43D358495E9FD03 /* FullPlayerView.swift */,
+			);
+			name = "Player";
+			sourceTree = "<group>";
+		};
+		0493B0DFD7BF051C28628DE1 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				58ABEE44D2C20B7F077A5F77 /* SearchView.swift */,
+			);
+			name = "Search";
+			sourceTree = "<group>";
+		};
+		EEECD9EB26C8316EA7F15995 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				78BA733221A6EB06107EBFFE /* SettingsSubViews.swift */,
+				32F39A1776CB16D3F0E8FE5E /* SettingsView.swift */,
+			);
+			name = "Settings";
+			sourceTree = "<group>";
+		};
+		293A52EE6856FA75D4BF1E57 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				6C43615B2BAFFA9B8BE3B832 /* DomainModels.swift */,
+				F38005B19CB9AF25BDD2909F /* LyricsModels.swift */,
+				963FC778027EC4F368788FA2 /* ThemeModels.swift */,
+			);
+			name = "Models";
+			sourceTree = "<group>";
+		};
+		FE74F15D0A548C50D413F8CB /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				4ADE4A6B6320C926F5F41A73 /* HTTPClient.swift */,
+				59568A5EEBB367554DAC764D /* JSONPath.swift */,
+				1A7F1510FB9BB2622FF2732D /* SpotifyAPIClient.swift */,
+				7A4AA717CE1AB7A71D0BF7BD /* SpotifyGraphQLClient.swift */,
+				A3A7E43F2AA22B605337E7EA /* SpotifyMappers.swift */,
+				7CA753C76F226F1B048DEE9E /* SpotifyTokenCoordinator.swift */,
+				6433F0DEA2FC43B38836C4BD /* SpotifyWebPlayerBridge.swift */,
+			);
+			name = "Networking";
+			sourceTree = "<group>";
+		};
+		AA8C7B97BA4B09F67851674E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E5FCDBBC36A73EC601E6FA0E /* Assets.xcassets */,
+				F828D20899D662587EACB35A /* Localizable.xcstrings */,
+				811F64370DA00B608FB0D22F /* gql-ops.json */,
+				76745F56F9A143F89911FB93 /* player-bridge.js */,
+			);
+			name = "Resources";
+			sourceTree = "<group>";
+		};
+		ED76169A1B7663758A167E5F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3FBA74C1FAAB42EEB66C4CE2 /* Auth */,
+				BABBC3ED801AB3D5FA0BDC2D /* Diagnostics */,
+				99D29F5A5E056B63F88D4319 /* Extensions */,
+				40419A2E098F943BB5FCF1EC /* Lyrics */,
+				4A7118B4449DA8F7D6C5E612 /* Offline */,
+				92CEF4A2BB80D4F8C36080D9 /* Playback */,
+				D5C907E3D220B333FB930058 /* Themes */,
+			);
+			name = "Services";
+			sourceTree = "<group>";
+		};
+		3FBA74C1FAAB42EEB66C4CE2 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				D98F35669BF3FD1440A06FF0 /* KeychainStore.swift */,
+				663006E0D17D0326ECEDBE2E /* SpotifyAuthManager.swift */,
+				5297F47BC87636861856D71F /* SpotifyLoginWebView.swift */,
+			);
+			name = "Auth";
+			sourceTree = "<group>";
+		};
+		BABBC3ED801AB3D5FA0BDC2D /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				F3230C07F178AAFEF0CF5E64 /* DiagnosticLogbook.swift */,
+			);
+			name = "Diagnostics";
+			sourceTree = "<group>";
+		};
+		99D29F5A5E056B63F88D4319 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				372DA32905423C05C1FE413D /* ExtensionManager.swift */,
+			);
+			name = "Extensions";
+			sourceTree = "<group>";
+		};
+		40419A2E098F943BB5FCF1EC /* Lyrics */ = {
+			isa = PBXGroup;
+			children = (
+				9EB614787CB066C76AEB36F3 /* GeniusMeaningService.swift */,
+				31BE3671C188B53F6718EB05 /* KrcParser.swift */,
+				DE56970252FA6CDE7E3A9492 /* LrcParser.swift */,
+				48CBCB98829AE04668AA65C0 /* LyricClock.swift */,
+				7D5B2E1287AC6A8D7044B4AB /* LyricTiming.swift */,
+				8D9CC1D7BF5CE7FD3439CA64 /* LyricTranslationService.swift */,
+				B57C1279EFE60447AA3668EF /* LyricsRepository.swift */,
+				F0045A97A89DAAD75057C8AE /* Romanizer.swift */,
+				3BDB447E13050FA33FD74D7E /* SpicyCatalogueService.swift */,
+				998B8B6C917B61C17EECEB75 /* TtmlLyricsParser.swift */,
+			);
+			name = "Lyrics";
+			sourceTree = "<group>";
+		};
+		4A7118B4449DA8F7D6C5E612 /* Offline */ = {
+			isa = PBXGroup;
+			children = (
+				2BC6929623AEC1BDBDBE3DD1 /* ListenHistoryStore.swift */,
+				3A0BDD7BE2C498F2DF83C6A6 /* OfflineCrypto.swift */,
+				45F60AFFEEB8C94072D6E92B /* OfflineStore.swift */,
+			);
+			name = "Offline";
+			sourceTree = "<group>";
+		};
+		92CEF4A2BB80D4F8C36080D9 /* Playback */ = {
+			isa = PBXGroup;
+			children = (
+				803FCE4CF0401B8D791B9F7C /* NativeAudioPlayer.swift */,
+				2CA357CE4DAF4233300B7208 /* NowPlayingCoordinator.swift */,
+				7FC6C64ED3D6F73783AF10D8 /* PlayerController.swift */,
+			);
+			name = "Playback";
+			sourceTree = "<group>";
+		};
+		D5C907E3D220B333FB930058 /* Themes */ = {
+			isa = PBXGroup;
+			children = (
+				EA85B147B6731D6032CDFD75 /* GitHubThemeService.swift */,
+			);
+			name = "Themes";
+			sourceTree = "<group>";
+		};
+		156052F04525D0F710673CF0 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				8A3F1AB5EF54280677266547 /* CelestifyTests */,
+				7576FA770B5583A1AA525DB4 /* CelestifyUITests */,
+			);
+			name = "Tests";
+			sourceTree = "<group>";
+		};
+		8A3F1AB5EF54280677266547 /* CelestifyTests */ = {
+			isa = PBXGroup;
+			children = (
+				0BA0DE1DE805F086E1BB5F4D /* AuthNetworkingAndSecurityTests.swift */,
+				555B7CE54635B8B485BB8187 /* LyricsAndParsersTests.swift */,
+			);
+			name = "CelestifyTests";
+			sourceTree = "<group>";
+		};
+		7576FA770B5583A1AA525DB4 /* CelestifyUITests */ = {
+			isa = PBXGroup;
+			children = (
+				1BDCA00EA77FDCBDF4FA7839 /* CelestifySmokeUITests.swift */,
+			);
+			name = "CelestifyUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C6F364442A68D6E996F66D2B /* Celestify */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23746EFE221170E24101FE05 /* Build configuration list for PBXNativeTarget "Celestify" */;
+			buildPhases = (
+				8682261519D15BD64A9E5D31 /* Sources */,
+				F001BC2AF9EB5498B3360756 /* Frameworks */,
+				E28FAD8F60ECDED9B4AD087A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Celestify;
+			productName = Celestify;
+			productReference = 21E767D192B7408DE323766A /* Celestify.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B22BE9A660BFE4846D4E9EE6 /* CelestifyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 48751F087EE6031B0313610C /* Build configuration list for PBXNativeTarget "CelestifyTests" */;
+			buildPhases = (
+				29BEEA3D856852A8CC3247ED /* Sources */,
+				D6B208DB47DA230159E08E40 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15361775C351088D27E4B786 /* PBXTargetDependency */,
+			);
+			name = CelestifyTests;
+			productName = CelestifyTests;
+			productReference = EB3DD62A97D70A8F66BB70ED /* CelestifyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		0BEE73FA84F13689A5BD960C /* CelestifyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C690BE3650202EB4B0D17FA /* Build configuration list for PBXNativeTarget "CelestifyUITests" */;
+			buildPhases = (
+				396387BF1E063AF9DAEAED11 /* Sources */,
+				4CC28E8063397C3277FB7B0E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				85C826A7AB8D3459FF83F105 /* PBXTargetDependency */,
+			);
+			name = CelestifyUITests;
+			productName = CelestifyUITests;
+			productReference = 4A717A9BE116ECFD607B3F8D /* CelestifyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7B0CFE96064A9B3C02F2BF0A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					C6F364442A68D6E996F66D2B = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					B22BE9A660BFE4846D4E9EE6 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = C6F364442A68D6E996F66D2B;
+					};
+					0BEE73FA84F13689A5BD960C = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = C6F364442A68D6E996F66D2B;
+					};
+				};
+			};
+			buildConfigurationList = 3D29D9F3A882C4202964FB56 /* Build configuration list for PBXProject "Celestify" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				fr,
+				"pt-BR",
+			);
+			mainGroup = 9C3925A1C58D23473F08CCC0;
+			productRefGroup = 5151B46607EBC8890D8DFCC2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C6F364442A68D6E996F66D2B /* Celestify */,
+				B22BE9A660BFE4846D4E9EE6 /* CelestifyTests */,
+				0BEE73FA84F13689A5BD960C /* CelestifyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E28FAD8F60ECDED9B4AD087A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B708E2FA47BBF06E5276E54 /* PrivacyInfo.xcprivacy in Resources */,
+				1586CD865B7F0A2DE528BFA2 /* Assets.xcassets in Resources */,
+				C07FBBFF7D1E5A2C283484DB /* Localizable.xcstrings in Resources */,
+				9DA198A86742D9C429DD9AAE /* gql-ops.json in Resources */,
+				4F1B73F5612C25B7979DC221 /* player-bridge.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8682261519D15BD64A9E5D31 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3943564F7CE0A0E370855FA2 /* AppDependencies.swift in Sources */,
+				02A4CA28B960502A151255E9 /* CelestifyApp.swift in Sources */,
+				340607A5F02279932AB3432C /* RootShellView.swift in Sources */,
+				ECB2480E60C64178DC4428D8 /* ArtworkView.swift in Sources */,
+				64BF8E1D1F0A821D03F3807E /* FloatingLiquidTabBar.swift in Sources */,
+				D12704288D1D416FAEF00D1E /* MediaCardView.swift in Sources */,
+				1E775EF2E485DFEE1C6A9E5F /* TrackRowView.swift in Sources */,
+				B3C6B5F08559679389C9C95F /* ArtworkPaletteExtractor.swift in Sources */,
+				88C287B031B5393FEC22A046 /* AtmosphericBackdrop.swift in Sources */,
+				A2A132354A8F6CE7D68B059A /* CelestialTheme.swift in Sources */,
+				A411C87670A0381C868CA54F /* HapticsManager.swift in Sources */,
+				30871A2347255E15DC7CDC64 /* LiquidGlass.swift in Sources */,
+				3039D53F4854E62B10D4F70E /* AppRouter.swift in Sources */,
+				F645A87F38298771347348A6 /* PreferencesStore.swift in Sources */,
+				CF53FF8C237AACE336E2E1FA /* OnboardingLoginView.swift in Sources */,
+				EBF80552AEE914F3147CE317 /* CatalogDetailViews.swift in Sources */,
+				DAEE1D72BF0DBBCD295D5074 /* HomeView.swift in Sources */,
+				3F19EFBB1935705DB24E2C41 /* WhatsNewAndFriendsView.swift in Sources */,
+				2C3CE6D3C2D9068B0699BE9E /* LibraryView.swift in Sources */,
+				7728DB764E2D7B571C7E393A /* PlaylistEditorSheets.swift in Sources */,
+				C29A96CD09BC3CA2A69D2D7B /* LyricsStageView.swift in Sources */,
+				EB5FB12BF8C130C6D0AFEA16 /* SongMeaningSheet.swift in Sources */,
+				AB10188F7D0EC1838BA1C7BA /* FullPlayerView.swift in Sources */,
+				4E9DD619FBA1FF2EA0E427A0 /* SearchView.swift in Sources */,
+				97B1F65F9EE7E2D770411172 /* SettingsSubViews.swift in Sources */,
+				B0FEA049529FF6999B9196C6 /* SettingsView.swift in Sources */,
+				B248F85ACC93607E36418794 /* DomainModels.swift in Sources */,
+				9AAFC42B534764C362EAC0D2 /* LyricsModels.swift in Sources */,
+				355DE23C9E525290C2F25666 /* ThemeModels.swift in Sources */,
+				962C8B14EB712B7DEA572D41 /* HTTPClient.swift in Sources */,
+				9F6A566135378045B7C5A451 /* JSONPath.swift in Sources */,
+				9BCA097D9F68E2840F156A02 /* SpotifyAPIClient.swift in Sources */,
+				9ADCA7A7919E2974782367EA /* SpotifyGraphQLClient.swift in Sources */,
+				972F5BF30780B8BABBBB2AF6 /* SpotifyMappers.swift in Sources */,
+				E6C3320E92FFE8D26D83F040 /* SpotifyTokenCoordinator.swift in Sources */,
+				DA6476C5DA717C622318AC1F /* SpotifyWebPlayerBridge.swift in Sources */,
+				7C0D4A7292D5BCD71F082D37 /* KeychainStore.swift in Sources */,
+				3EA1A04A39DB8DA6E3C5D349 /* SpotifyAuthManager.swift in Sources */,
+				67DF2E37BB478040FB6542DC /* SpotifyLoginWebView.swift in Sources */,
+				B0DB954606C17E9254C96A64 /* DiagnosticLogbook.swift in Sources */,
+				4F53DF539EDB84467065EBBC /* ExtensionManager.swift in Sources */,
+				8A446E7995EAD99349430581 /* GeniusMeaningService.swift in Sources */,
+				5E74F9E823369EFB0E6C4AE9 /* KrcParser.swift in Sources */,
+				5E175B67F4044C86359D5D79 /* LrcParser.swift in Sources */,
+				C0EC9E69BF104164B31D7939 /* LyricClock.swift in Sources */,
+				D3F4E89C9EA851BA81958B69 /* LyricTiming.swift in Sources */,
+				84087F6FA2AF1B1BC3370B5A /* LyricTranslationService.swift in Sources */,
+				3310ABD4BDC9718DCD45D076 /* LyricsRepository.swift in Sources */,
+				C4FA6608E5CC63EE47088AF1 /* Romanizer.swift in Sources */,
+				3DF80D70337D67330754F2E7 /* SpicyCatalogueService.swift in Sources */,
+				5CB8D2C59392A74DF9A06A13 /* TtmlLyricsParser.swift in Sources */,
+				2D2BB18E2852AB7FFCF4490D /* ListenHistoryStore.swift in Sources */,
+				79DEA0F0D9130A54E00AB834 /* OfflineCrypto.swift in Sources */,
+				590936C847478411425324FC /* OfflineStore.swift in Sources */,
+				B155274CF4C657AF1EFCA84A /* NativeAudioPlayer.swift in Sources */,
+				A580D5B7A11C05F6E9F2E0BF /* NowPlayingCoordinator.swift in Sources */,
+				6AFD557CCFB42097D95E81D9 /* PlayerController.swift in Sources */,
+				EAC19F0CB56090959996340B /* GitHubThemeService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29BEEA3D856852A8CC3247ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				193B05A35934D8D9257AEFEF /* AuthNetworkingAndSecurityTests.swift in Sources */,
+				42180E55B57DD3C0B98556CA /* LyricsAndParsersTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		396387BF1E063AF9DAEAED11 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB9B4D111A1361CE710E5CBA /* CelestifySmokeUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		15361775C351088D27E4B786 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C6F364442A68D6E996F66D2B /* Celestify */;
+			targetProxy = 78AF9CBC92B2B17C537164D6 /* PBXContainerItemProxy */;
+		};
+		85C826A7AB8D3459FF83F105 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C6F364442A68D6E996F66D2B /* Celestify */;
+			targetProxy = 81710A13CF494BE772F11684 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E3EBCBBFB33611052F1F254E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D316B3168E48F0A882DDA866 /* Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		45A51FDE45C8C9313F9CC216 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 240128E4B8ADBD5342F8590A /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		754064D2901B6752E802BA06 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D316B3168E48F0A882DDA866 /* Debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Configuration/Celestify.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 240;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.4.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios.dev;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		831F0B0E7AD0243B76867D45 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 240128E4B8ADBD5342F8590A /* Release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Configuration/Celestify.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 240;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.4.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		E8A7D59B347239969BCF4442 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Celestify.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Celestify";
+			};
+			name = Debug;
+		};
+		FB77EFCD69769151259EA1DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Celestify.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Celestify";
+			};
+			name = Release;
+		};
+		C9625139A72A41C634EEFAB5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = Celestify;
+			};
+			name = Debug;
+		};
+		42F2326011F1F8FB30E4D2BE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.celestify.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = Celestify;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3D29D9F3A882C4202964FB56 /* Build configuration list for PBXProject "Celestify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E3EBCBBFB33611052F1F254E /* Debug */,
+				45A51FDE45C8C9313F9CC216 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		23746EFE221170E24101FE05 /* Build configuration list for PBXNativeTarget "Celestify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				754064D2901B6752E802BA06 /* Debug */,
+				831F0B0E7AD0243B76867D45 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		48751F087EE6031B0313610C /* Build configuration list for PBXNativeTarget "CelestifyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E8A7D59B347239969BCF4442 /* Debug */,
+				FB77EFCD69769151259EA1DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C690BE3650202EB4B0D17FA /* Build configuration list for PBXNativeTarget "CelestifyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9625139A72A41C634EEFAB5 /* Debug */,
+				42F2326011F1F8FB30E4D2BE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7B0CFE96064A9B3C02F2BF0A /* Project object */;
+}
