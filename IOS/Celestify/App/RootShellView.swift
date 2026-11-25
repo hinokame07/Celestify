@@ -108,8 +108,9 @@ public struct RootShellView: View {
 
     @ViewBuilder
     private func appTabs(router: Bindable<AppRouter>) -> some View {
+        let selection = tabSelection(for: router)
         if #available(iOS 18.0, *) {
-            TabView(selection: router.selectedTab) {
+            TabView(selection: selection) {
                 Tab(AppTab.home.title, systemImage: AppTab.home.systemImage, value: AppTab.home) {
                     homeStack(path: router.homePath)
                 }
@@ -124,7 +125,7 @@ public struct RootShellView: View {
                 }
             }
         } else {
-            TabView(selection: router.selectedTab) {
+            TabView(selection: selection) {
                 homeStack(path: router.homePath)
                     .tabItem { Label(AppTab.home.title, systemImage: AppTab.home.systemImage) }
                     .tag(AppTab.home)
@@ -139,6 +140,22 @@ public struct RootShellView: View {
                     .tag(AppTab.settings)
             }
         }
+    }
+
+    private func tabSelection(for router: Bindable<AppRouter>) -> Binding<AppTab> {
+        Binding(
+            get: { router.wrappedValue.selectedTab },
+            set: { selectedTab in
+                HapticsManager.shared.selection()
+                if router.wrappedValue.selectedTab == selectedTab {
+                    router.wrappedValue.popToRoot(of: selectedTab)
+                } else {
+                    withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
+                        router.wrappedValue.selectedTab = selectedTab
+                    }
+                }
+            }
+        )
     }
 
     private func homeStack(path: Binding<NavigationPath>) -> some View {
