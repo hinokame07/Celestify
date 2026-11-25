@@ -1,4 +1,6 @@
+
 name: Celestify
+
 options:
   bundleIdPrefix: app.celestify.ios
   deploymentTarget:
@@ -41,6 +43,7 @@ targets:
   CelestifyTests:
     type: bundle.unit-test
     platform: iOS
+    deploymentTarget: "17.0"
     sources:
       - path: Tests/CelestifyTests
     dependencies:
@@ -48,6 +51,8 @@ targets:
 
   CelestifyUITests:
     type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
     sources:
       - path: Tests/CelestifyUITests
     dependencies:
