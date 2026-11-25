@@ -1,44 +1,122 @@
-name: iOS starter workflow
+
+name: Celestify iOS Build
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths:
+      - "IOS/**"
+      - ".github/workflows/ios-build.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths:
+      - "IOS/**"
+      - ".github/workflows/ios-build.yml"
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    name: Build and Test default scheme using any available iPhone simulator
-    runs-on: macos-latest
+    name: Build Celestify iOS
+    runs-on: macos-26
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set Default Scheme
+
+      - name: Select Xcode 26
         run: |
-          scheme_list=$(xcodebuild -list -json | tr -d "\n")
-          default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
-          echo $default | cat >default
-          echo Using default scheme: $default
-      - name: Build
-        env:
-          scheme: ${{ 'default' }}
-          platform: ${{ 'iOS Simulator' }}
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+          xcodebuild -version
+          swift --version
+
+      - name: Validate project
         run: |
-          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//"`
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild build-for-testing -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "platform=$platform,name=$device"
-      - name: Test
-        env:
-          scheme: ${{ 'default' }}
-          platform: ${{ 'iOS Simulator' }}
+          set -euo pipefail
+
+          test -d IOS/Celestify.xcodeproj
+          test -f IOS/project.yml
+
+          xcodebuild -list \
+            -project IOS/Celestify.xcodeproj
+
+      - name: Resolve Swift packages
         run: |
-          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//"`
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild test-without-building -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "platform=$platform,name=$device"
+          set -euo pipefail
+
+          xcodebuild -resolvePackageDependencies \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify
+
+      - name: Build for iOS Simulator
+        run: |
+          set -euo pipefail
+
+          xcodebuild build \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/Simulator \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit and UI tests
+        run: |
+          set -euo pipefail
+
+          xcodebuild test \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -derivedDataPath build/Tests \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Build Release for iOS
+        run: |
+          set -euo pipefail
+
+          xcodebuild build \
+            -project IOS/Celestify.xcodeproj \
+            -scheme Celestify \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/Release \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/Release/Build/Products/Release-iphoneos/Celestify.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: Celestify.app was not generated."
+            exit 1
+          fi
+
+          mkdir -p build/Payload
+          cp -R "$APP_PATH" build/Payload/
+
+          cd build
+          /usr/bin/zip -r Celestify-unsigned.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Celestify-iOS-Unsigned
+          path: build/Celestify-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Celestify-Build-Logs
+          path: |
+            build/**/*.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
