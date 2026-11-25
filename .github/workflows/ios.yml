@@ -29,19 +29,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Verificar o Xcode disponível
+      # 2. Verificar o Xcode
       - name: Check Xcode installation
         shell: bash
         run: |
           set -euo pipefail
 
-          echo "Selected developer directory:"
+          echo "Developer directory:"
           xcode-select -p
 
           echo "Xcode version:"
           xcodebuild -version
 
-          echo "Available iOS SDK:"
+          echo "iOS SDK:"
           xcrun --sdk iphoneos --show-sdk-version
 
           XCODE_VERSION="$(xcodebuild -version | awk '/^Xcode / {print $2}')"
@@ -51,23 +51,16 @@ jobs:
             exit 1
           fi
 
-      # 3. Verificar os arquivos do projeto
+      # 3. Verificar arquivos
       - name: Validate project files
         shell: bash
         run: |
           set -euo pipefail
 
-          test -d IOS || {
-            echo "::error::IOS directory not found."
-            exit 1
-          }
+          test -d IOS
+          test -f IOS/project.yml
 
-          test -f IOS/project.yml || {
-            echo "::error::IOS/project.yml not found."
-            exit 1
-          }
-
-          echo "iOS project files:"
+          echo "Project files:"
           find IOS -maxdepth 2 -type f | sort | head -200
 
       # 4. Instalar XcodeGen
@@ -82,19 +75,19 @@ jobs:
 
           xcodegen --version
 
-      # 5. Gerar o projeto Xcode
+      # 5. Gerar projeto Xcode
       - name: Generate Xcode project
         shell: bash
         run: |
           set -euo pipefail
 
           cd IOS
+
           xcodegen generate --spec project.yml
 
-          test -d Celestify.xcodeproj || {
-            echo "::error::XcodeGen did not generate Celestify.xcodeproj."
-            exit 1
-          }
+          test -d Celestify.xcodeproj
+
+          echo "Xcode project generated successfully."
 
       # 6. Preparar diretórios
       - name: Prepare build directories
@@ -109,22 +102,47 @@ jobs:
       - name: Resolve project dependencies
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
+          mkdir -p build/logs
+
+          echo "=== PROJECT SCHEMES ==="
 
           xcodebuild -list \
             -project IOS/Celestify.xcodeproj \
             2>&1 | tee build/logs/project-list.log
 
+          echo "=== RESOLVING DEPENDENCIES ==="
+
+          set +e
+
           xcodebuild -resolvePackageDependencies \
             -project IOS/Celestify.xcodeproj \
             -scheme Celestify \
-            2>&1 | tee build/logs/dependencies.log
+            > build/logs/dependencies.log 2>&1
+
+          RESULT=$?
+
+          set -e
+
+          cat build/logs/dependencies.log
+
+          echo "Dependency resolution exit code: $RESULT"
+
+          if [ "$RESULT" -ne 0 ]; then
+            echo "::error::Dependency resolution failed."
+            exit "$RESULT"
+          fi
+
+          echo "=== DEPENDENCIES RESOLVED SUCCESSFULLY ==="
 
       # 8. Compilar para iPhone
       - name: Build iOS Release
         shell: bash
         run: |
           set -euo pipefail
+
+          echo "=== BUILDING CELESTIFY ==="
 
           xcodebuild \
             -project IOS/Celestify.xcodeproj \
@@ -139,13 +157,17 @@ jobs:
             build \
             2>&1 | tee build/logs/iphoneos-build.log
 
-      # 9. Localizar o aplicativo compilado
+          echo "=== BUILD COMPLETED ==="
+
+      # 9. Localizar aplicativo
       - name: Locate compiled app
         shell: bash
         run: |
           set -euo pipefail
 
           PRODUCTS="$GITHUB_WORKSPACE/build/DerivedData/Build/Products/Release-iphoneos"
+
+          echo "Searching for compiled app..."
 
           APP_PATH="$(find "$PRODUCTS" \
             -maxdepth 1 \
@@ -154,17 +176,19 @@ jobs:
             -print -quit)"
 
           if [[ -z "$APP_PATH" ]]; then
-            echo "::error::Compiled .app not found."
+            echo "::error::Compiled application not found."
+
             ls -lah "$PRODUCTS" || true
+
             exit 1
           fi
 
           echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
 
-          echo "Compiled application:"
+          echo "Application found:"
           ls -lah "$APP_PATH"
 
-      # 10. Gerar o IPA
+      # 10. Gerar IPA
       - name: Package unsigned IPA
         shell: bash
         run: |
@@ -172,8 +196,10 @@ jobs:
 
           mkdir -p build/ipa/Payload
 
+          APP_NAME="$(basename "$APP_PATH")"
+
           ditto "$APP_PATH" \
-            build/ipa/Payload/"$(basename "$APP_PATH")"
+            "build/ipa/Payload/$APP_NAME"
 
           ditto -c -k --sequesterRsrc --keepParent \
             build/ipa/Payload \
@@ -181,10 +207,11 @@ jobs:
 
           test -s build/Celestify-unsigned.ipa
 
-          echo "IPA successfully generated:"
+          echo "=== IPA GENERATED ==="
+
           ls -lh build/Celestify-unsigned.ipa
 
-      # 11. Disponibilizar o IPA
+      # 11. Disponibilizar IPA
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
@@ -193,7 +220,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # 12. Guardar logs mesmo se a compilação falhar
+      # 12. Disponibilizar logs
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
