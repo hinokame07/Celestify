@@ -502,7 +502,11 @@ private struct LyricsPlayerBackdrop: View {
         ZStack {
             switch style {
             case .dynamicMesh:
-                AtmosphericBackdrop(palette: palette, isAnimating: isAnimating)
+                NativeDynamicBackground(
+                    artwork: artwork,
+                    palette: palette,
+                    isAnimating: isAnimating
+                )
             case .coverBlur, .artistHeader:
                 if let artwork {
                     GeometryReader { geometry in
@@ -531,8 +535,7 @@ private struct LyricsPlayerBackdrop: View {
             }
         }
         .task(id: "\(track.uri)|\(style.rawValue)") {
-            artwork = nil
-            guard style == .coverBlur || style == .artistHeader else {
+            guard style == .dynamicMesh || style == .coverBlur || style == .artistHeader else {
                 return
             }
             var imageURL = track.coverURL
