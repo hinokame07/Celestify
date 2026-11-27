@@ -60,6 +60,9 @@ public final class PlayerController {
 
     private var localQueue: [Track] = []
     private var localQueueIndex: Int = 0
+    private var playRequestID: UInt64 = 0
+    private var adActionGeneration: UInt64 = 0
+    private var adActionTask: Task<Void, Never>?
     private var trackListenStartedUptime: Double?
     private var accumulatedListenMs: Int64 = 0
     private var trackedListenURI: String?
@@ -82,6 +85,21 @@ public final class PlayerController {
 
         wireCallbacks()
         restoreLastPlayedTrack()
+    }
+
+    static func webPlayerPlayArguments(
+        trackURI: String,
+        contextURI: String,
+        orderedTrackURIs: [String]
+    ) -> [String: JSONValue] {
+        var args: [String: JSONValue] = [
+            "contextUri": .string(contextURI.isEmpty ? trackURI : contextURI),
+            "trackUri": .string(trackURI)
+        ]
+        if contextURI.isEmpty && !orderedTrackURIs.isEmpty {
+            args["order"] = .array(orderedTrackURIs.map(JSONValue.string))
+        }
+        return args
     }
 
     // MARK: - Extrapolated Frame-Rate Position
@@ -115,6 +133,8 @@ public final class PlayerController {
         contextURI: String = "",
         contextName: String = ""
     ) {
+        playRequestID &+= 1
+        let requestID = playRequestID
         flushListenHistoryIfNeeded()
         currentTrack = track
         durationMs = track.durationMs
@@ -147,6 +167,7 @@ public final class PlayerController {
         if let encURL = offlineStore.encryptedFileURL(for: track.spotifyID) {
             Task {
                 if let masterKey = try? await keychain.loadOrCreateOfflineMasterKey() {
+                    guard requestID == playRequestID else { return }
                     localQueue = contextTracks.isEmpty ? [track] : contextTracks
                     localQueueIndex = localQueue.firstIndex(where: { $0.id == track.id }) ?? 0
                     sourceLabel = "Downloaded · Encrypted"
@@ -160,7 +181,9 @@ public final class PlayerController {
 
         // 3. Installed Audio-Source Extension
         Task {
-            if let extAudio = await extensions.resolveAudioSource(track: track) {
+            let extAudio = await extensions.resolveAudioSource(track: track)
+            guard requestID == playRequestID else { return }
+            if let extAudio {
                 localQueue = contextTracks.isEmpty ? [track] : contextTracks
                 localQueueIndex = localQueue.firstIndex(where: { $0.id == track.id }) ?? 0
                 sourceLabel = "\(extAudio.providerLabel) · \(extAudio.qualityLabel)"
@@ -171,7 +194,14 @@ public final class PlayerController {
             }
 
             // 4. Podcast Episode direct Soundfinder CDN passthrough
-            if track.isEpisode, let cdnURL = await api.episodeDirectStreamURL(episodeURI: track.uri) {
+            let cdnURL: URL?
+            if track.isEpisode {
+                cdnURL = await api.episodeDirectStreamURL(episodeURI: track.uri)
+            } else {
+                cdnURL = nil
+            }
+            guard requestID == playRequestID else { return }
+            if let cdnURL {
                 localQueue = contextTracks.isEmpty ? [track] : contextTracks
                 localQueueIndex = localQueue.firstIndex(where: { $0.id == track.id }) ?? 0
                 sourceLabel = "Spotify Podcast"
@@ -187,15 +217,32 @@ public final class PlayerController {
             nowPlaying.activateAudioSession()
 
             do {
-                var playArgs: [String: JSONValue] = ["uri": .string(track.uri)]
-                if !contextURI.isEmpty {
-                    playArgs["contextUri"] = .string(contextURI)
-                } else if !contextTracks.isEmpty {
-                    playArgs["uris"] = .array(contextTracks.map { .string($0.uri) })
-                }
+                guard requestID == playRequestID else { return }
+                let playArgs = Self.webPlayerPlayArguments(
+                    trackURI: track.uri,
+                    contextURI: contextURI,
+                    orderedTrackURIs: contextTracks.map(\.uri)
+                )
+                let stateBeforePlay = bridge.latestState
                 _ = try await bridge.call("player.play", args: .object(playArgs))
-                isBuffering = false
+                guard requestID == playRequestID else { return }
+                if await waitForPlayback(trackURI: track.uri, requestID: requestID, previousState: stateBeforePlay) {
+                    isBuffering = false
+                } else {
+                    guard requestID == playRequestID else { return }
+                    DiagnosticLogbook.shared.log("player", "Play command acknowledged without starting \(track.uri); retrying once")
+                    let stateBeforeRetry = bridge.latestState
+                    _ = try await bridge.call("player.play", args: .object(playArgs))
+                    guard requestID == playRequestID else { return }
+                    if await waitForPlayback(trackURI: track.uri, requestID: requestID, previousState: stateBeforeRetry) {
+                        isBuffering = false
+                    } else {
+                        guard requestID == playRequestID else { return }
+                        throw BridgeError.timeout(method: "player.play")
+                    }
+                }
             } catch {
+                guard requestID == playRequestID else { return }
                 // Fallback to 30s preview stream if WebKit EME is restricted on this device and no Connect target is active
                 if let preview = track.previewURL, let pURL = URL(string: preview) {
                     sourceLabel = "Spotify Preview"
@@ -209,6 +256,27 @@ public final class PlayerController {
             }
             syncNowPlayingCenter()
         }
+    }
+
+    private func waitForPlayback(
+        trackURI: String,
+        requestID: UInt64,
+        previousState: PlayerStateSnapshot?,
+        timeoutSeconds: Double = 3
+    ) async -> Bool {
+        let deadline = ProcessInfo.processInfo.systemUptime + timeoutSeconds
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            guard requestID == playRequestID else { return false }
+            if let state = bridge.latestState,
+               state.item?.uri == trackURI,
+               !state.isPaused,
+               !bridge.adPlaying,
+               state != previousState {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        return false
     }
 
     public func togglePlayPause() {
@@ -294,14 +362,14 @@ public final class PlayerController {
         let clamped = min(max(value, 0.0), 1.0)
         volume = clamped
         nativePlayer.setVolume(Float(clamped))
-        Task { _ = try? await bridge.call("playback.setVolume", args: .object(["volume": .double(clamped)])) }
+        Task { _ = try? await bridge.call("volume.set", args: .object(["level": .double(clamped)])) }
     }
 
     public func toggleShuffle() {
         let next = !isShuffled
         isShuffled = next
         HapticsManager.shared.selection()
-        Task { _ = try? await bridge.call("player.setShuffle", args: .object(["shuffle": .bool(next)])) }
+        Task { _ = try? await bridge.call("player.setShuffle", args: .object(["on": .bool(next)])) }
     }
 
     public func cycleRepeatMode() {
@@ -330,7 +398,7 @@ public final class PlayerController {
             return
         }
         Task {
-            _ = try? await bridge.call("player.addToQueue", args: .object(["uri": .string(track.uri)]))
+            _ = try? await bridge.call("queue.add", args: .object(["uris": .array([.string(track.uri)])]))
         }
     }
 
@@ -361,11 +429,16 @@ public final class PlayerController {
     }
 
     public func resetForLogout() {
+        playRequestID &+= 1
+        adActionGeneration &+= 1
+        adActionTask?.cancel()
+        adActionTask = nil
         flushListenHistoryIfNeeded()
         nativePlayer.stop()
         currentTrack = nil
         isPlaying = false
         isBuffering = false
+        adPlaying = false
         durationMs = 0
         anchorPositionMs = 0
         queue = PlaybackQueue()
@@ -378,6 +451,12 @@ public final class PlayerController {
     // MARK: - Internal Wiring & Ancillary Prefetching
 
     private func wireCallbacks() {
+        bridge.onAdChanged = { [weak self] isAdPlaying in
+            guard let self else { return }
+            self.adPlaying = isAdPlaying
+            if isAdPlaying { self.isBuffering = true }
+            self.processAdActions()
+        }
         bridge.onStateChanged = { [weak self] state in
             self?.applyBridgeState(state)
         }
@@ -410,6 +489,27 @@ public final class PlayerController {
         nowPlaying.onPrevious = { [weak self] in self?.skipPrevious() }
         nowPlaying.onSeek = { [weak self] ms in self?.seek(toMs: ms) }
         nowPlaying.onToggleLike = { [weak self] in self?.toggleCurrentTrackLiked() }
+    }
+
+    private func processAdActions() {
+        guard adActionTask == nil else { return }
+        let generation = adActionGeneration
+        adActionTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled && self.adActionGeneration == generation {
+                let shouldMute = self.adPlaying
+                guard self.bridge.isReady else { break }
+                _ = try? await self.bridge.call("media.mute", args: .object(["on": .bool(shouldMute)]))
+                guard !Task.isCancelled && self.adActionGeneration == generation else { break }
+                if shouldMute, self.adPlaying {
+                    _ = try? await self.bridge.call("ads.skip")
+                }
+                if self.adPlaying == shouldMute { break }
+            }
+            if self.adActionGeneration == generation {
+                self.adActionTask = nil
+            }
+        }
     }
 
     private func applyBridgeState(_ snapshot: PlayerStateSnapshot) {

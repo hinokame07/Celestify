@@ -27,6 +27,45 @@ final class AuthNetworkingAndSecurityTests: XCTestCase {
     }
 
     @MainActor
+    func testWebPlayerPlayArgumentsSelectTheTappedTrackAndPreserveOrder() {
+        let args = PlayerController.webPlayerPlayArguments(
+            trackURI: "spotify:track:selected",
+            contextURI: "",
+            orderedTrackURIs: ["spotify:track:first", "spotify:track:selected"]
+        )
+        XCTAssertEqual(args["contextUri"], .string("spotify:track:selected"))
+        XCTAssertEqual(args["trackUri"], .string("spotify:track:selected"))
+        XCTAssertEqual(args["order"], .array([
+            .string("spotify:track:first"),
+            .string("spotify:track:selected")
+        ]))
+    }
+
+    @MainActor
+    func testWebPlayerPlayArgumentsUseTrackAsStandaloneContext() {
+        let args = PlayerController.webPlayerPlayArguments(
+            trackURI: "spotify:track:selected",
+            contextURI: "",
+            orderedTrackURIs: []
+        )
+        XCTAssertEqual(args["contextUri"], .string("spotify:track:selected"))
+        XCTAssertEqual(args["trackUri"], .string("spotify:track:selected"))
+        XCTAssertNil(args["order"])
+    }
+
+    @MainActor
+    func testWebPlayerPlayArgumentsKeepNativePlaylistContext() {
+        let args = PlayerController.webPlayerPlayArguments(
+            trackURI: "spotify:track:selected",
+            contextURI: "spotify:playlist:context",
+            orderedTrackURIs: ["spotify:track:first", "spotify:track:selected"]
+        )
+        XCTAssertEqual(args["contextUri"], .string("spotify:playlist:context"))
+        XCTAssertEqual(args["trackUri"], .string("spotify:track:selected"))
+        XCTAssertNil(args["order"])
+    }
+
+    @MainActor
     func testMagicLinkNormalizationAndMultiAccountKeychain() async throws {
         let keychain = KeychainStore(service: "app.celestify.tests.\(UUID().uuidString)", inMemoryForTesting: true)
         let auth = SpotifyAuthManager(keychain: keychain)
