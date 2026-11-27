@@ -832,7 +832,7 @@ public final class SpotifyAPIClient: Sendable {
     // MARK: - Connect Devices & Jam
 
     public func connectDevices() async throws -> [ConnectDevice] {
-        let res = try await bridge.call("connect.devices")
+        let res = try await bridge.service("ConnectDevicesAPI", method: "getDevices")
         return res.list().compactMap { d -> ConnectDevice? in
             guard let id = d.str("id") else { return nil }
             return ConnectDevice(
@@ -848,7 +848,11 @@ public final class SpotifyAPIClient: Sendable {
     }
 
     public func transferPlayback(toDeviceID deviceID: String) async throws {
-        _ = try await bridge.call("connect.transfer", args: .object(["deviceId": .string(deviceID)]))
+        _ = try await bridge.service(
+            "ConnectTransferAPI",
+            method: "transferPlayback",
+            args: [.string(deviceID), .object(["playOnTransfer": .bool(true)])]
+        )
     }
 
     public func activeJamSession() async -> JamSession? {

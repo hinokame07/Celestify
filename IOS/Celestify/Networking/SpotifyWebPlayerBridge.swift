@@ -40,6 +40,7 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
 
     public var onStateChanged: ((PlayerStateSnapshot) -> Void)?
     public var onQueueChanged: ((PlaybackQueue) -> Void)?
+    public var onAdChanged: ((Bool) -> Void)?
 
     private var webView: WKWebView?
     private var nextCallID: Int = 1
@@ -219,25 +220,6 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
             controller.addUserScript(userScript)
         }
 
-        // Ad-audio & telemetry silencer script matching Myspoti AdBlock intent
-        let adGuardJS = """
-        (() => {
-          const origFetch = window.fetch;
-          if (!origFetch || window.__celestifyFetchGuarded) return;
-          window.__celestifyFetchGuarded = true;
-          window.fetch = function(input, init) {
-            const url = typeof input === 'string' ? input : (input && input.url) || '';
-            if (url.includes('/ads/') || url.includes('spclient.wg.spotify.com/ad-logic/') || url.includes('adeventtracker')) {
-              return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
-            }
-            return origFetch.apply(this, arguments);
-          };
-        })();
-        """
-        controller.addUserScript(
-            WKUserScript(source: adGuardJS, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-        )
-
         config.userContentController = controller
         let wv = WKWebView(frame: CGRect(x: 0, y: 0, width: 1280, height: 800), configuration: config)
         wv.customUserAgent = HTTPClient.webPlayerUserAgent
@@ -274,10 +256,12 @@ public final class SpotifyWebPlayerBridge: NSObject, WebTokenBridgeSource {
 
         case "state":
             if let rawState = json.at("state"), let mapped = SpotifyMappers.playerState(rawState) {
-                if mapped.item?.kind == .ad {
-                    adPlaying = true
-                } else {
-                    adPlaying = false
+                let isAd = mapped.item?.kind == .ad
+                if adPlaying != isAd {
+                    adPlaying = isAd
+                    onAdChanged?(isAd)
+                }
+                if !isAd {
                     latestState = mapped
                     onStateChanged?(mapped)
                 }
