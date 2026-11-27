@@ -26,7 +26,7 @@ The frame-steered monotonic playhead clock (`Services/Lyrics/LyricClock.swift`),
 The TTML parser (`Services/Lyrics/TtmlLyricsParser.swift`), Spicy Catalogue client and local `.ttml` import store (`Services/Lyrics/SpicyCatalogueService.swift`), multi-script romanizer (`Services/Lyrics/Romanizer.swift`), syllable emphasis/float/glow rendering, and fullscreen/split Cinema stage (`Features/Lyrics/SpicyCinemaView.swift`) are native Swift ports of Spicy Lyrics and Spicy Lyrics Mobile, licensed under **AGPL-3.0**. Myspoti's GPL-3.0 notices remain in force; Section 13 of both licenses governs the combined work. The Spicy Lyrics hosted service, assets, and databases remain separate from this client.
 
 ## Kawarp Background Inspiration — MIT
-Copyright (c) 2026 Better Lyrics. `Core/DesignSystem/AtmosphericBackdrop.swift` adapts the multi-stop artwork color extraction, domain-warped aurora motion, vignette, and saturation concepts of Kawarp 1.3.1 to SwiftUI `MeshGradient` / Canvas rendering.
+Copyright (c) 2026 Better Lyrics. `Core/DesignSystem/NativeDynamicBackground.swift` adapts Kawarp 1.3.1's two-octave simplex domain warp, separable GPU blur, vignette, saturation, and dithering to native Metal rendering. `Core/DesignSystem/AtmosphericBackdrop.swift` retains the palette-based SwiftUI `MeshGradient` / Canvas fallback. The Kawarp MIT license is included at `../base/licenses/Kawarp-LICENSE`.
 
 ## Glassify Native Compatibility Profile — AGPL-3.0
 https://github.com/sanoojes/spicetify-glassify (commit `ee8932c59136e585f5e9c65dbfa2e1d786b97050`)

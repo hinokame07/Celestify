@@ -21,6 +21,7 @@
 		1E775EF2E485DFEE1C6A9E5F /* TrackRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA12CB615E909E31197E37B; };
 		B3C6B5F08559679389C9C95F /* ArtworkPaletteExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66DE08504B5EDB62E80B96C; };
 		88C287B031B5393FEC22A046 /* AtmosphericBackdrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A6CECA6B0FF24F156BB3B1; };
+		1A2B3C4D5E6F708192A3B4C5 /* NativeDynamicBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708192A3B4C5D6; };
 		A2A132354A8F6CE7D68B059A /* CelestialTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66773C01EA81C23F9AB9CAD9; };
 		A411C87670A0381C868CA54F /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A114CEA9DE7A207A88FD9784; };
 		30871A2347255E15DC7CDC64 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8939458A5F2EE22A83AAA3D2; };
@@ -115,6 +116,7 @@
 		BFA12CB615E909E31197E37B /* TrackRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TrackRowView.swift"; path = "Celestify/Components/TrackRowView.swift"; sourceTree = "<group>"; };
 		D66DE08504B5EDB62E80B96C /* ArtworkPaletteExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ArtworkPaletteExtractor.swift"; path = "Celestify/Core/DesignSystem/ArtworkPaletteExtractor.swift"; sourceTree = "<group>"; };
 		D1A6CECA6B0FF24F156BB3B1 /* AtmosphericBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AtmosphericBackdrop.swift"; path = "Celestify/Core/DesignSystem/AtmosphericBackdrop.swift"; sourceTree = "<group>"; };
+		2B3C4D5E6F708192A3B4C5D6 /* NativeDynamicBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "NativeDynamicBackground.swift"; path = "Celestify/Core/DesignSystem/NativeDynamicBackground.swift"; sourceTree = "<group>"; };
 		66773C01EA81C23F9AB9CAD9 /* CelestialTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CelestialTheme.swift"; path = "Celestify/Core/DesignSystem/CelestialTheme.swift"; sourceTree = "<group>"; };
 		A114CEA9DE7A207A88FD9784 /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "HapticsManager.swift"; path = "Celestify/Core/DesignSystem/HapticsManager.swift"; sourceTree = "<group>"; };
 		8939458A5F2EE22A83AAA3D2 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LiquidGlass.swift"; path = "Celestify/Core/DesignSystem/LiquidGlass.swift"; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 			children = (
 				D66DE08504B5EDB62E80B96C /* ArtworkPaletteExtractor.swift */,
 				D1A6CECA6B0FF24F156BB3B1 /* AtmosphericBackdrop.swift */,
+				2B3C4D5E6F708192A3B4C5D6 /* NativeDynamicBackground.swift */,
 				66773C01EA81C23F9AB9CAD9 /* CelestialTheme.swift */,
 				A114CEA9DE7A207A88FD9784 /* HapticsManager.swift */,
 				8939458A5F2EE22A83AAA3D2 /* LiquidGlass.swift */,
@@ -658,6 +661,7 @@
 				1E775EF2E485DFEE1C6A9E5F /* TrackRowView.swift in Sources */,
 				B3C6B5F08559679389C9C95F /* ArtworkPaletteExtractor.swift in Sources */,
 				88C287B031B5393FEC22A046 /* AtmosphericBackdrop.swift in Sources */,
+				1A2B3C4D5E6F708192A3B4C5 /* NativeDynamicBackground.swift in Sources */,
 				A2A132354A8F6CE7D68B059A /* CelestialTheme.swift in Sources */,
 				A411C87670A0381C868CA54F /* HapticsManager.swift in Sources */,
 				30871A2347255E15DC7CDC64 /* LiquidGlass.swift in Sources */,
