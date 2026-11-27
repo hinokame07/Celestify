@@ -6,7 +6,9 @@
 //  Kawarp-inspired warp and color treatment; see THIRD_PARTY_NOTICES.md.
 //
 
+import Foundation
 import MetalKit
+import QuartzCore
 import SwiftUI
 import UIKit
 
@@ -113,6 +115,7 @@ private struct MetalArtworkBackgroundView: UIViewRepresentable {
             isSceneActive: Bool,
             view: MTKView
         ) {
+            renderer?.allowsTransitions = allowsMotion && isSceneActive
             renderer?.setArtwork(artwork)
             guard let renderer else { return }
 
@@ -189,6 +192,7 @@ private final class MetalArtworkRenderer: NSObject, MTKViewDelegate {
     private var transitionStart: CFTimeInterval = 0
     private var animationStart = CACurrentMediaTime()
     private var isStopped = false
+    var allowsTransitions = true
     var animationSpeed: Float = 1
     var setNeedsDraw: (() -> Void)?
 
@@ -288,7 +292,7 @@ private final class MetalArtworkRenderer: NSObject, MTKViewDelegate {
         ) else { return }
 
         let prepared = PreparedArtwork(texture: blurred)
-        if currentArtwork == nil {
+        if currentArtwork == nil || !allowsTransitions {
             previousArtwork = prepared
             currentArtwork = prepared
         } else {
@@ -325,13 +329,22 @@ private final class MetalArtworkRenderer: NSObject, MTKViewDelegate {
 
     func draw(in view: MTKView) {
         guard !isStopped,
-              let currentArtwork,
               let commandQueue,
-              let backgroundPipeline,
-              let sampler,
               let drawable = view.currentDrawable,
               let pass = view.currentRenderPassDescriptor,
-              let commandBuffer = commandQueue.makeCommandBuffer(),
+              let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+
+        guard let currentArtwork else {
+            pass.colorAttachments[0].loadAction = .clear
+            pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0)
+            guard let clearEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) else { return }
+            clearEncoder.endEncoding()
+            commandBuffer.present(drawable)
+            commandBuffer.commit()
+            return
+        }
+        guard let backgroundPipeline,
+              let sampler,
               let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) else { return }
 
         let now = CACurrentMediaTime()
